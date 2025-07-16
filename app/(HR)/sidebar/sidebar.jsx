@@ -56,7 +56,7 @@ export default function Sidebar() {
 function SidebarLink({ href, icon, label }) {
   return (
     <Link href={href} className="flex items-center p-2 rounded hover:bg-gray-500 text-white">
-      {React.cloneElement(icon, { className: 'text-black' })}
+      {React.cloneElement(icon, { className: 'text-gold' })}
       <span className="ml-2">{label}</span>
     </Link>
   );
