@@ -44,7 +44,10 @@ export default function Sidebar() {
 
   <SidebarLink href="/profile" icon={<Users size={18} />} label="Profile" />
   <SidebarLink href="/settings" icon={<Settings size={18} />} label="Settings" />
-  <SidebarLink href="/logout" icon={<LogOut size={18} />} label="Logout" />
+<SidebarLink 
+  href="/logout" icon={<LogOut size={18} className="text-red-600" />} label="Logout" 
+  className="text-red-600"
+/>
 </nav>
 
       </div>

@@ -1,89 +1,58 @@
 "use client";
+import { useTheme } from "next-themes";
+import { useState, useEffect } from "react";
 
-import React, { useState, useEffect } from "react";
-import { Sun, Moon } from "lucide-react";
-
-export default function Settings() {
-  const [darkMode, setDarkMode] = useState(false);
-  const [fontSize, setFontSize] = useState("text-base");
+export default function SettingsPanel() {
+  const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const [fontSize, setFontSize] = useState("medium"); // default
 
-  // On mount, load saved preferences from localStorage
   useEffect(() => {
     setMounted(true);
-    try {
-      const savedDarkMode = localStorage.getItem("darkMode");
-      const savedFontSize = localStorage.getItem("fontSize");
-      if (savedDarkMode !== null) setDarkMode(savedDarkMode === "true");
-      if (savedFontSize) setFontSize(savedFontSize);
-    } catch (e) {
-      // localStorage might be unavailable; fail silently
-    }
   }, []);
 
-  // Update body class and save darkMode to localStorage on change
-  useEffect(() => {
-    if (mounted && typeof document !== "undefined" && document.body) {
-      document.body.className = darkMode ? "dark" : "";
-      try {
-        localStorage.setItem("darkMode", darkMode.toString());
-      } catch {}
-    }
-  }, [darkMode, mounted]);
+  if (!mounted) return null;
 
-  // Save fontSize preference to localStorage on change
-  useEffect(() => {
-    if (mounted) {
-      try {
-        localStorage.setItem("fontSize", fontSize);
-      } catch {}
-    }
-  }, [fontSize, mounted]);
-
-  if (!mounted) {
-    return null; // Prevent hydration mismatch by rendering nothing on server
-  }
+  // Local font size classes
+  const fontSizeClass = {
+    small: "text-sm",
+    medium: "text-base",
+    large: "text-lg",
+  }[fontSize];
 
   return (
-    <div className={`max-w-3xl mx-auto p-6 ${fontSize}`}>
-      <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-        <h1 className="text-2xl font-bold mb-4 dark:text-white">Settings</h1>
+    <div
+      className={`max-w-md mx-auto mt-8 p-6 rounded-2xl shadow-md bg-white dark:bg-gray-800 border dark:border-gray-700 transition-all ${fontSizeClass}`}
+    >
+      <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
+        ⚙️ Settings
+      </h2>
 
-        <div className="flex items-center justify-between mb-6">
-          <span className="dark:text-gray-200">Dark Mode</span>
-          <button
-            onClick={() => setDarkMode(!darkMode)}
-            className="p-2 rounded bg-gray-200 dark:bg-gray-700"
-            aria-label="Toggle dark mode"
-          >
-            {darkMode ? (
-              <Sun className="w-5 h-5 text-yellow-400" />
-            ) : (
-              <Moon className="w-5 h-5 text-gray-800" />
-            )}
-          </button>
-        </div>
+      {/* Theme toggle */}
+      <div className="mb-4">
+        <label className="block mb-1 text-gray-700 dark:text-gray-300">Theme</label>
+        <select
+          value={theme}
+          onChange={(e) => setTheme(e.target.value)}
+          className="w-full p-2 rounded border dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+        >
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+        </select>
+      </div>
 
-        <div className="mb-4">
-          <span className="dark:text-gray-200 block mb-2">Font Size</span>
-          <div className="flex space-x-2">
-            {["text-sm", "text-base", "text-lg"].map((size) => (
-              <button
-                key={size}
-                onClick={() => setFontSize(size)}
-                className={`px-3 py-1 rounded bg-gray-200 dark:bg-gray-700 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-600 ${
-                  fontSize === size ? "font-bold underline" : ""
-                }`}
-              >
-                {size === "text-sm"
-                  ? "Small"
-                  : size === "text-base"
-                  ? "Medium"
-                  : "Large"}
-              </button>
-            ))}
-          </div>
-        </div>
+      {/* Font size */}
+      <div>
+        <label className="block mb-1 text-gray-700 dark:text-gray-300">Font Size</label>
+        <select
+          value={fontSize}
+          onChange={(e) => setFontSize(e.target.value)}
+          className="w-full p-2 rounded border dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
+        >
+          <option value="small">Small</option>
+          <option value="medium">Medium</option>
+          <option value="large">Large</option>
+        </select>
       </div>
     </div>
   );
