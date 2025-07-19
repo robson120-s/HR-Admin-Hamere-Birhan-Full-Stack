@@ -1,6 +1,7 @@
 "use client"; // 👈 Add this line at the top!
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState } from 'react';
 import { Home, Calendar, Users, Layers, FileText, Settings, PersonStanding, LogOut, Edit } from 'lucide-react';
 

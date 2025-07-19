@@ -22,15 +22,12 @@
 html[data-theme='light'] {
   --background: #ffffff;
   --foreground: #ff0000;
-  --sidebar: #b38b8b;
-  --menu-text: #ff0000;      
-  --menu-hover-bg: #ffe5e5;
+  
 }
 
 html[data-theme='dark'] {
   --background: #0d430d;
   --foreground: #ffffff;
-  --sidebar: #092d09; 
-  --menu-text: #ffffff;        
-  --menu-hover-bg: #064d2f;
 }
+
+

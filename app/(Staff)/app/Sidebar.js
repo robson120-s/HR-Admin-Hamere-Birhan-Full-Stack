@@ -1,44 +1,77 @@
 'use client';
+import React, { useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 
-export default function Sidebar() {
-  return (
-    <div
-      className="w-64 h-screen text-white p-6 flex flex-col justify-between"
-      style={{ backgroundColor: 'var(--sidebar)' }}
-    >
-      <div>
-        <h2 className="text-2xl font-bold mb-8">Staff Dashboard</h2>
-        <ul className="space-y-4 text-lg">
-          <li>
-            <Link href="/" className="flex items-center gap-2 hover:text-gray-300">
-              🏠 Dashboard
-            </Link>
-          </li>
-          <li>
-            <Link href="/attendance" className="flex items-center gap-2 hover:text-gray-300">
-              📅 Attendance History
-            </Link>
-          </li>
-          <li>
-            <Link href="/setting" className="flex items-center gap-2 hover:text-gray-300">
-              ⚙️ Settings
-            </Link>
-          </li>
-          <li>
-            <Link href="/profile" className="flex items-center gap-2 hover:text-gray-300">
-              👤 My Profile
-            </Link>
-          </li>
-        </ul>
-      </div>
+import {
+  Home,
+  Calendar,
+  Users,
+  Settings,
+  LogOut,
+} from 'lucide-react';
 
-      <div>
-        <button className="flex items-center gap-2 text-red-400 hover:text-red-200">
-          <img src="/logout-icon.png" alt="Logout Icon" className="w-5 h-5" />
-          Logout
-        </button>
+export default function Sidebar() {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <>
+      
+      <button
+        className="md:hidden p-2 m-2 rounded bg-green-400 hover:bg-green-600 fixed z-50"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        ☰
+      </button>
+
+      
+      <div
+        className={`
+          fixed top-0 left-0 h-screen bg-green-900 border-r border-green-700
+          shadow-lg p-4 w-64 space-y-6 text-white
+          overflow-y-auto
+          transform ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+          transition-transform duration-200 ease-in-out
+          md:translate-x-0 md:static md:shadow-none
+        `}
+      >
+       
+        <div className="flex items-center space-x-2">
+          <Image src="/logo.png" alt="Logo" width={48}  height={48} className="rounded-full mb-2"/>
+
+          <span className="text-sm font-bold">
+            ቅዱስ ዮሐንስ አፈወርቅ <br />
+            የዘመነ ክረምት የሕጻናት ት/ት መርሐግብር
+          </span>
+        </div>
+
+        
+        <nav className="flex flex-col space-y-2 mt-8 text-white">
+          <SidebarLink href="/" icon={<Home size={18} />} label="Dashboard" />
+          <SidebarLink href="/attendance" icon={<Calendar size={18} />} label="Attendance History" />
+
+          <hr className="my-4 border-gray-300 opacity-50" />
+
+          <SidebarLink href="/profile" icon={<Users size={18} />} label="Profile" />
+          <SidebarLink href="/setting" icon={<Settings size={18} />} label="Settings" />
+          <SidebarLink
+            href="/logout"
+            icon={<LogOut size={18} />}
+            label="Logout"
+            className="text-red-600 hover:bg-red-700"
+          />
+        </nav>
       </div>
-    </div>
+    </>
+  );
+}
+
+
+function SidebarLink({ href, icon, label, className = '' }) {
+  return (
+    <Link href={href} className={`flex items-center p-2 rounded hover:bg-gray-500 text-white ${className}`}>
+      {React.cloneElement(icon, { className: 'text-white' })}
+      <span className="ml-2">{label}</span>
+    </Link>
   );
 }
