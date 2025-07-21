@@ -1,7 +1,11 @@
 // app/layout.js
 'use client';
-import './globals.css'; // make sure this exists
-import ClientLayout from './ClientLayout';
+
+import ClientLayout from "../ClientLayout";
+
+//  import './globals.css';
+
+
 
 export default function RootLayout({ children }) {
   return (

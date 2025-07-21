@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import Sidebar from './Sidebar';
+import Sidebar from './staff/Sidebar.jsx'; 
 import { Moon, Sun } from 'lucide-react';
 
 export default function ClientLayout({ children }) {
