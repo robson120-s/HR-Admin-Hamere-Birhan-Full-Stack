@@ -47,13 +47,13 @@ export default function Sidebar() {
 
         
         <nav className="flex flex-col space-y-2 mt-8 text-white">
-          <SidebarLink href="/" icon={<Home size={18} />} label="Dashboard" />
-          <SidebarLink href="/attendance" icon={<Calendar size={18} />} label="Attendance History" />
+          <SidebarLink href="/staff" icon={<Home size={18} />} label="Dashboard" />
+          <SidebarLink href="/staff/attendance" icon={<Calendar size={18} />} label="Attendance History" />
 
           <hr className="my-4 border-gray-300 opacity-50" />
 
-          <SidebarLink href="/profile" icon={<Users size={18} />} label="Profile" />
-          <SidebarLink href="/setting" icon={<Settings size={18} />} label="Settings" />
+          <SidebarLink href="/staff/profile" icon={<Users size={18} />} label="Profile" />
+          <SidebarLink href="/staff/setting" icon={<Settings size={18} />} label="Settings" />
           <SidebarLink
             href="/logout"
             icon={<LogOut size={18} />}
