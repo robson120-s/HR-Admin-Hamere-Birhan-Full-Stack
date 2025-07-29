@@ -219,7 +219,7 @@ export default function DashboardPage() {
 function Card({ title, value, color, onClick }) {
   return (
     <div
-      className={`${color} p-6 rounded-2xl shadow transition-transform hover:scale-105 cursor-pointer transition-colors`}
+      className={`${color} p-6 rounded-2xl shadow transition-all hover:scale-105 cursor-pointer`}
       onClick={onClick}
       role="button"
       tabIndex={0}
