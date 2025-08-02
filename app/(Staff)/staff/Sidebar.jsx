@@ -55,7 +55,7 @@ export default function Sidebar() {
           <SidebarLink href="/staff/profile" icon={<Users size={18} />} label="Profile" />
           <SidebarLink href="/staff/setting" icon={<Settings size={18} />} label="Settings" />
           <SidebarLink
-            href="/logout"
+            href="/loginpage"
             icon={<LogOut size={18} />}
             label="Logout"
             className="text-red-600 hover:bg-red-700"
