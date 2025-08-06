@@ -22,9 +22,11 @@ export default function LoginPage() {
 
     if (role === "HR") {
       router.push("/dashboard");
-    } else if (role === "admin") {
-      router.push("/admin");
-    } else if (role === "staff") {
+    } else if (role === "superadmin") {
+      router.push("/superAdmin");
+    } else if (role === "intern") {
+      router.push("/intern");
+    }  else if (role === "staff") {
       router.push("/staff");
     } else if (role === "departmentHead") {
       router.push("/departmentHead");
@@ -108,9 +110,10 @@ export default function LoginPage() {
               className="w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
             >
               <option value="HR">HR</option>
-              <option value="admin">Admin</option>
+              <option value="superAdmin">super admin</option>
               <option value="staff">Staff</option>
               <option value="departmentHead">Department Head</option>
+              <option value="intern">Intern</option>
             </select>
           </div>
           
