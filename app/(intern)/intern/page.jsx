@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import { CalendarIcon, UserIcon, CogIcon } from '@heroicons/react/24/outline';
+import { CalendarIcon, UserIcon, CogIcon} from '@heroicons/react/24/outline';
 
 export default function DashboardPage() {
   const userName = 'Jane Doe';

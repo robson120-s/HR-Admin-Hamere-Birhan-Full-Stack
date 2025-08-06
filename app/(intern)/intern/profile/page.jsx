@@ -10,7 +10,6 @@ export default function ProfilePage() {
     department: 'Engineering',
     role: 'Frontend Developer',
     joined: '2023-06-15',
-    salary: '$60,000/year',
     location: 'New York Office',
     empId: 'EMP2025-003',
   };
