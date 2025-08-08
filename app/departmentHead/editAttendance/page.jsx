@@ -166,7 +166,7 @@ export default function EditAttendancePage() {
 
   return (
     <div className="flex h-screen overflow-hidden">
-      {/* Sticky sidebar */}
+     
       <div className="h-screen sticky top-0 bg-white shadow-md z-10">
         <Sidebar />
       </div>

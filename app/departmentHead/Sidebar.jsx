@@ -46,12 +46,12 @@ export default function Sidebar() {
           <SidebarLink href="/departmentHead" icon={<Home size={18} />} label="Dashboard" />
           <SidebarLink href="/departmentHead/editAttendance" icon={<Calendar size={18} />} label="Edit attendance" />
           <SidebarLink href="/departmentHead/performance" icon={<LineChart size={18} />} label="Performance" />
-          <SidebarLink href="/departmentHead/Evaluation" icon={<CheckCircle2 size={20}/>} label="Evaluation" />
+          <SidebarLink href="/departmentHead/evaluation" icon={<CheckCircle2 size={20}/>} label="Evaluation" />
           <SidebarLink href="/departmentHead/complain" icon={<AlertCircle size={20} />} label="Complain Management" />
 
           <hr className="my-4 border-gray-300 opacity-50" />
 
-          <SidebarLink href="/departmentHead/setting" icon={<Settings size={18} />} label="Settings" />
+          <SidebarLink href="/departmentHead/settings" icon={<Settings size={18} />} label="Settings" />
           <SidebarLink
              className="text-red-600 hover:bg-red-700" 
              href="/loginpage"

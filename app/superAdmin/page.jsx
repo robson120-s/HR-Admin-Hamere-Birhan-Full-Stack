@@ -1,8 +1,8 @@
 "use client"
 
 import { BadgeDollarSign, Users, LineChart, UserCheck, Settings } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "/components/ui/card"
+import { Button } from "/components/ui/button"
 
 export default function SuperAdminDashboard() {
   return (
