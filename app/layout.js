@@ -4,11 +4,17 @@ import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], display: "swap" });
 
+// app/layout.js
+
+
+
+
+
 export const metadata = {
   title: "Attendance Management System",
   description: "Manage and track attendance efficiently.",
   icons: {
-    icon: "/favicon.ico", // Update this if needed
+    icon: "/favicon-32.ico", // Update this if needed
   },
   authors: [
     { name: "ሐመረ ብርሃን የብራና መጽሐፍት ሥራ | Hamere Berhan Parchment Books Work" }
@@ -35,6 +41,9 @@ export default function RootLayout({ children }) {
     <html lang="en" suppressHydrationWarning>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        {/* put inside <head> area or head.js */}
+        <link rel="icon" href="/favicon-32.ico" sizes="32x32" />
+
       </head>
       <body className={`${inter.className} antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>

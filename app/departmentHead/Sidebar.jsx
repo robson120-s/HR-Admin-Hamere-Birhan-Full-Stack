@@ -25,14 +25,11 @@ export default function Sidebar() {
       </button>
 
       <div
-        className={`
-          fixed top-0 left-0 h-screen bg-green-900 border-r border-green-700
-          shadow-lg p-4 w-64 space-y-6 text-white
-          overflow-y-auto
-          transform ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-          transition-transform duration-200 ease-in-out
-          md:translate-x-0 md:static md:shadow-none
-        `}
+        className={`fixed top-0 left-0 h-screen bg-green-900 border-r border-green-700
+    shadow-lg p-4 w-64 space-y-6 text-white overflow-y-auto
+    transform ${isOpen ? "translate-x-0" : "-translate-x-full"}
+    transition-transform duration-200 ease-in-out
+    md:translate-x-0 z-40`}
       >
         <div className="flex items-center space-x-2">
           <Image src="/logo.png" alt="Logo" width={48} height={48} className="rounded-full mb-2" />

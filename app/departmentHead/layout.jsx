@@ -1,6 +1,6 @@
 import '../globals.css';
 import React from 'react';
-import Sidebar from './sidebar/sidebar.jsx'; 
+import Sidebar from './Sidebar'; 
 import { Toaster } from 'react-hot-toast';
 
 export const metadata = {

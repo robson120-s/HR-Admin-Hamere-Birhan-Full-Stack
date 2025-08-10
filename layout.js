@@ -8,7 +8,7 @@ export const metadata = {
   title: "Attendance Management System",
   description: "Manage and track attendance efficiently.",
   icons: {
-    icon: "/favicon.ico", // Update this if needed
+    icon: "/favicon-32.ico", // Update this if needed
   },
   authors: [
     { name: "ሐመረ ብርሃን የብራና መጽሐፍት ሥራ | Hamere Berhan Parchment Books Work" }
