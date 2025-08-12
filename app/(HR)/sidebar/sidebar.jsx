@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import { DollarSign } from "lucide-react";
 import Link from "next/link";
 import {
   Home,
@@ -59,6 +60,11 @@ export default function Sidebar() {
             href="/edit-attendance"
             icon={<Edit size={18} />}
             label="Edit Attendance"
+          />
+          <SidebarLink
+            href="/salary"
+            icon={<DollarSign size={18} />}
+            label="Salary"
           />
           <SidebarLink
             href="/departments"
