@@ -4,57 +4,68 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 
-// Import centralized mock data
-import { mockSummary, meetingsData } from "../../../lib/mockData";
+// --- CHANGE 1: Import the new API function, remove mock data imports ---
+import { getDashboardData } from "../../../lib/api";
+
+
 // Import lightweight components
 import SummaryCard from "./components/SummaryCard";
 import ThemeToggle from "./components/ThemeToggle";
-import FullListView from "./components/FullListView";
+// import FullListView from "./components/FullListView";
 import InfoWidgets from "./components/InfoWidgets";
 import LoadingSpinner from "./loading";
+import { meetingsData } from "../../../lib/mockData"; // Keep this for now, see note below
 
-// Dynamically import heavy components for performance
-const AttendanceChart = dynamic(() => import("./components/AttendanceChart"), {
-  loading: () => <div className="h-[468px] w-full bg-gray-200 dark:bg-gray-700 animate-pulse rounded-2xl" />,
-  ssr: false, // This component uses browser APIs, so disable SSR for it
-});
-
-const MeetingSchedule = dynamic(() => import("./components/MeetingSchedule"), {
-  loading: () => <div className="h-[300px] w-full bg-gray-200 dark:bg-gray-700 animate-pulse rounded-2xl" />,
-});
-
-const DashboardCalendar = dynamic(() => import("./components/DashboardCalendar"), {
-  loading: () => <div className="h-[300px] w-full bg-gray-200 dark:bg-gray-700 animate-pulse rounded-2xl" />,
-});
-
+// Dynamically import heavy components
+const AttendanceChart = dynamic(() => import("./components/AttendanceChart"), { /* ... */ });
+const MeetingSchedule = dynamic(() => import("./components/MeetingSchedule"), { /* ... */ });
+const DashboardCalendar = dynamic(() => import("./components/DashboardCalendar"), { /* ... */ });
 
 export default function DashboardPage() {
-  const [data, setData] = useState(null);
-  const [selectedList, setSelectedList] = useState(null);
   const router = useRouter();
 
-  useEffect(() => {
-    // In a real app, you would fetch this data from an API
-    // For now, we set it from our imported mock data
-    setData(mockSummary);
-  }, []);
+  // --- CHANGE 2: Add states for loading, error, and the fetched data ---
+  const [dashboardData, setDashboardData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  if (!data) {
+  // --- CHANGE 3: Use useEffect to fetch data when the page loads ---
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        const data = await getDashboardData();
+        setDashboardData(data);
+        setError(null);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []); // The empty array [] means this effect runs only once on mount
+
+  // --- CHANGE 4: Add UI states for Loading and Error ---
+  if (isLoading) {
     return <LoadingSpinner />;
   }
 
-  // If a list (staff/interns) is selected, show only the list view
-  if (selectedList) {
+  if (error) {
     return (
-      <FullListView
-        listType={selectedList}
-        list={selectedList === "staff" ? data.staffList : data.internList}
-        onBack={() => setSelectedList(null)}
-      />
+      <div className="flex items-center justify-center min-h-screen text-red-500">
+        Error: {error}
+      </div>
     );
   }
 
-  // Main Dashboard View
+  // If a list (staff/interns) is selected, show only the list view
+  // NOTE: This part needs data from another API endpoint (e.g., /api/hr/employees?role=staff)
+  // For now, it will not function as we don't have the lists.
+  // if (selectedList) { ... }
+
+  // --- CHANGE 5: Pass REAL data as props to the components ---
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 md:p-8 transition-colors relative">
       <ThemeToggle />
@@ -65,20 +76,21 @@ export default function DashboardPage() {
 
       {/* Row 1: Summary Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
-        <SummaryCard title="Total Employee" value={data.totalEmployee} color="bg-yellow-100 dark:bg-yellow-800" onClick={() => router.push("/employee")} />
-        <SummaryCard title="Departments" value={data.totalDepartments} color="bg-blue-100 dark:bg-blue-800" onClick={() => router.push("/departments")} />
-        <SummaryCard title="Total Staff" value={data.totalStaff} color="bg-green-100 dark:bg-green-800" onClick={() => setSelectedList("staff")} />
-        <SummaryCard title="Total Interns" value={data.totalInterns} color="bg-purple-100 dark:bg-purple-800" onClick={() => setSelectedList("interns")} />
-        <SummaryCard title="On Leave" value={data.totalOnLeave} color="bg-red-100 dark:bg-red-800" onClick={() => router.push("/leave")} />
+        <SummaryCard title="Total Employee" value={dashboardData.totalEmployees} color="bg-yellow-100 dark:bg-yellow-800" />
+        <SummaryCard title="Departments" value={dashboardData.totalDepartments} color="bg-blue-100 dark:bg-blue-800" />
+        <SummaryCard title="Total Staff" value={dashboardData.totalStaff} color="bg-green-100 dark:bg-green-800" />
+        <SummaryCard title="Total Interns" value={dashboardData.totalIntern} color="bg-purple-100 dark:bg-purple-800" />
+        <SummaryCard title="On Leave Today" value={dashboardData.totalOnLeave} color="bg-red-100 dark:bg-red-800" />
       </div>
 
       {/* Row 2: Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <InfoWidgets />
-        <AttendanceChart data={data.attendanceByDepartment} />
+        <InfoWidgets data={dashboardData} />
+        <AttendanceChart data={dashboardData.presentPerDepartment} />
       </div>
 
       {/* Row 3: Meetings and Calendar */}
+      {/* Note: Your backend doesn't provide meeting data, so we keep using mock data for now. */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <MeetingSchedule initialMeetings={meetingsData} />
         <DashboardCalendar />

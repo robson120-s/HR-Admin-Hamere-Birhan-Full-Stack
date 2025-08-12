@@ -41,7 +41,7 @@ export default function AttendanceLeaveInfoCard({ stats }) {
         <div className="space-y-4">
           <div>
             <p className="text-lg font-bold text-purple-500">{stats.pendingApproval}</p>
-            <p className="text-sm text-gray-500 dark:text-gray-300">Pending Approval</p>
+            <p className="text-sm text-gray-500 dark:text-gray-300">Pending leave Approval</p>
           </div>
           <div>
             <p className="text-lg font-bold text-sky-500">{stats.workingDays}</p>
@@ -49,7 +49,7 @@ export default function AttendanceLeaveInfoCard({ stats }) {
           </div>
           <div>
             <p className="text-lg font-bold text-red-500">{stats.lossOfPay}</p>
-            <p className="text-sm text-gray-500 dark:text-gray-300">Loss of Pay</p>
+            <p className="text-sm text-gray-500 dark:text-gray-300">Total complain</p>
           </div>
         </div>
       </div>

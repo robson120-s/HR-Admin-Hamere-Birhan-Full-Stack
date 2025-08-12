@@ -2,6 +2,8 @@ import { ThemeProvider } from "next-themes";
 import { Inter } from "next/font/google";
 import "./globals.css";
 
+import { Toaster } from 'react-hot-toast';
+
 const inter = Inter({ subsets: ["latin"], display: "swap" });
 
 // app/layout.js
@@ -48,8 +50,13 @@ export default function RootLayout({ children }) {
       <body className={`${inter.className} antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
           {children}
+        <Toaster position="top-right" reverseOrder={false} />
         </ThemeProvider>
       </body>
     </html>
   );
 }
+
+
+
+

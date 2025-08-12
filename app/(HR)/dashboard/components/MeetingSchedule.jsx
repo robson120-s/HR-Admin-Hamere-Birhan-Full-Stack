@@ -1,47 +1,53 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FaPlus, FaTrash, FaTimes } from "react-icons/fa";
+// Import the new API functions
+import { getMeetings, addMeeting, deleteMeeting as apiDeleteMeeting } from "../../../../lib/api";
+import toast from "react-hot-toast";
 
-// This self-contained component manages the entire meeting schedule section.
-export default function MeetingSchedule({ initialMeetings }) {
-  const [meetings, setMeetings] = useState(initialMeetings || []);
+export default function MeetingSchedule() {
+  const [meetings, setMeetings] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [formData, setFormData] = useState({ title: "", date: "", time: "" });
 
-  // Form input state
-  const [formData, setFormData] = useState({
-    title: "",
-    date: "",
-    time: "",
-  });
+  useEffect(() => {
+    const fetchMeetings = async () => {
+      try {
+        const data = await getMeetings();
+        setMeetings(data);
+      } catch (error) {
+        toast.error("Could not fetch meetings.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchMeetings();
+  }, []);
 
-  // Handle form input change
-  const handleChange = (e) => {
-    setFormData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
-  };
+  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  // Add meeting from form data
-  const addMeeting = (e) => {
+  const handleAddMeeting = async (e) => {
     e.preventDefault();
-    const { title, date, time } = formData;
-
-    if (!title.trim() || !date || !time.trim()) {
-      alert("Please fill in all fields.");
-      return;
+    try {
+      const newMeeting = await addMeeting(formData);
+      setMeetings([...meetings, newMeeting]);
+      setFormData({ title: "", date: "", time: "" });
+      setShowForm(false);
+    } catch (error) {
+      toast.error("Failed to add meeting.");
     }
-
-    setMeetings([...meetings, { title, date, time }]);
-    setFormData({ title: "", date: "", time: "" });
-    setShowForm(false);
   };
 
-  // Delete meeting at index i
-  const deleteMeeting = (i) => {
+  const handleDeleteMeeting = async (id) => {
     if (window.confirm("Delete this meeting?")) {
-      setMeetings(meetings.filter((_, idx) => idx !== i));
+      try {
+        await apiDeleteMeeting(id);
+        setMeetings(meetings.filter((m) => m.id !== id));
+      } catch (error) {
+        toast.error("Failed to delete meeting.");
+      }
     }
   };
 
@@ -61,7 +67,7 @@ export default function MeetingSchedule({ initialMeetings }) {
 
       {showForm && (
         <form
-          onSubmit={addMeeting}
+          onSubmit={handleAddMeeting}
           className="mb-6 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg shadow-inner relative"
         >
           <button
@@ -165,11 +171,7 @@ export default function MeetingSchedule({ initialMeetings }) {
                 <td className="p-2 text-gray-700 dark:text-gray-300">{date}</td>
                 <td className="p-2 text-gray-700 dark:text-gray-300">{time}</td>
                 <td className="p-2">
-                  <button
-                    onClick={() => deleteMeeting(i)}
-                    className="text-red-500 hover:text-red-700"
-                    title="Delete Meeting"
-                  >
+                  <button onClick={() => handleDeleteMeeting(meeting.id)} className="text-red-500 hover:text-red-700" title="Delete Meeting">
                     <FaTrash />
                   </button>
                 </td>
