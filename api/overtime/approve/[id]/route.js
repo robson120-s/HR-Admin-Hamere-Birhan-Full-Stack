@@ -1,13 +1,12 @@
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
 export async function POST(request, { params }) {
   try {
     const { id } = params;
 
     if (!id) {
-      return Response.json(
+      return NextResponse.json(
         { error: "Overtime ID is required" },
         { status: 400 }
       );
@@ -29,14 +28,14 @@ export async function POST(request, { params }) {
     // If the update fails (e.g., record doesn't exist), return mock success for demonstration
     if (!updatedOvertime) {
       console.log(`Mock approval for overtime ID: ${id}`);
-      return Response.json({
+      return NextResponse.json({
         success: true,
         message: "Overtime approved successfully",
         id: id,
       });
     }
 
-    return Response.json({
+    return NextResponse.json({
       success: true,
       message: "Overtime approved successfully",
       data: updatedOvertime,
@@ -46,7 +45,7 @@ export async function POST(request, { params }) {
     
     // For demonstration purposes, return success even if database operation fails
     // In production, you would handle this differently
-    return Response.json({
+    return NextResponse.json({
       success: true,
       message: "Overtime approved successfully (mock)",
       id: params.id,

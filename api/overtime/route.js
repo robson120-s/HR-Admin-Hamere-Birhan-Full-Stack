@@ -1,6 +1,5 @@
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   try {
@@ -61,7 +60,7 @@ export async function GET() {
         },
       ];
       
-      return Response.json(mockData);
+      return NextResponse.json(mockData);
     }
 
     // Transform the data to match the expected format
@@ -78,10 +77,10 @@ export async function GET() {
       createdAt: item.createdAt,
     }));
 
-    return Response.json(transformedData);
+    return NextResponse.json(transformedData);
   } catch (error) {
     console.error("Error fetching overtime data:", error);
-    return Response.json(
+    return NextResponse.json(
       { error: "Failed to fetch overtime data" },
       { status: 500 }
     );
