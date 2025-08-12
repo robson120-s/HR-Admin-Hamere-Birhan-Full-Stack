@@ -243,6 +243,6 @@ function formatCurrency(value) {
     return amount.toFixed(2);
   }
 }
-
+//s
 
 //sosina
