@@ -155,23 +155,26 @@ export default function MeetingSchedule() {
             </tr>
           </thead>
           <tbody>
-            {meetings.length === 0 && (
+            {isLoading && <tr><td colSpan="4" className="p-4 text-center">Loading...</td></tr>}
+            {!isLoading && meetings.length === 0 && (
               <tr>
                 <td colSpan={4} className="p-4 text-center text-gray-500">
                   No meetings scheduled.
                 </td>
               </tr>
             )}
-            {meetings.map(({ title, date, time }, i) => (
+            {/* ✅ FIX: Destructure the 'id' from the meeting object */}
+            {meetings.map(({ id, title, date, time }) => (
               <tr
-                key={i}
+                key={id} // Use the unique database ID as the key, not the index 'i'
                 className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition"
               >
                 <td className="p-2 text-gray-700 dark:text-gray-300">{title}</td>
-                <td className="p-2 text-gray-700 dark:text-gray-300">{date}</td>
+                <td className="p-2 text-gray-700 dark:text-gray-300">{new Date(date).toLocaleDateString()}</td>
                 <td className="p-2 text-gray-700 dark:text-gray-300">{time}</td>
                 <td className="p-2">
-                  <button onClick={() => handleDeleteMeeting(meeting.id)} className="text-red-500 hover:text-red-700" title="Delete Meeting">
+                  {/* ✅ FIX: Pass the 'id' to the delete handler */}
+                  <button onClick={() => handleDeleteMeeting(id)} className="text-red-500 hover:text-red-700" title="Delete Meeting">
                     <FaTrash />
                   </button>
                 </td>
