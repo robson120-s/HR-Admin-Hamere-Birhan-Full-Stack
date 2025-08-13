@@ -11,7 +11,7 @@ import {
   Settings,
   LogOut,
   Edit,
-   IdCard, Lanyard
+   IdCard, Lanyard, Clock
 } from "lucide-react";
 
 export default function Sidebar() {
@@ -65,6 +65,11 @@ export default function Sidebar() {
             href="/salary"
             icon={<DollarSign size={18} />}
             label="Salary"
+          />
+          <SidebarLink
+            href="/overtime-approval"
+            icon={<Clock size={18} />}
+            label="Overtime Approval"
           />
           <SidebarLink
             href="/departments"
