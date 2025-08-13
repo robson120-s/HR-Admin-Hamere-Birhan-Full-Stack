@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^6.13.0",
+    "@headlessui/react": "^2.2.7",
     "@heroicons/react": "^2.2.0",
     "@radix-ui/react-dialog": "^1.1.14",
     "@radix-ui/react-slot": "^1.2.3",
@@ -41,5 +42,20 @@
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
     "typescript": "5.8.3"
-  }
+  },
+  "description": "<<<<<<< HEAD\r This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).",
+  "main": "layout.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/robson120-s/HR-Admin-FrontEnd-Hamere-Birhan-.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/robson120-s/HR-Admin-FrontEnd-Hamere-Birhan-/issues"
+  },
+  "homepage": "https://github.com/robson120-s/HR-Admin-FrontEnd-Hamere-Birhan-#readme"
 }

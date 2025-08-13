@@ -66,6 +66,12 @@ export default function Sidebar() {
             icon={<DollarSign size={18} />}
             label="Salary"
           />
+          
+          <SidebarLink
+            href="/leave_request"
+            icon={<Settings size={18} />}
+            label="Leave Requests"
+          />
           <SidebarLink
             href="/overtime-approval"
             icon={<Clock size={18} />}
