@@ -13,6 +13,7 @@ import {
   Edit,
    IdCard, Lanyard, Clock
 } from "lucide-react";
+import { MdOutlineReportProblem } from 'react-icons/md';
 
 export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -86,6 +87,12 @@ export default function Sidebar() {
             href="/reports"
             icon={<FileText size={18} />}
             label="Reports"
+          />
+
+          <SidebarLink
+            href="/complain_received"
+            icon={<MdOutlineReportProblem size={18} />}
+            label="Complaint List"
           />
           <SidebarLink
             href="/emp_profile_list"

@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { updateComplaint } from "../../../../lib/api"; // Adjust path if needed
 import toast from "react-hot-toast";
-import { X } from "lucide-react";
+import { X, UserCircle, Calendar, MessageSquare } from "lucide-react";
 
 export function ComplaintDetailModal({ complaint, onClose, onUpdate }) {
   const [status, setStatus] = useState(complaint.status);
@@ -15,8 +15,8 @@ export function ComplaintDetailModal({ complaint, onClose, onUpdate }) {
     try {
       await updateComplaint(complaint.id, { status, response });
       toast.success("Complaint updated successfully!");
-      onUpdate(); // Refetch the list on the main page
-      onClose(); // Close the modal
+      onUpdate();
+      onClose();
     } catch (error) {
       toast.error(error.message);
     } finally {
@@ -24,44 +24,53 @@ export function ComplaintDetailModal({ complaint, onClose, onUpdate }) {
     }
   };
 
+
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <header className="p-4 border-b dark:border-gray-700 flex justify-between items-center sticky top-0 bg-white dark:bg-gray-800">
-          <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">Complaint Details</h2>
-          <button onClick={onClose} className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 animate-fadeIn">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+        <header className="p-4 border-b dark:border-gray-700 flex justify-between items-center flex-shrink-0">
+          <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">{complaint.subject}</h2>
+          <button onClick={onClose} className="p-1 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700">
             <X size={20} />
           </button>
         </header>
         
-        <div className="p-6 space-y-4">
-          <div>
-            <h3 className="font-semibold">Subject:</h3>
-            <p className="text-gray-700 dark:text-gray-300">{complaint.subject}</p>
+        {/* ✅ NEW: Improved layout for details */}
+        <div className="p-6 space-y-6 overflow-y-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-sm">
+            <div className="flex items-center gap-3">
+              <UserCircle className="text-gray-400" size={20}/>
+              <div>
+                <span className="text-gray-500 dark:text-gray-400">From:</span>
+                <p className="font-semibold text-gray-800 dark:text-gray-200">{complaint.employee.name}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <Calendar className="text-gray-400" size={20}/>
+              <div>
+                <span className="text-gray-500 dark:text-gray-400">Submitted On:</span>
+                <p className="font-semibold text-gray-800 dark:text-gray-200">{new Date(complaint.createdAt).toLocaleString()}</p>
+              </div>
+            </div>
           </div>
-          <div>
-            <h3 className="font-semibold">From:</h3>
-            <p className="text-gray-700 dark:text-gray-300">{complaint.employee.name}</p>
-          </div>
-          <div>
-            <h3 className="font-semibold">Submitted On:</h3>
-            <p className="text-gray-700 dark:text-gray-300">{new Date(complaint.createdAt).toLocaleString()}</p>
-          </div>
-          <div className="bg-gray-50 dark:bg-gray-900/50 p-4 rounded-md">
-            <h3 className="font-semibold">Description:</h3>
-            <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{complaint.description}</p>
+          
+          <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-lg">
+            <h3 className="font-semibold text-gray-800 dark:text-gray-200 mb-2 flex items-center gap-2">
+              <MessageSquare size={18}/>
+              Full Description
+            </h3>
+            <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap text-sm leading-relaxed">
+              {complaint.description}
+            </p>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 border-t dark:border-gray-700 space-y-4">
+        {/* The form remains largely the same but is now visually separated */}
+        <form onSubmit={handleSubmit} className="p-6 border-t dark:border-gray-700 space-y-4 bg-gray-50 dark:bg-gray-800/50 flex-shrink-0">
+          {/* ... form content ... */}
           <div>
             <label htmlFor="status" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Update Status</label>
-            <select
-              id="status"
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              className="w-full p-2 rounded-md border dark:bg-gray-700 dark:border-gray-600"
-            >
+            <select id="status" value={status} onChange={(e) => setStatus(e.target.value)} className="w-full p-2 rounded-md border dark:bg-gray-700 dark:border-gray-600">
               <option value="open">Open</option>
               <option value="in_review">In Review</option>
               <option value="resolved">Resolved</option>
@@ -70,21 +79,10 @@ export function ComplaintDetailModal({ complaint, onClose, onUpdate }) {
           </div>
           <div>
             <label htmlFor="response" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">HR Response (Optional)</label>
-            <textarea
-              id="response"
-              rows={4}
-              value={response}
-              onChange={(e) => setResponse(e.target.value)}
-              className="w-full p-2 rounded-md border dark:bg-gray-700 dark:border-gray-600"
-              placeholder="Provide a detailed response to the employee..."
-            ></textarea>
+            <textarea id="response" rows={4} value={response} onChange={(e) => setResponse(e.target.value)} className="w-full p-2 rounded-md border dark:bg-gray-700 dark:border-gray-600" placeholder="Provide a detailed response..."></textarea>
           </div>
           <div className="flex justify-end">
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="px-6 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
-            >
+            <button type="submit" disabled={isSubmitting} className="px-6 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed">
               {isSubmitting ? "Updating..." : "Update Complaint"}
             </button>
           </div>
