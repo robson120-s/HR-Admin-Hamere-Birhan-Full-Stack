@@ -3,7 +3,11 @@
 import { useState, useEffect } from "react";
 import { FaPlus, FaTrash, FaTimes } from "react-icons/fa";
 // Import the new API functions
-import { getMeetings, addMeeting, deleteMeeting as apiDeleteMeeting } from "../../../../lib/api";
+import {
+  getMeetings,
+  addMeeting,
+  deleteMeeting as apiDeleteMeeting,
+} from "../../../../lib/api";
 import toast from "react-hot-toast";
 
 export default function MeetingSchedule() {
@@ -26,7 +30,8 @@ export default function MeetingSchedule() {
     fetchMeetings();
   }, []);
 
-  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleChange = (e) =>
+    setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const handleAddMeeting = async (e) => {
     e.preventDefault();
@@ -148,14 +153,29 @@ export default function MeetingSchedule() {
         <table className="w-full text-left">
           <thead>
             <tr className="border-b border-gray-200 dark:border-gray-700">
-              <th className="p-2 text-sm text-gray-600 dark:text-gray-300">Title</th>
-              <th className="p-2 text-sm text-gray-600 dark:text-gray-300">Date</th>
-              <th className="p-2 text-sm text-gray-600 dark:text-gray-300">Time</th>
-              <th className="p-2 text-sm text-gray-600 dark:text-gray-300">Action</th>
+              <th className="p-2 text-sm text-gray-600 dark:text-gray-300">
+                Title
+              </th>
+              <th className="p-2 text-sm text-gray-600 dark:text-gray-300">
+                Date
+              </th>
+              <th className="p-2 text-sm text-gray-600 dark:text-gray-300">
+                Time
+              </th>
+              <th className="p-2 text-sm text-gray-600 dark:text-gray-300">
+                Action
+              </th>
             </tr>
           </thead>
           <tbody>
-            {isLoading && <tr><td colSpan="4" className="p-4 text-center">Loading...</td></tr>}
+            {isLoading && (
+              <tr>
+                <td colSpan="4" className="p-4 text-center">
+                  Loading...
+                </td>
+              </tr>
+            )}
+
             {!isLoading && meetings.length === 0 && (
               <tr>
                 <td colSpan={4} className="p-4 text-center text-gray-500">
@@ -163,18 +183,25 @@ export default function MeetingSchedule() {
                 </td>
               </tr>
             )}
-            {/* ✅ FIX: Destructure the 'id' from the meeting object */}
+
             {meetings.map(({ id, title, date, time }) => (
               <tr
-                key={id} // Use the unique database ID as the key, not the index 'i'
+                key={id}
                 className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition"
               >
-                <td className="p-2 text-gray-700 dark:text-gray-300">{title}</td>
-                <td className="p-2 text-gray-700 dark:text-gray-300">{new Date(date).toLocaleDateString()}</td>
+                <td className="p-2 text-gray-700 dark:text-gray-300">
+                  {title}
+                </td>
+                <td className="p-2 text-gray-700 dark:text-gray-300">
+                  {new Date(date).toLocaleDateString()}
+                </td>
                 <td className="p-2 text-gray-700 dark:text-gray-300">{time}</td>
                 <td className="p-2">
-                  {/* ✅ FIX: Pass the 'id' to the delete handler */}
-                  <button onClick={() => handleDeleteMeeting(id)} className="text-red-500 hover:text-red-700" title="Delete Meeting">
+                  <button
+                    onClick={() => handleDeleteMeeting(id)}
+                    className="text-red-500 hover:text-red-700"
+                    title="Delete Meeting"
+                  >
                     <FaTrash />
                   </button>
                 </td>
