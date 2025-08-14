@@ -1,5 +1,5 @@
-'use client';
-import React, { useState, useEffect, useRef } from 'react';
+"use client";
+import React, { useState, useEffect, useRef } from "react";
 import { FiCamera, FiMail, FiPhone, FiMapPin, FiCalendar, FiUser, FiLinkedin, FiTwitter, FiFacebook, FiInstagram, FiMessageCircle } from "react-icons/fi";
 import { useTheme } from "next-themes";
 
@@ -20,7 +20,7 @@ function MoonIcon({ className = "" }) {
   );
 }
 
-export default function InternProfilePage() {
+export default function DepartmentHeadProfilePage() {
   const [user, setUser] = useState(null);
   const fileInputRef = useRef(null);
   const { theme, setTheme } = useTheme();
@@ -29,32 +29,33 @@ export default function InternProfilePage() {
   useEffect(() => {
     setMounted(true);
     const fakeUser = {
-      name: "Alex Chen",
-      email: "alex.chen@example.com",
-      photoUrl: "https://ui-avatars.com/api/?name=Alex+Chen&background=3B82F6&color=fff",
+      name: "Sarah Johnson",
+      email: "sarah.johnson@example.com",
+      photoUrl: "https://ui-avatars.com/api/?name=Sarah+Johnson&background=8B5CF6&color=fff",
       designation: "Engineering Department",
-      position: "Software Engineering Intern",
-      employeeId: "INT-2025-001",
-      dateOfJoining: "01 01 2025",
-      phone: "+1(555) 987 6543",
-      birthday: "15 August 2000",
-      address: "789 College Ave, University Town, CA 94305, United States",
-      gender: "Male",
+      position: "Department Head",
+      employeeId: "DH-0001",
+      dateOfJoining: "15 03 2023",
+      phone: "+1(555) 123 4567",
+      birthday: "12 April 1985",
+      address: "456 Innovation Drive, Tech City, CA 90210, United States",
+      gender: "Female",
       emergencyContacts: {
-        primary: { name: "David Chen", relationship: "Father", phone: "9876543210", email: "david@example.com", address: "789 College Ave, University Town" },
-        secondary: { name: "Lisa Chen", relationship: "Mother", phone: "9876543211", email: "lisa@example.com", address: "789 College Ave, University Town" }
+        primary: { name: "Michael Johnson", relationship: "Spouse", phone: "9876543210", email: "michael@example.com", address: "456 Innovation Drive, Tech City" },
+        secondary: { name: "Emily Johnson", relationship: "Daughter", phone: "9876543211", email: "emily@example.com", address: "456 Innovation Drive, Tech City" }
       },
       education: [
-        { institution: "Stanford University", degree: "BSc in Computer Science (In Progress)", period: "2022 - 2026" },
-        { institution: "Palo Alto High School", degree: "High School Diploma", period: "2018 - 2022" }
+        { institution: "Stanford University", degree: "MSc in Computer Engineering", period: "2003 - 2005" },
+        { institution: "MIT", degree: "BSc in Electrical Engineering", period: "1999 - 2003" }
       ],
       experience: [
-        { company: "TechCorp Inc, San Francisco", position: "Software Engineering Intern", period: "2025 - Present" },
-        { company: "University Coding Club", position: "Vice President", period: "2023 - 2024" }
+        { company: "TechCorp Inc, San Francisco", position: "Senior Engineering Manager", period: "2018 - Present" },
+        { company: "Innovation Labs, Seattle", position: "Lead Software Engineer", period: "2012 - 2018" },
+        { company: "StartupXYZ, Austin", position: "Software Engineer", period: "2008 - 2012" }
       ],
-      bankAccount: { accountHolder: "Alex Chen", accountNumber: "111222333", bankName: "StudentBank", branch: "University Branch", swiftCode: "STUDUS55" },
-      passport: { number: "D1112223", nationality: "American", issueDate: "05 March 2022", expiryDate: "05 March 2032", scanCopy: "https://example.com/passport-scan-alex.pdf" },
-      socialProfiles: { linkedin: "Alex Chen", twitter: "AlexCode", facebook: "Alex Chen", instagram: "alex_chen", whatsapp: "+1(555) 987 6543" }
+      bankAccount: { accountHolder: "Sarah Johnson", accountNumber: "987654321", bankName: "TechBank", branch: "San Francisco Branch", swiftCode: "TECHUS44" },
+      passport: { number: "B9876543", nationality: "American", issueDate: "20 June 2018", expiryDate: "20 June 2028", scanCopy: "https://example.com/passport-scan-sarah.pdf" },
+      socialProfiles: { linkedin: "Sarah Johnson", twitter: "SarahTech", facebook: "Sarah Johnson", instagram: "sarah_tech", whatsapp: "+1(555) 123 4567" }
     };
 
     setTimeout(() => setUser(fakeUser), 500);
@@ -80,7 +81,7 @@ export default function InternProfilePage() {
       </div>
 
       <div className="bg-white dark:bg-gray-800 shadow-lg rounded-2xl overflow-hidden transition-colors">
-        <div className="bg-gradient-to-r from-blue-500 to-indigo-600 h-32"></div>
+        <div className="bg-gradient-to-r from-purple-500 to-indigo-600 h-32"></div>
 
         <div className="flex flex-col items-center -mt-16 p-4 relative">
           <div className="relative">
