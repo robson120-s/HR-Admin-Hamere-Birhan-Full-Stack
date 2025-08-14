@@ -95,6 +95,11 @@ export default function Sidebar() {
             label="Complaint List"
           />
           <SidebarLink
+            href="/terminations"
+            icon={<FileText size={18} />}
+            label="terminations"
+          />
+          <SidebarLink
             href="/emp_profile_list"
             icon={<IdCard size={18} />}
             label="Employee Profile List"

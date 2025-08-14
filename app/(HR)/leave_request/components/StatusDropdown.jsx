@@ -5,8 +5,7 @@
 import { Menu, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 
-// --- ATTRACTIVE THING #1: ICONS ---
-// We'll create small, reusable icon components directly in this file.
+// --- ICONS ---
 const CheckCircleIcon = () => (
   <svg className="w-5 h-5 mr-3" viewBox="0 0 20 20" fill="currentColor">
     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -63,6 +62,7 @@ const StatusDropdown = ({ currentStatus, onStatusChange }) => {
     <div className="w-36">
       <Menu as="div" className="relative inline-block text-left w-full">
         <Menu.Button
+          // --- THIS IS THE CORRECTED LINE ---
           className={`group inline-flex w-full justify-between items-center rounded-lg px-4 py-2 text-sm font-semibold shadow-sm border transition-all duration-150 hover:scale-105 hover:shadow-md ${currentBadgeStyles}`}
         >
           <span>{currentStatus}</span>
@@ -81,7 +81,6 @@ const StatusDropdown = ({ currentStatus, onStatusChange }) => {
           </svg>
         </Menu.Button>
 
-        {/* --- ATTRACTIVE THING #2: SMOOTHER ANIMATION --- */}
         <Transition
           as={Fragment}
           enter="transition ease-out duration-100"
@@ -91,7 +90,6 @@ const StatusDropdown = ({ currentStatus, onStatusChange }) => {
           leaveFrom="transform opacity-100 scale-100"
           leaveTo="transform opacity-0 scale-95"
         >
-          {/* --- VERTICAL FIX & ATTRACTIVE THING #3: BETTER STYLING --- */}
           <Menu.Items className="absolute left-0 z-10 mt-2 w-full origin-top-left rounded-md bg-white shadow-xl ring-1 ring-black ring-opacity-5 focus:outline-none">
             <div className="p-1">
               {statusOptions.map((option) => {
