@@ -53,7 +53,7 @@ const DepartmentLeaveRequestPage = () => {
     leaveType: '',
     startDate: '',
     endDate: '',
-    reason: '',
+    reason: '',                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
   });
 
   // Effect to apply the theme class to the document's root element.
