@@ -10,6 +10,8 @@ import {
   AlertCircle,
   Settings,
   LogOut,
+  Users,
+  DollarSign,
 } from 'lucide-react';
 
 export default function Sidebar() {
@@ -49,6 +51,7 @@ export default function Sidebar() {
 
           <hr className="my-4 border-gray-300 opacity-50" />
 
+          <SidebarLink href="/departmentHead/profile" icon={<Users size={18} />} label="Profile" />
           <SidebarLink href="/departmentHead/settings" icon={<Settings size={18} />} label="Settings" />
           <SidebarLink
              className="text-red-600 hover:bg-red-700" 
