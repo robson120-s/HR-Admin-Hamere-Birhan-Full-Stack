@@ -3,7 +3,6 @@ import React, { useState, useEffect } from "react";
 import { FiDollarSign, FiCheckCircle, FiXCircle, FiUsers, FiTrendingUp, FiTrendingDown } from "react-icons/fi";
 import { useTheme } from "next-themes";
 
-// Helper components for theme toggle icons
 function SunIcon({ className = "" }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="orange" width={24} height={24}>
@@ -56,6 +55,16 @@ export default function PaymentStatusPage() {
   const paidEmployees = employees.filter(emp => emp.status === "paid").length;
   const unpaidEmployees = employees.filter(emp => emp.status === "unpaid").length;
 
+  const handleStatusToggle = (employeeId) => {
+    setEmployees(prevEmployees =>
+      prevEmployees.map(emp =>
+        emp.id === employeeId
+          ? { ...emp, status: emp.status === "paid" ? "unpaid" : "paid" }
+          : emp
+      )
+    );
+  };
+
   return (
     <div className="max-w-6xl mx-auto p-6 relative">
       {/* Theme Toggle */}
@@ -75,7 +84,7 @@ export default function PaymentStatusPage() {
           Employee Payment Status – Engineering Department
         </h1>
         <p className="text-gray-600 dark:text-gray-400">
-          A view-only report of the payment status for all employees in your department.
+          Monitor and manage payment status for all employees in your department
         </p>
       </div>
 
@@ -134,6 +143,9 @@ export default function PaymentStatusPage() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Payment Status
                 </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
@@ -163,6 +175,18 @@ export default function PaymentStatusPage() {
                       )}
                     </span>
                   </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <button
+                      onClick={() => handleStatusToggle(employee.id)}
+                      className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                        employee.status === 'paid'
+                          ? 'bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900 dark:text-red-200 dark:hover:bg-red-800'
+                          : 'bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900 dark:text-green-200 dark:hover:bg-green-800'
+                      }`}
+                    >
+                      {employee.status === 'paid' ? 'Mark Unpaid' : 'Mark Paid'}
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -179,11 +203,11 @@ export default function PaymentStatusPage() {
           <div className="flex space-x-2">
             <span className="inline-flex items-center text-sm text-green-600 dark:text-green-400">
               <FiCheckCircle className="w-4 h-4 mr-1" />
-              {totalEmployees > 0 ? Math.round((paidEmployees / totalEmployees) * 100) : 0}% Paid
+              {Math.round((paidEmployees / totalEmployees) * 100)}% Paid
             </span>
             <span className="inline-flex items-center text-sm text-red-600 dark:text-red-400">
               <FiXCircle className="w-4 h-4 mr-1" />
-              {totalEmployees > 0 ? Math.round((unpaidEmployees / totalEmployees) * 100) : 0}% Unpaid
+              {Math.round((unpaidEmployees / totalEmployees) * 100)}% Unpaid
             </span>
           </div>
         </div>
@@ -191,5 +215,3 @@ export default function PaymentStatusPage() {
     </div>
   );
 }
-
-//sosi
