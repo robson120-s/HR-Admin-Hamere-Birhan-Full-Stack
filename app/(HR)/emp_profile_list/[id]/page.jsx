@@ -1,57 +1,206 @@
+// app/(HR)/emp_profile_list/[id]/page.jsx
 "use client";
 
-import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
+import { getEmployeeById, updateEmployee } from "../../../../lib/api";
+import toast from "react-hot-toast";
+import {
+  User, Mail, Phone, Building, Briefcase, Calendar, DollarSign,
+  Heart, Shield, FileText, ArrowLeft, LoaderCircle, Edit, Save, X,
+  GraduationCap, Banknote, Siren, Info
+} from "lucide-react";
 
-const employees = [
-  {
-    id: "MD-0001",
-    name: "Ethan Mitchell",
-    designation: "Web Designer",
-    image: "data:image/jpeg;base64,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",
-    bio: "Ethan is a talented designer with 5 years of experience in UI/UX.",
-  },
-  {
-    id: "MD-0002",
-    name: "Emily Johnson",
-    designation: "Chief Innovation Officer",
-    image: "data:image/jpeg;base64,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",
-    bio: "Emily leads innovation projects and drives creative strategies.",
-  },
-  // Add more employees...
-];
+// Helper components (no changes needed)
+function InfoField({ icon, label, value }) {
+  return (
+    <div>
+      <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+        {icon}
+        <span>{label}</span>
+      </div>
+      <p className="font-semibold text-slate-800 dark:text-slate-100 break-words">{value || "N/A"}</p>
+    </div>
+  );
+}
 
+/**
+ * A reusable, styled input component for forms.
+ * Used in "Edit Mode".
+ */
+function EditField({ label, name, value, onChange, type = "text" }) {
+  return (
+    <div>
+      <label htmlFor={name} className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">{label}</label>
+      <input
+        type={type}
+        id={name}
+        name={name}
+        value={value || ''}
+        onChange={onChange}
+        className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-700 focus:ring-2 focus:ring-indigo-500"
+      />
+    </div>
+  );
+}
+
+/**
+ * A styled container card with a header.
+ */
+function Card({ title, icon, children }) {
+  return (
+    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg">
+      <header className="p-4 border-b border-slate-200 dark:border-slate-700 flex items-center gap-3">
+        <div className="flex-shrink-0 text-indigo-500 dark:text-indigo-400">{icon}</div>
+        <h2 className="font-semibold text-slate-800 dark:text-slate-100">{title}</h2>
+      </header>
+      <div className="p-6">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * A simple grid component for organizing InfoFields inside a Card.
+ */
+function CardGrid({ children }) {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+      {children}
+    </div>
+  );
+}
+
+/**
+ * A reusable, styled button component.
+ */
+function Button({ children, onClick, className = '' }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`inline-flex items-center px-4 py-2 rounded-lg bg-indigo-600 text-white font-semibold text-sm
+                  hover:bg-indigo-700 transition-colors duration-200
+                  focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500
+                  dark:focus:ring-offset-slate-900 ${className}`}
+    >
+      {children}
+    </button>
+  );
+}
 export default function EmployeeDetailPage() {
   const { id } = useParams();
-  const employee = employees.find((emp) => emp.id === id);
+  const [employee, setEmployee] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  // ... other states and functions (no changes needed)
 
-  if (!employee) {
+  useEffect(() => {
+    if (!id) return;
+    const fetchEmployee = async () => {
+      setIsLoading(true);
+      try {
+        const data = await getEmployeeById(id);
+        setEmployee(data);
+      } catch (error) {
+        toast.error(error.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchEmployee();
+  }, [id]);
+  
+  // --- RENDER LOGIC ---
+  if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-red-500">
-        Employee not found
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
+        <LoaderCircle className="animate-spin h-12 w-12 text-indigo-500" />
       </div>
     );
   }
 
+  if (!employee) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900">
+        <h2 className="text-2xl font-bold text-red-500">Employee Not Found or Failed to Load</h2>
+        <Link href="/emp_profile_list" className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+          Back to Employee List
+        </Link>
+      </div>
+    );
+  }
+  const fullName = `${employee.firstName} ${employee.lastName}`;
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-8">
-      <div className="max-w-lg mx-auto bg-white dark:bg-gray-800 shadow rounded-2xl p-6">
-        <img
-          src={employee.image}
-          alt={employee.name}
-          className="w-32 h-32 rounded-full object-cover mx-auto"
-        />
-        <h1 className="text-2xl font-bold text-center mt-4">{employee.name}</h1>
-        <p className="text-center text-gray-500 dark:text-gray-400">
-          {employee.designation}
-        </p>
-        <p className="mt-4">{employee.bio}</p>
-        <div className="mt-6 text-center">
-          <a
-            href="/emp_profile_list"
-            className="inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          >
-            Back to List
-          </a>
+    <div className="min-h-screen bg-slate-100 dark:bg-slate-900 p-4 md:p-8">
+      <div className="max-w-6xl mx-auto">
+        <Link href="/emp_profile_list" className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 hover:text-indigo-600 mb-6">
+          <ArrowLeft size={16} />
+          Back to Employee List
+        </Link>
+
+        {/* Profile Header (displays name, position, department) */}
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 flex flex-col md:flex-row items-center gap-6">
+            {/* ... header content ... */}
+        </div>
+
+        {/* ✅✅✅ FULL INFORMATION DISPLAY - VERIFY THIS SECTION ✅✅✅ */}
+        <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+          
+          <div className="lg:col-span-2 space-y-8">
+            <Card title="Employment Details" icon={<Briefcase />}>
+              <CardGrid>
+                <InfoField icon={<Building size={16} />} label="Department" value={employee.department?.name} />
+                <InfoField icon={<Building size={16} />} label="Sub-Department ID" value={employee.subDepartmentId} />
+                <InfoField icon={<Briefcase size={16} />} label="Position" value={employee.position?.name} />
+                <InfoField icon={<Calendar size={16} />} label="Employment Date" value={employee.employmentDate ? new Date(employee.employmentDate).toLocaleDateString() : 'N/A'} />
+                <InfoField icon={<FileText size={16} />} label="Employment Type" value={employee.employmentType?.type} />
+                <InfoField icon={<Shield size={16} />} label="Job Status" value={employee.jobStatus?.status} />
+                <InfoField icon={<FileText size={16} />} label="Agreement Status" value={employee.agreementStatus?.status} />
+              </CardGrid>
+            </Card>
+
+            <Card title="Personal & Family Information" icon={<User />}>
+              <CardGrid>
+                <InfoField icon={<User size={16} />} label="Baptismal Name" value={employee.baptismalName} />
+                <InfoField icon={<Calendar size={16} />} label="Date of Birth" value={employee.dateOfBirth ? new Date(employee.dateOfBirth).toLocaleDateString() : 'N/A'} />
+                <InfoField icon={<Heart size={16} />} label="Marital Status" value={employee.maritalStatus?.status} />
+                <InfoField icon={<Info size={16} />} label="Sex" value={employee.sex} />
+                <InfoField icon={<Info size={16} />} label="Nationality" value={employee.nationality} />
+                <InfoField icon={<User size={16} />} label="Repentance Father Name" value={employee.repentanceFatherName} />
+                <InfoField icon={<Building size={16} />} label="Repentance Father Church" value={employee.repentanceFatherChurch} />
+                <InfoField icon={<Phone size={16} />} label="Repentance Father Phone" value={employee.repentanceFatherPhone} />
+              </CardGrid>
+            </Card>
+            
+            <Card title="Education & Financials" icon={<GraduationCap />}>
+                <CardGrid>
+                    <InfoField icon={<GraduationCap size={16} />} label="Academic Qualification" value={employee.academicQualification} />
+                    <InfoField icon={<Building size={16} />} label="Educational Institution" value={employee.educationalInstitution} />
+                    <InfoField icon={<DollarSign size={16} />} label="Salary" value={`$${parseFloat(employee.salary).toFixed(2)}`} />
+                    <InfoField icon={<DollarSign size={16} />} label="Bonus Salary" value={`$${parseFloat(employee.bonusSalary).toFixed(2)}`} />
+                    <InfoField icon={<Banknote size={16} />} label="Account Number" value={employee.accountNumber} />
+                </CardGrid>
+            </Card>
+          </div>
+
+          <div className="space-y-8">
+            <Card title="Contact & Account" icon={<Mail />}>
+              <div className="space-y-4">
+                <InfoField icon={<Phone size={16} />} label="Phone Number" value={employee.phone} />
+                <InfoField icon={<Mail size={16} />} label="Email Address" value={employee.user?.email} />
+                <InfoField icon={<Building size={16} />} label="Address" value={`${employee.address || ''}, ${employee.subCity || ''}`} />
+                <InfoField icon={<User size={16} />} label="System Username" value={employee.user?.username} />
+              </div>
+            </Card>
+            <Card title="Emergency Contact" icon={<Siren />}>
+                <div className="space-y-4">
+                    <InfoField icon={<User size={16} />} label="Contact Name" value={employee.emergencyContactName} />
+                    <InfoField icon={<Phone size={16} />} label="Contact Phone" value={employee.emergencyContactPhone} />
+                </div>
+            </Card>
+          </div>
         </div>
       </div>
     </div>
