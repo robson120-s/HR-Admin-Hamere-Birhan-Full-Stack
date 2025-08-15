@@ -174,8 +174,8 @@ export default function InternProfilePage() {
                   <h3 className="font-semibold text-lg text-gray-900 dark:text-gray-100">{exp.company}</h3>
                   <p className="text-gray-600 dark:text-gray-400">{exp.position}</p>
                   <p className="text-gray-500 dark:text-gray-500">{exp.period}</p>
-                </div>
-              ))}
+          </div>
+        ))}
             </div>
           </section>
 

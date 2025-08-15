@@ -1,43 +1,131 @@
-"use client"
-
-import { Card, CardContent, CardHeader, CardTitle } from "/components/ui/card"
-import { Button } from "/components/ui/button"
-import { Textarea } from "/components/ui/textarea"
-import { MessageCircle, Reply } from "lucide-react"
-
-const dummyComplaints = [
-  {
-    id: 1,
-    name: "Sarah Mekonnen",
-    subject: "Workload Issue",
-    description: "Too much work assigned beyond working hours.",
-    status: "open",
-  },
-]
+"use client";
+import { useState } from "react";
+// Import icons for a better user experience
+import { MailWarning, Send, Loader2, CheckCircle, AlertCircle } from "lucide-react";
 
 export default function ComplaintsPage() {
-  return (
-    <div className="p-6 space-y-6 bg-white dark:bg-black min-h-screen">
-      <h1 className="text-2xl font-bold text-red-700 dark:text-red-400">Complaints & Responses</h1>
+  const [employeeId] = useState(null); // e.g., 1 or fetched value
+  const [subject, setSubject] = useState("");
+  const [description, setDescription] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [status, setStatus] = useState(null);
 
-      {dummyComplaints.map((comp) => (
-        <Card key={comp.id} className="border-red-600 dark:border-red-400 shadow-md">
-          <CardHeader className="flex justify-between items-center">
-            <CardTitle className="text-red-700 dark:text-red-300 flex items-center gap-2">
-              <MessageCircle className="w-5 h-5" />
-              {comp.subject}
-            </CardTitle>
-            <span className="px-2 py-1 bg-red-100 dark:bg-red-900 text-sm rounded">{comp.status}</span>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <p className="text-sm text-black dark:text-white">{comp.description}</p>
-            <Textarea placeholder="Write your response..." />
-            <Button className="bg-red-700 hover:bg-red-800 text-white flex gap-2 items-center">
-              <Reply className="w-4 h-4" /> Send Response
-            </Button>
-          </CardContent>
-        </Card>
-      ))}
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
+    setStatus(null);
+
+    try {
+      const payload = {
+        subject,
+        description,
+        ...(employeeId ? { employeeId } : {}),
+      };
+
+      const res = await fetch("/api/complaints", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const txt = await res.text();
+        throw new Error(txt || "Failed to submit complaint");
+      }
+
+      setSubject("");
+      setDescription("");
+      setStatus({ ok: true, msg: "Complaint submitted. HR will review it." });
+    } catch (err) {
+      setStatus({ ok: false, msg: err.message || "Something went wrong." });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    // Add a light background to the page to make the form stand out
+    <div className="p-4 md:p-8 bg-gray-50 dark:bg-gray-900 min-h-full">
+      <div className="max-w-2xl mx-auto">
+        {/* Header Section */}
+        <div className="flex items-center gap-3 mb-4">
+          <MailWarning className="h-8 w-8 text-green-600" />
+          <div>
+            <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Submit a Complaint</h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Your submission is private and sent directly to HR.
+            </p>
+          </div>
+        </div>
+
+        {/* Form with enhanced styling */}
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-6 rounded-2xl border bg-white dark:bg-gray-800 shadow-lg p-6 border-t-4 border-green-600"
+        >
+          {/* Status Message Area */}
+          {status && (
+            <div
+              className={`flex items-center gap-3 p-3 rounded-lg text-sm ${
+                status.ok
+                  ? "bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300"
+                  : "bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300"
+              }`}
+            >
+              {status.ok ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
+              <span>{status.msg}</span>
+            </div>
+          )}
+
+          {/* Form Input: Subject */}
+          <div>
+            <label htmlFor="subject" className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Subject</label>
+            <input
+              id="subject"
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              className="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-lg shadow-sm focus:border-green-500 focus:ring-green-500"
+              placeholder="Brief title of your complaint"
+              required
+            />
+          </div>
+
+          {/* Form Input: Description */}
+          <div>
+            <label htmlFor="description" className="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">Description</label>
+            <textarea
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={6}
+              className="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-lg shadow-sm focus:border-green-500 focus:ring-green-500"
+              placeholder="Describe the issue with dates, people involved, and any evidence."
+              required
+            />
+          </div>
+
+          {/* Action Button */}
+          <div className="flex items-center pt-2">
+            <button
+              type="submit"
+              disabled={submitting}
+              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border border-transparent shadow-sm bg-green-600 text-white font-semibold hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {submitting ? (
+                <>
+                  <Loader2 className="animate-spin h-5 w-5" />
+                  <span>Submitting...</span>
+                </>
+              ) : (
+                <>
+                  <Send size={16} />
+                  <span>Submit Complaint</span>
+                </>
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
-  )
+  );
 }

@@ -242,8 +242,8 @@ function ProfileDetail({ label, value, icon }) {
     <div className="flex items-start space-x-2">
       {icon && <span className="text-gray-500 dark:text-gray-400 mt-1">{icon}</span>}
       <div className="flex-1">
-        <p className="text-sm font-semibold text-gray-600 dark:text-gray-400">{label}</p>
-        <p className="text-base text-gray-800 dark:text-gray-200">{value}</p>
+      <p className="text-sm font-semibold text-gray-600 dark:text-gray-400">{label}</p>
+      <p className="text-base text-gray-800 dark:text-gray-200">{value}</p>
       </div>
     </div>
   );
