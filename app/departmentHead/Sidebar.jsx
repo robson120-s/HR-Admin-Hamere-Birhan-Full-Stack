@@ -1,20 +1,20 @@
-'use client';
-import React, { useState } from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
+"use client";
+import React, { useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
 import {
   Home,
   Calendar,
   LineChart,
-   CheckCircle2,
+  CheckCircle2,
   AlertCircle,
   Settings,
   LogOut,
   Users,
   DollarSign,
   CalendarOff,
-} from 'lucide-react';
-import { FiDollarSign } from 'react-icons/fi';
+} from "lucide-react";
+import { FiDollarSign } from "react-icons/fi";
 
 export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -36,7 +36,13 @@ export default function Sidebar() {
     md:translate-x-0 z-40`}
       >
         <div className="flex items-center space-x-2">
-          <Image src="/logo.png" alt="Logo" width={48} height={48} className="rounded-full mb-2" />
+          <Image
+            src="/logo.png"
+            alt="Logo"
+            width={48}
+            height={48}
+            className="rounded-full mb-2"
+          />
           <span className="text-sm font-bold">
             ቅዱስ ዮሐንስ አፈወርቅ <br />
             የዘመነ ክረምት የሕጻናት ት/ት መርሐግብር
@@ -44,25 +50,64 @@ export default function Sidebar() {
         </div>
 
         <nav className="flex flex-col space-y-2 mt-8 text-white">
-          <SidebarLink href="/departmentHead" icon={<Home size={18} />} label="Dashboard" />
-          <SidebarLink href="/departmentHead/editAttendance" icon={<Calendar size={18} />} label="Edit attendance" />
-          <SidebarLink href="/departmentHead/performance" icon={<LineChart size={18} />} label="Performance" />
-          <SidebarLink href="/departmentHead/evaluation" icon={<CheckCircle2 size={20}/>} label="Evaluation" />
-            <SidebarLink href="/departmentHead/designation" icon={<CheckCircle2 size={20}/>} label="designation" />
-          <SidebarLink href="/departmentHead/complain" icon={<AlertCircle size={20} />} label="Complain Management" />
-          <SidebarLink href="/departmentHead/payment-status" icon={<FiDollarSign size={18} />} label="Payment Status" />
-          <SidebarLink href="/departmentHead/leave_request" icon={<CalendarOff size={18} />} label="Leave Request" />
+          <SidebarLink
+            href="/departmentHead"
+            icon={<Home size={18} />}
+            label="Dashboard"
+          />
+          <SidebarLink
+            href="/departmentHead/editAttendance"
+            icon={<Calendar size={18} />}
+            label="Mark attendance"
+          />
+          <SidebarLink
+            href="/departmentHead/performance"
+            icon={<LineChart size={18} />}
+            label="Performance"
+          />
+          <SidebarLink
+            href="/departmentHead/evaluation"
+            icon={<CheckCircle2 size={20} />}
+            label="Evaluation"
+          />
+          <SidebarLink
+            href="/departmentHead/designation"
+            icon={<CheckCircle2 size={20} />}
+            label="designation"
+          />
+          <SidebarLink
+            href="/departmentHead/complain"
+            icon={<AlertCircle size={20} />}
+            label="Complain Management"
+          />
+          <SidebarLink
+            href="/departmentHead/payment-status"
+            icon={<FiDollarSign size={18} />}
+            label="Payment Status"
+          />
+          <SidebarLink
+            href="/departmentHead/leave_request"
+            icon={<CalendarOff size={18} />}
+            label="Leave Request"
+          />
 
           <hr className="my-4 border-gray-300 opacity-50" />
 
-          <SidebarLink href="/departmentHead/profile" icon={<Users size={18} />} label="Profile" />
-          <SidebarLink href="/departmentHead/settings" icon={<Settings size={18} />} label="Settings" />
           <SidebarLink
-             className="text-red-600 hover:bg-red-700" 
-             href="/loginpage"
+            href="/departmentHead/profile"
+            icon={<Users size={18} />}
+            label="Profile"
+          />
+          <SidebarLink
+            href="/departmentHead/settings"
+            icon={<Settings size={18} />}
+            label="Settings"
+          />
+          <SidebarLink
+            className="text-red-600 hover:bg-red-700"
+            href="/loginpage"
             icon={<LogOut size={18} />}
             label="Logout"
-          
           />
         </nav>
       </div>
@@ -70,10 +115,13 @@ export default function Sidebar() {
   );
 }
 
-function SidebarLink({ href, icon, label, className = '' }) {
+function SidebarLink({ href, icon, label, className = "" }) {
   return (
-    <Link href={href} className={`flex items-center p-2 rounded hover:bg-gray-500 text-white ${className}`}>
-      {React.cloneElement(icon, { className: 'text-white' })}
+    <Link
+      href={href}
+      className={`flex items-center p-2 rounded hover:bg-gray-500 text-white ${className}`}
+    >
+      {React.cloneElement(icon, { className: "text-white" })}
       <span className="ml-2">{label}</span>
     </Link>
   );
