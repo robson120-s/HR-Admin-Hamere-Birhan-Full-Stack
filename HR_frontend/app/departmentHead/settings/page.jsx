@@ -76,7 +76,7 @@ export default function SettingsPage() {
                   <UserCog className="h-6 w-6 text-rose-600 dark:text-rose-400" />
                 </div>
                 <div>
-                  <CardTitle>Account Settings</CardTitle>
+                  <CardTitle>Account Setting</CardTitle>
                   <CardDescription>Update your username and password.</CardDescription>
                 </div>
             </CardHeader>
@@ -131,8 +131,6 @@ export default function SettingsPage() {
               </form>
             </CardContent>
           </Card>
-          
-          {/* Notification Preferences Card remains unchanged */}
         </div>
       </main>
     </div>
