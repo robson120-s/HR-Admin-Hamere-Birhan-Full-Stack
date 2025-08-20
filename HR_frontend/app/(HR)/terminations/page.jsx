@@ -9,6 +9,7 @@ import { Menu, Transition } from '@headlessui/react';
 import toast from 'react-hot-toast';
 import { getTerminations, updateTermination, deleteTermination } from '../../../lib/api'; 
 import { AddTerminationModal } from './components/AddTerminationModal'; 
+import { EditTerminationModal } from './components/EditTerminationModal';
 
 // ==============================================================================
 // Component 1: Theme Switcher Icon
@@ -128,19 +129,21 @@ const TerminationRow = memo(function TerminationRow({ termination, onTypeChange,
 
   // ✅ FIX #1: Combine firstName and lastName into a single fullName variable
   const fullName = `${termination.employee.firstName} ${termination.employee.lastName}`;
+  const imageSrc = termination.employee.photo ? termination.employee.photo : '/images/default-avatar.png';
+
 
   return (
     <tr className="bg-white dark:bg-gray-800 border-b dark:border-gray-700 hover:bg-slate-50 dark:hover:bg-gray-700/50">
       <td className="px-6 py-4 font-medium text-gray-900 dark:text-white whitespace-nowrap">
         <div className="flex items-center gap-3">
           {/* ✅ FIX #2: Use `termination.employee.photo` which matches the backend API response */}
-          <Image 
-            src={termination.employee.photo || '/images/default-avatar.png'} // Use a fallback image
+          {/* <Image 
+            src={imageSrc}
             alt={fullName} 
             width={32} 
             height={32} 
             className="rounded-full object-cover" 
-          />
+          /> */}
           <span>{fullName}</span>
         </div>
       </td>
@@ -162,7 +165,7 @@ const TerminationRow = memo(function TerminationRow({ termination, onTypeChange,
       <td className="px-6 py-4 max-w-[200px] truncate text-gray-600 dark:text-gray-300" title={termination.reason}>{termination.reason || 'N/A'}</td>
       <td className="px-6 py-4">
         <div className="flex items-center gap-3">
-          <button className="p-2 bg-emerald-100/60 text-emerald-600 rounded-md hover:bg-emerald-100 dark:bg-emerald-900/50 dark:text-emerald-300 dark:hover:bg-emerald-900"><Pencil size={16} /></button>
+          <button onClick={() => onEdit(termination.id)} className="p-2 bg-emerald-100/60 text-emerald-600 rounded-md hover:bg-emerald-100 dark:bg-emerald-900/50 dark:text-emerald-300 dark:hover:bg-emerald-900"><Pencil size={16} /></button>
           <button onClick={() => onDelete(termination.id)} className="p-2 bg-rose-100/60 text-rose-600 rounded-md hover:bg-rose-100 dark:bg-rose-900/50 dark:text-rose-300 dark:hover:bg-rose-900"><Trash2 size={16} /></button>
         </div>
       </td>
@@ -178,6 +181,11 @@ const TerminationsPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+
+  const handleUpdateSuccess = (updatedTermination) => {
+        setTerminations(prev => prev.map(t => t.id === updatedTermination.id ? updatedTermination : t));
+    };
 
   // --- Fetch data from API on page load ---
   const fetchTerminations = async () => {

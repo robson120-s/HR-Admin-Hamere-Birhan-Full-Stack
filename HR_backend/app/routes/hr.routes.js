@@ -562,15 +562,26 @@ router.get("/terminations",  async (req, res) => {
 });
 
 // POST /api/hr/terminations - Create a new termination record
-router.post("/terminations",  async (req, res) => {
+// In your backend file: routes/hr.routes.js
+
+router.post("/terminations", async (req, res) => {
   try {
-    // Note: 'status' in your Prisma schema is TerminationStatus, not the workflow status.
-    // The frontend's 'status' (Pending, Processing) would be a separate field if needed.
-    // For now, we map the frontend's 'terminationType' to the backend's 'status'.
     const { employeeId, terminationDate, reason, terminationType, remarks } = req.body;
 
     if (!employeeId || !terminationDate || !terminationType) {
-        return res.status(400).json({ error: "Employee, termination date, and type are required." });
+      return res.status(400).json({ error: "Employee ID, termination date, and type are required." });
+    }
+    
+    // ✅ THIS IS THE CRITICAL MAPPING LOGIC
+    const statusMap = {
+        'Voluntary': 'voluntary',
+        'Involuntary': 'involuntary',
+        'Retirement': 'retired'
+    };
+    const terminationStatusEnum = statusMap[terminationType]; // e.g., 'Involuntary' -> 'involuntary'
+
+    if (!terminationStatusEnum) {
+        return res.status(400).json({ error: "Invalid termination type provided." });
     }
 
     const newTermination = await prisma.termination.create({
@@ -578,14 +589,35 @@ router.post("/terminations",  async (req, res) => {
         employeeId: parseInt(employeeId),
         terminationDate: new Date(terminationDate),
         reason: reason || null,
-        status: terminationType, // Maps 'Voluntary' -> voluntary, 'Involuntary' -> involuntary
+        status: terminationStatusEnum, // ✅ We are using the corrected, lowercase value here
         remarks: remarks || null,
       },
+      include: { // Include employee for the response
+          employee: { select: { firstName: true, lastName: true, photo: true } }
+      }
     });
+
     res.status(201).json(newTermination);
-  } catch (error)    {
+  } catch (error) {
     console.error("Error creating termination:", error);
     res.status(500).json({ error: "Failed to create termination." });
+  }
+});
+
+// GET /api/hr/terminations/:id - Fetch a single termination record
+router.get("/terminations/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const termination = await prisma.termination.findUnique({
+      where: { id: parseInt(id) },
+      include: { employee: { select: { firstName: true, lastName: true } } }
+    });
+    if (!termination) {
+      return res.status(404).json({ error: "Termination record not found." });
+    }
+    res.status(200).json(termination);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch termination record." });
   }
 });
 
