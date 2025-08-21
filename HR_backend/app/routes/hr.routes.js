@@ -533,32 +533,60 @@ router.get("/employees/:id", async (req, res) => { // Add auth middleware later
 });
 
 // PATCH /api/hr/employees/:id - Update an employee's details
-router.patch("/employees/:id", async (req, res) => { // Add auth middleware later
+// In your backend file: routes/hr.routes.js
+
+// PATCH /api/hr/employees/:id - Update an employee's full details
+router.patch("/employees/:id", async (req, res) => { // Add auth middleware back later
   try {
     const { id } = req.params;
-    const employeeData = req.body;
+    const data = req.body;
 
-    // Use the same conditional connect logic as the create route
-    const employeeUpdateData = {
-        // Direct fields
-        firstName: employeeData.firstName,
-        lastName: employeeData.lastName,
-        phone: employeeData.phone,
-        // ... add any other fields from your form
+    const updatePayload = {
+      // Direct string/enum/date/decimal fields that can be updated
+      firstName: data.firstName,
+      lastName: data.lastName,
+      baptismalName: data.baptismalName,
+      dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : null,
+      sex: data.sex,
+      nationality: data.nationality,
+      phone: data.phone,
+      address: data.address,
+      subCity: data.subCity,
+      emergencyContactName: data.emergencyContactName,
+      emergencyContactPhone: data.emergencyContactPhone,
+      repentanceFatherName: data.repentanceFatherName,
+      repentanceFatherChurch: data.repentanceFatherChurch,
+      repentanceFatherPhone: data.repentanceFatherPhone,
+      academicQualification: data.academicQualification,
+      educationalInstitution: data.educationalInstitution,
+      salary: data.salary ? parseFloat(data.salary) : undefined,
+      bonusSalary: data.bonusSalary ? parseFloat(data.bonusSalary) : undefined,
+      accountNumber: data.accountNumber,
+      employmentDate: data.employmentDate ? new Date(data.employmentDate) : null,
     };
-    
-    // Conditionally connect relations if their IDs are provided
-    if (employeeData.departmentId) {
-        employeeUpdateData.department = { connect: { id: parseInt(employeeData.departmentId) } };
+
+    // Conditionally connect relationships if the ID is provided
+    if (data.departmentId) {
+      updatePayload.department = { connect: { id: parseInt(data.departmentId) } };
     }
-    if (employeeData.positionId) {
-        employeeUpdateData.position = { connect: { id: parseInt(employeeData.positionId) } };
+    if (data.positionId) {
+      updatePayload.position = { connect: { id: parseInt(data.positionId) } };
     }
-    // ... add more conditional connects for other relations
+    // ... add more for maritalStatusId, employmentTypeId, etc.
 
     const updatedEmployee = await prisma.employee.update({
       where: { id: parseInt(id) },
-      data: employeeUpdateData,
+      data: updatePayload,
+      // Re-fetch all data to send the updated profile back to the frontend
+      include: {
+        user: { select: { username: true, email: true, isActive: true } },
+        department: { select: { name: true } },
+        position: { select: { name: true } },
+        maritalStatus: { select: { status: true } },
+        employmentType: { select: { type: true } },
+        jobStatus: { select: { status: true } },
+        agreementStatus: { select: { status: true } },
+      },
     });
 
     res.status(200).json(updatedEmployee);
@@ -816,6 +844,222 @@ router.post("/terminations", async (req, res) => { // Add auth middleware back l
     }
     res.status(500).json({ error: "Failed to create termination." });
   }
+});
+
+router.get("/departments", async (req, res) => {
+  try {
+    // Step 1: Fetch all departments with their employees and their roles
+    const departmentsWithEmployees = await prisma.department.findMany({
+      where: { parentId: null }, // Only fetch top-level departments
+      orderBy: { name: 'asc' },
+      include: {
+        // Include employees directly in the department
+        employees: {
+          include: { user: { include: { roles: { include: { role: true } } } } }
+        },
+        // Include sub-departments, and THEIR employees with roles
+        subDepartments: {
+          include: {
+            employees: {
+              include: { user: { include: { roles: { include: { role: true } } } } }
+            }
+          },
+        },
+      },
+    });
+
+    // Step 2: Process the data to calculate the counts
+    const departmentsWithCounts = departmentsWithEmployees.map(dept => {
+      let staffCount = 0;
+      let internCount = 0;
+
+      // Count employees directly in the parent department
+      dept.employees.forEach(employee => {
+        if (employee.user?.roles.some(r => r.role.name === 'Staff')) staffCount++;
+        if (employee.user?.roles.some(r => r.role.name === 'Intern')) internCount++;
+      });
+      
+      // Count employees in the sub-departments
+      dept.subDepartments.forEach(subDept => {
+        subDept.employees.forEach(employee => {
+          if (employee.user?.roles.some(r => r.role.name === 'Staff')) staffCount++;
+          if (employee.user?.roles.some(r => r.role.name === 'Intern')) internCount++;
+        });
+      });
+      
+      // We no longer need the large employee arrays, so we can remove them
+      // to keep the payload sent to the frontend small and fast.
+      delete dept.employees;
+      dept.subDepartments.forEach(sub => delete sub.employees);
+      
+      return {
+        ...dept,
+        totalMembers: staffCount + internCount,
+        staffCount,
+        internCount,
+      };
+    });
+
+    res.status(200).json(departmentsWithCounts);
+  } catch (error) {
+    console.error("Error fetching department counts:", error);
+    res.status(500).json({ error: "Failed to fetch departments." });
+  }
+});
+
+// POST /api/hr/departments - Create a new department or sub-department
+router.post("/departments", async (req, res) => {
+  try {
+    const { name, description, parentId } = req.body; // parentId will be null for top-level
+    if (!name) {
+      return res.status(400).json({ error: "Department name is required." });
+    }
+    const newDepartment = await prisma.department.create({
+      data: {
+        name,
+        description,
+        parentId: parentId ? parseInt(parentId) : null,
+      },
+    });
+    res.status(201).json(newDepartment);
+  } catch (error) {
+    console.error("Error creating department:", error); // Log the full error for debugging
+
+    // P2002 is the Prisma code for a unique constraint violation
+    if (error.code === 'P2002') {
+      // The 'target' tells you which field caused the error
+      const fields = error.meta.target.join(', ');
+      return res.status(409).json({ error: `A department with this ${fields} already exists.` });
+    }
+
+    // P2003 is for a foreign key constraint failure (e.g., invalid parentId)
+    if (error.code === 'P2003') {
+        return res.status(400).json({ error: "The specified parent department does not exist." });
+    }
+
+    // A generic fallback error
+    res.status(500).json({ error: "Failed to create department." });
+  }
+});
+
+router.get("/departments/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const department = await prisma.department.findUnique({
+      where: { id: parseInt(id) },
+      include: {
+        // Include employees directly in the parent department, WITH their roles
+        employees: {
+          include: { user: { include: { roles: { include: { role: true } } } } }
+        },
+        // Include sub-departments, and THEIR employees with roles
+        subDepartments: {
+          orderBy: { name: 'asc' },
+          include: {
+            employees: {
+              include: { user: { include: { roles: { include: { role: true } } } } }
+            }
+          },
+        },
+      },
+    });
+
+    if (!department) {
+      return res.status(404).json({ error: "Department not found." });
+    }
+
+    // Server-side processing to make the frontend's job easier
+    const processMembers = (employees) => {
+        const staff = [];
+        const interns = [];
+        employees.forEach(emp => {
+            const fullName = `${emp.firstName} ${emp.lastName}`;
+            const role = emp.user?.roles[0]?.role.name;
+            if (role === 'Staff') {
+                staff.push({ id: emp.id, name: fullName, photo: emp.photo });
+            } else if (role === 'Intern') {
+                interns.push({ id: emp.id, name: fullName, photo: emp.photo });
+            }
+        });
+        return { staff, interns };
+    };
+    
+    // Process members for the main department
+    const mainDeptMembers = processMembers(department.employees);
+    
+    // Process members for each sub-department
+    const subDepartmentsWithMembers = department.subDepartments.map(sub => {
+        const subDeptMembers = processMembers(sub.employees);
+        return {
+            id: sub.id,
+            name: sub.name,
+            description: sub.description,
+            staff: subDeptMembers.staff,
+            interns: subDeptMembers.interns
+        };
+    });
+
+    // Construct the final, clean payload for the frontend
+    const finalResponse = {
+        id: department.id,
+        name: department.name,
+        description: department.description,
+        staff: mainDeptMembers.staff,
+        interns: mainDeptMembers.interns,
+        subDepartments: subDepartmentsWithMembers
+    };
+
+    res.status(200).json(finalResponse);
+  } catch (error) {
+    console.error(`Error fetching department details for ID ${req.params.id}:`, error);
+    res.status(500).json({ error: "Failed to fetch department details." });
+  }
+});
+
+// PATCH /api/hr/departments/:id - Update a department's details
+router.patch("/departments/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, description } = req.body;
+    const updated = await prisma.department.update({
+      where: { id: parseInt(id) },
+      data: { name, description },
+    });
+    res.status(200).json(updated);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to update department." });
+  }
+});
+
+// DELETE /api/hr/departments/:id - Delete a department (must have no employees or sub-depts)
+router.delete("/departments/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    // Safety check: a more robust implementation would check for employees
+    await prisma.department.delete({ where: { id: parseInt(id) } });
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).json({ error: "Failed to delete department. Make sure it has no employees or sub-departments." });
+  }
+});
+
+// GET /api/hr/departments/:id/employees - Fetch employees for a specific department/sub-dept
+router.get("/departments/:id/employees", async (req, res) => {
+    try {
+        const { id } = req.params;
+        const employees = await prisma.employee.findMany({
+            where: {
+                OR: [
+                    { departmentId: parseInt(id) },
+                    { subDepartmentId: parseInt(id) }
+                ]
+            },
+            select: { id: true, firstName: true, lastName: true, position: { select: { name: true } } }
+        });
+        res.status(200).json(employees);
+    } catch (error) {
+        res.status(500).json({ error: "Failed to fetch employees for this department." });
+    }
 });
 
 

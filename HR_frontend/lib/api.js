@@ -172,4 +172,36 @@ export const searchEmployees = async (query) => {
   }
 };
 
+export const getDepartments = async () => {
+    const response = await apiClient.get('/departments');
+    return response.data;
+};
+
+export const getDepartmentById = async (id) => {
+    try {
+        const response = await apiClient.get(`/departments/${id}`); // Assumes a GET /departments/:id endpoint exists
+        return response.data;
+    } catch (error) {
+        throw new Error(error.response?.data?.error || "Could not fetch department details.");
+    }
+};
+export const createDepartment = async (data) => {
+    const response = await apiClient.post('/departments', data);
+    return response.data;
+};
+
+export const updateDepartment = async (id, data) => {
+    const response = await apiClient.patch(`/departments/${id}`, data);
+    return response.data;
+};
+
+export const deleteDepartment = async (id) => {
+    await apiClient.delete(`/departments/${id}`);
+};
+
+export const getEmployeesByDepartment = async (id) => {
+    const response = await apiClient.get(`/departments/${id}/employees`);
+    return response.data;
+};
+
 //sosi 
