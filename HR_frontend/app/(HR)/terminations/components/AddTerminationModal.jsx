@@ -1,10 +1,22 @@
 // app/(HR)/terminations/components/AddTerminationModal.jsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { X } from "lucide-react";
-import { createTermination } from "../../../../lib/api"; // Adjust path if needed
+import { createTermination, searchEmployees } from "../../../../lib/api"; 
+
+// A simple debounce hook
+function useDebounce(value, delay) {
+    const [debouncedValue, setDebouncedValue] = useState(value);
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedValue(value);
+        }, delay);
+        return () => { clearTimeout(handler); };
+    }, [value, delay]);
+    return debouncedValue;
+}
 
 export function AddTerminationModal({ open, onClose, onSuccess }) {
   const [formData, setFormData] = useState({
@@ -19,6 +31,27 @@ export function AddTerminationModal({ open, onClose, onSuccess }) {
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
+  const [searchTerm, setSearchTerm] = useState('');
+    const [searchResults, setSearchResults] = useState([]);
+    const [isSearching, setIsSearching] = useState(false);
+    const debouncedSearchTerm = useDebounce(searchTerm, 300); // 300ms delay
+
+    useEffect(() => {
+        if (debouncedSearchTerm) {
+            setIsSearching(true);
+            searchEmployees(debouncedSearchTerm)
+                .then(results => setSearchResults(results))
+                .finally(() => setIsSearching(false));
+        } else {
+            setSearchResults([]);
+        }
+    }, [debouncedSearchTerm]);
+    
+    const handleSelectEmployee = (employee) => {
+        setFormData({ ...formData, employeeId: employee.id });
+        setSearchTerm(`${employee.firstName} ${employee.lastName}`);
+        setSearchResults([]);
+    };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -48,10 +81,34 @@ export function AddTerminationModal({ open, onClose, onSuccess }) {
         </header>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div>
-            <label htmlFor="employeeId" className="block text-sm font-medium">Employee ID</label>
-            <input type="number" id="employeeId" name="employeeId" value={formData.employeeId} onChange={handleChange} required className="mt-1 w-full p-2 border rounded-md dark:bg-gray-700" />
-          </div>
+          <div className="relative">
+                <label htmlFor="employeeSearch">Employee Name</label>
+                <input
+                    type="text"
+                    id="employeeSearch"
+                    value={searchTerm}
+                    onChange={(e) => {
+                        setSearchTerm(e.target.value);
+                        // Clear the selected ID if user types again
+                        setFormData({ ...formData, employeeId: '' });
+                    }}
+                    placeholder="Start typing to search..."
+                    autoComplete="off"
+                    className="mt-1 w-full p-2 border rounded-md"
+                />
+                {isSearching && <p className="text-xs">Searching...</p>}
+                {searchResults.length > 0 && (
+                    <ul className="absolute z-10 w-full bg-white border rounded-md mt-1 max-h-40 overflow-y-auto">
+                        {searchResults.map(emp => (
+                            <li key={emp.id} onClick={() => handleSelectEmployee(emp)} className="p-2 hover:bg-gray-100 cursor-pointer">
+                                {`${emp.firstName} ${emp.lastName}`}
+                            </li>
+                        ))}
+                    </ul>
+                )}
+                {/* Hidden input to show the selected ID for debugging/clarity */}
+                {formData.employeeId && <p className="text-xs mt-1">Selected Employee ID: {formData.employeeId}</p>}
+            </div>
           <div>
             <label htmlFor="terminationType" className="block text-sm font-medium">Termination Type</label>
             <select id="terminationType" name="terminationType" value={formData.terminationType} onChange={handleChange} required className="mt-1 w-full p-2 border rounded-md dark:bg-gray-700">

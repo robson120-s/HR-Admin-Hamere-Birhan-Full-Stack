@@ -360,6 +360,7 @@ exports.Prisma.TerminationScalarFieldEnum = {
   terminationDate: 'terminationDate',
   reason: 'reason',
   status: 'status',
+  workflowStatus: 'workflowStatus',
   remarks: 'remarks',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -551,6 +552,12 @@ exports.TerminationStatus = exports.$Enums.TerminationStatus = {
   voluntary: 'voluntary',
   involuntary: 'involuntary',
   retired: 'retired'
+};
+
+exports.WorkflowStatus = exports.$Enums.WorkflowStatus = {
+  pending_approval: 'pending_approval',
+  processing: 'processing',
+  finalized: 'finalized'
 };
 
 exports.Prisma.ModelName = {

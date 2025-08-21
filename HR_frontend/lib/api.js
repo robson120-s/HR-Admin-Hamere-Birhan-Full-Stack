@@ -148,4 +148,28 @@ export const deleteTermination = async (id) => {
     }
 }
 
-//sosi
+export const getTerminationById = async (id) => {
+  try {
+    const response = await apiClient.get(`/terminations/${id}`);
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.error || "Could not fetch termination record.");
+  }
+};
+
+/**
+ * Searches for employees by name.
+ * @param {string} query - The search term.
+ */
+export const searchEmployees = async (query) => {
+  try {
+    // Use URLSearchParams to safely encode the query
+    const params = new URLSearchParams({ q: query });
+    const response = await apiClient.get(`/employees/search?${params.toString()}`);
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.error || "Could not search for employees.");
+  }
+};
+
+//sosi 

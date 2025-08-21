@@ -88,6 +88,11 @@ enum TerminationStatus {
   involuntary
   retired
 }
+enum WorkflowStatus {
+  pending_approval
+  processing
+  finalized
+}
 
 // ----------------------
 // 2. ROLES & USERS
@@ -432,6 +437,7 @@ model Termination {
   terminationDate DateTime
   reason          String?
   status          TerminationStatus
+  workflowStatus  WorkflowStatus    @default(pending_approval)
   remarks         String?
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt

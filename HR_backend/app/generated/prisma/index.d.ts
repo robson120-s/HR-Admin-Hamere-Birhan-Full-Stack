@@ -242,6 +242,15 @@ export const TerminationStatus: {
 
 export type TerminationStatus = (typeof TerminationStatus)[keyof typeof TerminationStatus]
 
+
+export const WorkflowStatus: {
+  pending_approval: 'pending_approval',
+  processing: 'processing',
+  finalized: 'finalized'
+};
+
+export type WorkflowStatus = (typeof WorkflowStatus)[keyof typeof WorkflowStatus]
+
 }
 
 export type Sex = $Enums.Sex
@@ -287,6 +296,10 @@ export const SalaryStatus: typeof $Enums.SalaryStatus
 export type TerminationStatus = $Enums.TerminationStatus
 
 export const TerminationStatus: typeof $Enums.TerminationStatus
+
+export type WorkflowStatus = $Enums.WorkflowStatus
+
+export const WorkflowStatus: typeof $Enums.WorkflowStatus
 
 /**
  * ##  Prisma Client ʲˢ
@@ -27044,6 +27057,7 @@ export namespace Prisma {
     terminationDate: Date | null
     reason: string | null
     status: $Enums.TerminationStatus | null
+    workflowStatus: $Enums.WorkflowStatus | null
     remarks: string | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -27055,6 +27069,7 @@ export namespace Prisma {
     terminationDate: Date | null
     reason: string | null
     status: $Enums.TerminationStatus | null
+    workflowStatus: $Enums.WorkflowStatus | null
     remarks: string | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -27066,6 +27081,7 @@ export namespace Prisma {
     terminationDate: number
     reason: number
     status: number
+    workflowStatus: number
     remarks: number
     createdAt: number
     updatedAt: number
@@ -27089,6 +27105,7 @@ export namespace Prisma {
     terminationDate?: true
     reason?: true
     status?: true
+    workflowStatus?: true
     remarks?: true
     createdAt?: true
     updatedAt?: true
@@ -27100,6 +27117,7 @@ export namespace Prisma {
     terminationDate?: true
     reason?: true
     status?: true
+    workflowStatus?: true
     remarks?: true
     createdAt?: true
     updatedAt?: true
@@ -27111,6 +27129,7 @@ export namespace Prisma {
     terminationDate?: true
     reason?: true
     status?: true
+    workflowStatus?: true
     remarks?: true
     createdAt?: true
     updatedAt?: true
@@ -27209,6 +27228,7 @@ export namespace Prisma {
     terminationDate: Date
     reason: string | null
     status: $Enums.TerminationStatus
+    workflowStatus: $Enums.WorkflowStatus
     remarks: string | null
     createdAt: Date
     updatedAt: Date
@@ -27239,6 +27259,7 @@ export namespace Prisma {
     terminationDate?: boolean
     reason?: boolean
     status?: boolean
+    workflowStatus?: boolean
     remarks?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -27253,12 +27274,13 @@ export namespace Prisma {
     terminationDate?: boolean
     reason?: boolean
     status?: boolean
+    workflowStatus?: boolean
     remarks?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type TerminationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "employeeId" | "terminationDate" | "reason" | "status" | "remarks" | "createdAt" | "updatedAt", ExtArgs["result"]["termination"]>
+  export type TerminationOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "employeeId" | "terminationDate" | "reason" | "status" | "workflowStatus" | "remarks" | "createdAt" | "updatedAt", ExtArgs["result"]["termination"]>
   export type TerminationInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     employee?: boolean | EmployeeDefaultArgs<ExtArgs>
   }
@@ -27274,6 +27296,7 @@ export namespace Prisma {
       terminationDate: Date
       reason: string | null
       status: $Enums.TerminationStatus
+      workflowStatus: $Enums.WorkflowStatus
       remarks: string | null
       createdAt: Date
       updatedAt: Date
@@ -27652,6 +27675,7 @@ export namespace Prisma {
     readonly terminationDate: FieldRef<"Termination", 'DateTime'>
     readonly reason: FieldRef<"Termination", 'String'>
     readonly status: FieldRef<"Termination", 'TerminationStatus'>
+    readonly workflowStatus: FieldRef<"Termination", 'WorkflowStatus'>
     readonly remarks: FieldRef<"Termination", 'String'>
     readonly createdAt: FieldRef<"Termination", 'DateTime'>
     readonly updatedAt: FieldRef<"Termination", 'DateTime'>
@@ -28339,6 +28363,7 @@ export namespace Prisma {
     terminationDate: 'terminationDate',
     reason: 'reason',
     status: 'status',
+    workflowStatus: 'workflowStatus',
     remarks: 'remarks',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
@@ -28641,6 +28666,13 @@ export namespace Prisma {
    * Reference to a field of type 'TerminationStatus'
    */
   export type EnumTerminationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TerminationStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'WorkflowStatus'
+   */
+  export type EnumWorkflowStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'WorkflowStatus'>
     
 
 
@@ -30318,6 +30350,7 @@ export namespace Prisma {
     terminationDate?: DateTimeFilter<"Termination"> | Date | string
     reason?: StringNullableFilter<"Termination"> | string | null
     status?: EnumTerminationStatusFilter<"Termination"> | $Enums.TerminationStatus
+    workflowStatus?: EnumWorkflowStatusFilter<"Termination"> | $Enums.WorkflowStatus
     remarks?: StringNullableFilter<"Termination"> | string | null
     createdAt?: DateTimeFilter<"Termination"> | Date | string
     updatedAt?: DateTimeFilter<"Termination"> | Date | string
@@ -30330,6 +30363,7 @@ export namespace Prisma {
     terminationDate?: SortOrder
     reason?: SortOrderInput | SortOrder
     status?: SortOrder
+    workflowStatus?: SortOrder
     remarks?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -30346,6 +30380,7 @@ export namespace Prisma {
     terminationDate?: DateTimeFilter<"Termination"> | Date | string
     reason?: StringNullableFilter<"Termination"> | string | null
     status?: EnumTerminationStatusFilter<"Termination"> | $Enums.TerminationStatus
+    workflowStatus?: EnumWorkflowStatusFilter<"Termination"> | $Enums.WorkflowStatus
     remarks?: StringNullableFilter<"Termination"> | string | null
     createdAt?: DateTimeFilter<"Termination"> | Date | string
     updatedAt?: DateTimeFilter<"Termination"> | Date | string
@@ -30358,6 +30393,7 @@ export namespace Prisma {
     terminationDate?: SortOrder
     reason?: SortOrderInput | SortOrder
     status?: SortOrder
+    workflowStatus?: SortOrder
     remarks?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -30377,6 +30413,7 @@ export namespace Prisma {
     terminationDate?: DateTimeWithAggregatesFilter<"Termination"> | Date | string
     reason?: StringNullableWithAggregatesFilter<"Termination"> | string | null
     status?: EnumTerminationStatusWithAggregatesFilter<"Termination"> | $Enums.TerminationStatus
+    workflowStatus?: EnumWorkflowStatusWithAggregatesFilter<"Termination"> | $Enums.WorkflowStatus
     remarks?: StringNullableWithAggregatesFilter<"Termination"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Termination"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Termination"> | Date | string
@@ -32032,6 +32069,7 @@ export namespace Prisma {
     terminationDate: Date | string
     reason?: string | null
     status: $Enums.TerminationStatus
+    workflowStatus?: $Enums.WorkflowStatus
     remarks?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -32044,6 +32082,7 @@ export namespace Prisma {
     terminationDate: Date | string
     reason?: string | null
     status: $Enums.TerminationStatus
+    workflowStatus?: $Enums.WorkflowStatus
     remarks?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -32053,6 +32092,7 @@ export namespace Prisma {
     terminationDate?: DateTimeFieldUpdateOperationsInput | Date | string
     reason?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTerminationStatusFieldUpdateOperationsInput | $Enums.TerminationStatus
+    workflowStatus?: EnumWorkflowStatusFieldUpdateOperationsInput | $Enums.WorkflowStatus
     remarks?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -32065,6 +32105,7 @@ export namespace Prisma {
     terminationDate?: DateTimeFieldUpdateOperationsInput | Date | string
     reason?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTerminationStatusFieldUpdateOperationsInput | $Enums.TerminationStatus
+    workflowStatus?: EnumWorkflowStatusFieldUpdateOperationsInput | $Enums.WorkflowStatus
     remarks?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -32076,6 +32117,7 @@ export namespace Prisma {
     terminationDate: Date | string
     reason?: string | null
     status: $Enums.TerminationStatus
+    workflowStatus?: $Enums.WorkflowStatus
     remarks?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -32085,6 +32127,7 @@ export namespace Prisma {
     terminationDate?: DateTimeFieldUpdateOperationsInput | Date | string
     reason?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTerminationStatusFieldUpdateOperationsInput | $Enums.TerminationStatus
+    workflowStatus?: EnumWorkflowStatusFieldUpdateOperationsInput | $Enums.WorkflowStatus
     remarks?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -32096,6 +32139,7 @@ export namespace Prisma {
     terminationDate?: DateTimeFieldUpdateOperationsInput | Date | string
     reason?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTerminationStatusFieldUpdateOperationsInput | $Enums.TerminationStatus
+    workflowStatus?: EnumWorkflowStatusFieldUpdateOperationsInput | $Enums.WorkflowStatus
     remarks?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -33796,6 +33840,13 @@ export namespace Prisma {
     not?: NestedEnumTerminationStatusFilter<$PrismaModel> | $Enums.TerminationStatus
   }
 
+  export type EnumWorkflowStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.WorkflowStatus | EnumWorkflowStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.WorkflowStatus[]
+    notIn?: $Enums.WorkflowStatus[]
+    not?: NestedEnumWorkflowStatusFilter<$PrismaModel> | $Enums.WorkflowStatus
+  }
+
   export type TerminationOrderByRelevanceInput = {
     fields: TerminationOrderByRelevanceFieldEnum | TerminationOrderByRelevanceFieldEnum[]
     sort: SortOrder
@@ -33808,6 +33859,7 @@ export namespace Prisma {
     terminationDate?: SortOrder
     reason?: SortOrder
     status?: SortOrder
+    workflowStatus?: SortOrder
     remarks?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -33824,6 +33876,7 @@ export namespace Prisma {
     terminationDate?: SortOrder
     reason?: SortOrder
     status?: SortOrder
+    workflowStatus?: SortOrder
     remarks?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -33835,6 +33888,7 @@ export namespace Prisma {
     terminationDate?: SortOrder
     reason?: SortOrder
     status?: SortOrder
+    workflowStatus?: SortOrder
     remarks?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -33853,6 +33907,16 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumTerminationStatusFilter<$PrismaModel>
     _max?: NestedEnumTerminationStatusFilter<$PrismaModel>
+  }
+
+  export type EnumWorkflowStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.WorkflowStatus | EnumWorkflowStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.WorkflowStatus[]
+    notIn?: $Enums.WorkflowStatus[]
+    not?: NestedEnumWorkflowStatusWithAggregatesFilter<$PrismaModel> | $Enums.WorkflowStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumWorkflowStatusFilter<$PrismaModel>
+    _max?: NestedEnumWorkflowStatusFilter<$PrismaModel>
   }
 
   export type UserRoleCreateNestedManyWithoutRoleInput = {
@@ -35309,6 +35373,10 @@ export namespace Prisma {
     set?: $Enums.TerminationStatus
   }
 
+  export type EnumWorkflowStatusFieldUpdateOperationsInput = {
+    set?: $Enums.WorkflowStatus
+  }
+
   export type EmployeeUpdateOneRequiredWithoutTerminationsNestedInput = {
     create?: XOR<EmployeeCreateWithoutTerminationsInput, EmployeeUncheckedCreateWithoutTerminationsInput>
     connectOrCreate?: EmployeeCreateOrConnectWithoutTerminationsInput
@@ -35753,6 +35821,13 @@ export namespace Prisma {
     not?: NestedEnumTerminationStatusFilter<$PrismaModel> | $Enums.TerminationStatus
   }
 
+  export type NestedEnumWorkflowStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.WorkflowStatus | EnumWorkflowStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.WorkflowStatus[]
+    notIn?: $Enums.WorkflowStatus[]
+    not?: NestedEnumWorkflowStatusFilter<$PrismaModel> | $Enums.WorkflowStatus
+  }
+
   export type NestedEnumTerminationStatusWithAggregatesFilter<$PrismaModel = never> = {
     equals?: $Enums.TerminationStatus | EnumTerminationStatusFieldRefInput<$PrismaModel>
     in?: $Enums.TerminationStatus[]
@@ -35761,6 +35836,16 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumTerminationStatusFilter<$PrismaModel>
     _max?: NestedEnumTerminationStatusFilter<$PrismaModel>
+  }
+
+  export type NestedEnumWorkflowStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.WorkflowStatus | EnumWorkflowStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.WorkflowStatus[]
+    notIn?: $Enums.WorkflowStatus[]
+    not?: NestedEnumWorkflowStatusWithAggregatesFilter<$PrismaModel> | $Enums.WorkflowStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumWorkflowStatusFilter<$PrismaModel>
+    _max?: NestedEnumWorkflowStatusFilter<$PrismaModel>
   }
 
   export type UserRoleCreateWithoutRoleInput = {
@@ -37569,6 +37654,7 @@ export namespace Prisma {
     terminationDate: Date | string
     reason?: string | null
     status: $Enums.TerminationStatus
+    workflowStatus?: $Enums.WorkflowStatus
     remarks?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -37579,6 +37665,7 @@ export namespace Prisma {
     terminationDate: Date | string
     reason?: string | null
     status: $Enums.TerminationStatus
+    workflowStatus?: $Enums.WorkflowStatus
     remarks?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -38050,6 +38137,7 @@ export namespace Prisma {
     terminationDate?: DateTimeFilter<"Termination"> | Date | string
     reason?: StringNullableFilter<"Termination"> | string | null
     status?: EnumTerminationStatusFilter<"Termination"> | $Enums.TerminationStatus
+    workflowStatus?: EnumWorkflowStatusFilter<"Termination"> | $Enums.WorkflowStatus
     remarks?: StringNullableFilter<"Termination"> | string | null
     createdAt?: DateTimeFilter<"Termination"> | Date | string
     updatedAt?: DateTimeFilter<"Termination"> | Date | string
@@ -41507,6 +41595,7 @@ export namespace Prisma {
     terminationDate: Date | string
     reason?: string | null
     status: $Enums.TerminationStatus
+    workflowStatus?: $Enums.WorkflowStatus
     remarks?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -41744,6 +41833,7 @@ export namespace Prisma {
     terminationDate?: DateTimeFieldUpdateOperationsInput | Date | string
     reason?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTerminationStatusFieldUpdateOperationsInput | $Enums.TerminationStatus
+    workflowStatus?: EnumWorkflowStatusFieldUpdateOperationsInput | $Enums.WorkflowStatus
     remarks?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -41754,6 +41844,7 @@ export namespace Prisma {
     terminationDate?: DateTimeFieldUpdateOperationsInput | Date | string
     reason?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTerminationStatusFieldUpdateOperationsInput | $Enums.TerminationStatus
+    workflowStatus?: EnumWorkflowStatusFieldUpdateOperationsInput | $Enums.WorkflowStatus
     remarks?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -41764,6 +41855,7 @@ export namespace Prisma {
     terminationDate?: DateTimeFieldUpdateOperationsInput | Date | string
     reason?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumTerminationStatusFieldUpdateOperationsInput | $Enums.TerminationStatus
+    workflowStatus?: EnumWorkflowStatusFieldUpdateOperationsInput | $Enums.WorkflowStatus
     remarks?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string

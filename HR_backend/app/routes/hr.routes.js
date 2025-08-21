@@ -456,13 +456,21 @@ router.post("/employees", async (req, res) => { // NOTE: Add 'authenticate, auth
   }
 });
 
-router.get("/employees", async (req, res) => { // Add auth middleware back later
+// GET /api/hr/employees - Fetch ACTIVE employees for the list page
+router.get("/employees", async (req, res) => {
   try {
+    const terminatedEmployeeIds = await prisma.termination.findMany({
+      select: { employeeId: true },
+    });
+    const idsToExclude = terminatedEmployeeIds.map(t => t.employeeId);
+
     const employees = await prisma.employee.findMany({
-      orderBy: {
-        createdAt: "desc", // Show the newest employees first
+      where: {
+        id: {
+          notIn: idsToExclude, // ✅ EXCLUDE TERMINATED EMPLOYEES
+        },
       },
-      // Include the data needed for the employee card
+      orderBy: { createdAt: "desc" },
       include: {
         department: { select: { name: true } },
         position: { select: { name: true } },
@@ -470,10 +478,34 @@ router.get("/employees", async (req, res) => { // Add auth middleware back later
     });
     res.status(200).json(employees);
   } catch (error) {
-    console.error("Error fetching employees:", error);
     res.status(500).json({ error: "Failed to fetch employee list." });
   }
 });
+
+
+// GET /api/hr/employees/search?q=... - Search for employees by name
+router.get("/employees/search", async (req, res) => {
+  try {
+    const { q } = req.query; // q is the search query
+    if (!q) {
+      return res.json([]);
+    }
+    const employees = await prisma.employee.findMany({
+      where: {
+        OR: [
+          { firstName: { contains: q } },
+          { lastName: { contains: q } },
+        ],
+      },
+      select: { id: true, firstName: true, lastName: true, photo: true },
+      take: 10, // Limit results
+    });
+    res.json(employees);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to search employees." });
+  }
+});
+
 router.get("/employees/:id", async (req, res) => { // Add auth middleware later
   try {
     const { id } = req.params;
@@ -539,12 +571,21 @@ router.patch("/employees/:id", async (req, res) => { // Add auth middleware late
   }
 });
 
-router.get("/terminations",  async (req, res) => {
+router.get("/terminations", async (req, res) => {
   try {
     const terminations = await prisma.termination.findMany({
-      orderBy: { createdAt: "desc" },
-      include: {
-        employee: { // We need the employee's name and photo for the list
+      orderBy: {
+        createdAt: "desc",
+      },
+      select: {
+        id: true,
+        terminationDate: true,
+        reason: true,
+        status: true,
+        workflowStatus: true, 
+        remarks: true,
+        createdAt: true,
+        employee: { 
           select: {
             id: true,
             firstName: true,
@@ -622,23 +663,92 @@ router.get("/terminations/:id", async (req, res) => {
 });
 
 // PATCH /api/hr/terminations/:id - Update a termination record
-router.patch("/terminations/:id",  async (req, res) => {
+// In backend routes/hr.routes.js
+
+// In your backend file: routes/hr.routes.js
+
+// PATCH /api/hr/terminations/:id - Update a termination record
+router.patch("/terminations/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const { status, reason, remarks, terminationDate } = req.body; // 'status' here is the terminationType
+    // Get all potential fields from the request body
+    const { status, reason, remarks, terminationDate, workflowStatus } = req.body;
 
+    // ✅ CREATE AN EMPTY OBJECT TO HOLD ONLY THE DATA WE WANT TO UPDATE
+    const dataToUpdate = {};
+
+    // --- Conditionally build the update payload ---
+
+    // 1. Handle Termination Type (e.g., 'Voluntary')
+    if (status) {
+      // Map the user-friendly type from the frontend to the backend enum
+      const statusMap = {
+        'Voluntary': 'voluntary',
+        'Involuntary': 'involuntary',
+        'Retirement': 'retired'
+      };
+      // Only update if the provided status is valid
+      if (statusMap[status]) {
+        dataToUpdate.status = statusMap[status];
+      }
+    }
+
+    // 2. ✅ HANDLE WORKFLOW STATUS (e.g., 'Processing')
+    if (workflowStatus) {
+      // Map the user-friendly status from the frontend to the backend enum
+      const workflowStatusMap = {
+        'Pending Approval': 'pending_approval',
+        'Processing': 'processing',
+        'Finalized': 'finalized'
+      };
+      // Only update if the provided status is valid
+      if (workflowStatusMap[workflowStatus]) {
+        dataToUpdate.workflowStatus = workflowStatusMap[workflowStatus];
+      }
+    }
+    
+    // 3. Handle other optional fields
+    // The '!== undefined' check allows you to save empty strings (e.g., clearing a reason)
+    if (reason !== undefined) {
+      dataToUpdate.reason = reason;
+    }
+    if (remarks !== undefined) {
+      dataToUpdate.remarks = remarks;
+    }
+    if (terminationDate) {
+      dataToUpdate.terminationDate = new Date(terminationDate);
+    }
+
+    // Check if there is anything to update
+    if (Object.keys(dataToUpdate).length === 0) {
+      return res.status(400).json({ error: "No valid fields provided for update." });
+    }
+
+    // --- Perform the update with the constructed data object ---
     const updatedTermination = await prisma.termination.update({
       where: { id: parseInt(id) },
-      data: {
-        status: status,
-        reason: reason,
-        remarks: remarks,
-        terminationDate: terminationDate ? new Date(terminationDate) : undefined,
-      },
+      data: dataToUpdate,
+      // Include the same data shape that the GET /terminations route sends
+      select: {
+          id: true,
+          terminationDate: true,
+          reason: true,
+          status: true,
+          workflowStatus: true,
+          remarks: true,
+          createdAt: true,
+          employee: {
+              select: { id: true, firstName: true, lastName: true, photo: true }
+          }
+      }
     });
+
     res.status(200).json(updatedTermination);
   } catch (error) {
-    console.error("Error updating termination:", error);
+    console.error(`Error updating termination with ID ${req.params.id}:`, error);
+    if (error.code === 'P2025') {
+      return res.status(404).json({ error: "Termination record not found." });
+    }
     res.status(500).json({ error: "Failed to update termination." });
   }
 });
@@ -656,8 +766,6 @@ router.delete("/terminations/:id",  async (req, res) => {
         res.status(500).json({ error: "Failed to delete termination." });
     }
 });
-
-// In your backend file: routes/hr.routes.js
 
 // ... your existing GET, PATCH, DELETE routes for terminations ...
 

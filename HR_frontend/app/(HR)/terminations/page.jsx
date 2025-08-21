@@ -115,7 +115,7 @@ const WorkflowStatusDropdown = ({ currentStatus, onStatusChange }) => {
 // ==============================================================================
 // Component 4: Memoized Table Row
 // ==============================================================================
-const TerminationRow = memo(function TerminationRow({ termination, onTypeChange, onStatusChange, onDelete }) {
+const TerminationRow = memo(function TerminationRow({ termination, onTypeChange, onStatusChange, onDelete, onEdit }) {
   
   // Helper to map backend status (e.g., 'voluntary') to frontend display (e.g., 'Voluntary')
   const mapStatusToType = (status) => {
@@ -124,6 +124,14 @@ const TerminationRow = memo(function TerminationRow({ termination, onTypeChange,
           case 'involuntary': return 'Involuntary';
           case 'retired': return 'Retirement';
           default: return 'Voluntary'; // Sensible fallback
+      }
+  };
+    const mapWorkflowStatus = (status) => {
+      switch(status) {
+          case 'pending_approval': return 'Pending Approval';
+          case 'processing': return 'Processing';
+          case 'finalized': return 'Finalized';
+          default: return 'Pending Approval';
       }
   };
 
@@ -156,7 +164,7 @@ const TerminationRow = memo(function TerminationRow({ termination, onTypeChange,
       <td className="px-6 py-4">
         {/* This is still a UI-only field for now */}
         <WorkflowStatusDropdown 
-          currentStatus={termination.workflowStatus || 'Finalized'} 
+          currentStatus={mapWorkflowStatus(termination.workflowStatus)}
           onStatusChange={(newStatus) => onStatusChange(termination.id, newStatus)}
         />
       </td>
@@ -183,71 +191,80 @@ const TerminationsPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
 
-  const handleUpdateSuccess = (updatedTermination) => {
-        setTerminations(prev => prev.map(t => t.id === updatedTermination.id ? updatedTermination : t));
-    };
-
   // --- Fetch data from API on page load ---
-  const fetchTerminations = async () => {
-      setIsLoading(true);
-      try {
-          const data = await getTerminations();
-          setTerminations(data);
-      } catch (error) {
-          toast.error(error.message);
-      } finally {
-          setIsLoading(false);
-      }
-  };
+const fetchTerminations = useCallback(async () => {
+    // We don't set isLoading(true) here to avoid a flicker on refetch.
+    try {
+      const data = await getTerminations();
+      setTerminations(data);
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setIsLoading(false); // Only set loading to false.
+    }
+  }, []); // Empty dependency array means this function is created only once.
 
   useEffect(() => {
-    fetchTerminations();
-  }, []);
+    setIsLoading(true); // Set initial loading state here.
+    fetchTerminations().finally(() => setIsLoading(false));
+  }, [fetchTerminations]);
 
-  // --- API Handlers ---
+
+  // ✅ FIX #2: Stabilize the change handlers using useCallback.
+  // These functions no longer depend on the 'terminations' state, breaking the loop.
   const handleTypeChange = useCallback(async (terminationId, newType) => {
-    const originalTerminations = [...terminations];
-    const newStatus = newType.toLowerCase(); // 'Voluntary' -> 'voluntary'
-
-    // Optimistic UI update
-    setTerminations(current => current.map(t => t.id === terminationId ? { ...t, status: newStatus } : t));
-
     try {
-        await updateTermination(terminationId, { status: newStatus });
-        toast.success("Termination type updated.");
+      // Send the capitalized value directly (e.g., "Voluntary")
+      await updateTermination(terminationId, { status: newType });
+      toast.success("Termination type updated.");
+      fetchTerminations();
     } catch (error) {
-        toast.error(error.message);
-        setTerminations(originalTerminations); // Revert UI on failure
+      toast.error(error.message);
     }
-  }, [terminations]);
+  }, [fetchTerminations]);
 
-  const handleStatusChange = useCallback((terminationId, newStatus) => {
-    // This is a placeholder as 'workflowStatus' is not in the backend schema.
-    toast.info("Workflow status updates are not yet saved to the database.");
-  }, []);
+  const handleStatusChange = useCallback(async (terminationId, newStatus) => {
+    try {
+      // Send the capitalized value directly (e.g., "Pending Approval")
+      await updateTermination(terminationId, { workflowStatus: newStatus });
+      toast.success("Workflow status updated.");
+      fetchTerminations();
+    } catch (error) {
+      toast.error(error.message);
+    }
+  }, [fetchTerminations]);
 
-  const handleDelete = async (terminationId) => {
-      if (window.confirm("Are you sure you want to delete this termination record?")) {
-          const originalTerminations = [...terminations];
-          // Optimistic UI update
-          setTerminations(current => current.filter(t => t.id !== terminationId));
-          try {
-              await deleteTermination(terminationId);
-              toast.success("Termination record deleted.");
-          } catch (error) {
-              toast.error(error.message);
-              setTerminations(originalTerminations); // Revert UI on failure
-          }
+  const handleDelete = useCallback(async (terminationId) => {
+    if (window.confirm("Are you sure you want to delete this record?")) {
+      try {
+        await deleteTermination(terminationId);
+        toast.success("Termination record deleted.");
+        fetchTerminations(); // Refetch after deleting
+      } catch (error) {
+        toast.error(error.message);
       }
-  };
+    }
+  }, [fetchTerminations]); // This handler needs 'terminations' for the optimistic revert.
 
-    const handleCreateSuccess = (newTermination) => {
-    // Add the new record to the top of the list for immediate feedback
-    setTerminations(prev => [newTermination, ...prev]);
-  };
-  const filteredData = terminations.filter(item => 
-    `${item.employee.firstName} ${item.employee.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const handleCreateSuccess = useCallback(() => {
+    fetchTerminations(); // Simply refetch the list on success
+  }, [fetchTerminations]);
+  
+  const handleUpdateSuccess = useCallback(() => {
+    fetchTerminations(); // Simply refetch the list on success
+  }, [fetchTerminations]);
+
+
+
+  const filteredData = terminations.filter(item => {
+  // ✅ SAFETY CHECK: First, make sure item.employee exists.
+  if (!item.employee) {
+    return false; // If it doesn't exist, exclude this item from the list.
+  }
+  // If it does exist, proceed with the search logic.
+  const fullName = `${item.employee.firstName} ${item.employee.lastName}`;
+  return fullName.toLowerCase().includes(searchTerm.toLowerCase());
+});
 
   return (
     <div className="bg-slate-100 dark:bg-gray-900 min-h-screen font-sans">
@@ -304,6 +321,7 @@ const TerminationsPage = () => {
                         onTypeChange={handleTypeChange}
                         onStatusChange={handleStatusChange}
                         onDelete={handleDelete}
+                        onEdit={setEditingId}
                       />
                     ))
                 )}
@@ -326,6 +344,12 @@ const TerminationsPage = () => {
         onClose={() => setIsModalOpen(false)}
         onSuccess={handleCreateSuccess}
       />
+      <EditTerminationModal
+            open={!!editingId}
+            terminationId={editingId}
+            onClose={() => setEditingId(null)}
+            onSuccess={handleUpdateSuccess}
+        />
     </div>
   );
 };
