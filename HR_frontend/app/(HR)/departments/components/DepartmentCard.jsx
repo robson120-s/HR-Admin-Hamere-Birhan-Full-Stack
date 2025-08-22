@@ -60,9 +60,9 @@ export function DepartmentCard({ department, onClick }) {
             
             {/* ✅ Employee Stats now display the real counts from the database */}
             <div className="mt-6 text-slate-700 dark:text-slate-300 text-center space-y-2 font-semibold">
-                <p>Total Members: {totalMembers}</p>
-                <p>Staff: {staffCount}</p>
-                <p>Interns: {internCount}</p>
+                <p>Total Members: {department.totalMembers}</p>
+                <p>Staff: {department.staffCount}</p>
+                <p>Interns: {department.internCount}</p>
             </div>
         </div>
     );

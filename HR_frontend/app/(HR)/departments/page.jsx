@@ -2,76 +2,88 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-// Remove getDepartmentById, we won't need it here for this pattern
-import { getDepartments, createDepartment, updateDepartment, deleteDepartment } from "../../../lib/api"; 
+import { getDepartments, getDepartmentById, createDepartment, updateDepartment, deleteDepartment } from "../../../lib/api";
 import { DepartmentCard } from "./components/DepartmentCard";
 import { DepartmentDetailView } from "./components/DepartmentDetailView";
 import { AddEditDepartmentModal } from "./components/AddEditDepartmentModal";
 import toast from "react-hot-toast";
 import { Button } from "../../../components/ui/Button";
 import { Plus, LoaderCircle } from "lucide-react";
-
-import { DepartmentCarousel } from "./components/DepartmentCarousel"; 
-import ThemeToggle from "../dashboard/components/ThemeToggle";
+import ThemeToggle from "../dashboard/components/ThemeToggle"; // Assuming path is correct
 
 export default function DepartmentsPage() {
     const [departments, setDepartments] = useState([]);
-    const [selectedDept, setSelectedDept] = useState(null);
+    const [selectedDeptData, setSelectedDeptData] = useState(null); // Holds the rich data for the detail view
     const [isLoading, setIsLoading] = useState(true);
+    const [isDetailLoading, setIsDetailLoading] = useState(false); // A separate loading state for the detail view
     const [modalState, setModalState] = useState({
-        open: false, department: null, parentId: null, parentName: '',
+        open: false,
+        department: null,
+        parentId: null,
+        parentName: '',
     });
 
+    // Function to fetch the main list of departments for the card view
     const fetchDepartments = useCallback(async () => {
+        setIsLoading(true);
         try {
             const data = await getDepartments();
             setDepartments(data);
-            return data; // ✅ Return the new data
         } catch (error) {
             toast.error("Could not fetch departments.");
-            return []; // Return empty array on error
+        } finally {
+            setIsLoading(false);
         }
     }, []);
 
     useEffect(() => {
-        setIsLoading(true);
-        fetchDepartments().finally(() => setIsLoading(false));
+        fetchDepartments();
     }, [fetchDepartments]);
 
-    // ✅ NEW, SIMPLIFIED SAVE HANDLER
+    // This function is called when a card is clicked
+    const handleSelectDepartment = async (department) => {
+        setIsDetailLoading(true); // Show a loader for the detail view
+        setSelectedDeptData(null); // Clear old data to ensure the view switches
+        try {
+            // Fetch the FULL, detailed data for the selected department
+            const detailedData = await getDepartmentById(department.id);
+            setSelectedDeptData(detailedData);
+        } catch (error) {
+            toast.error("Could not load department details.");
+        } finally {
+            setIsDetailLoading(false);
+        }
+    };
+
+    // This function is called from the detail view to go back
+    const handleBackToList = () => {
+        setSelectedDeptData(null);
+    };
+
     const handleSave = async (data) => {
-        // The promise we will show to the user
-        const savePromise = data.id 
-            ? updateDepartment(data.id, data) 
+        const isUpdating = !!data.id;
+        const actionPromise = isUpdating
+            ? updateDepartment(data.id, data)
             : createDepartment(data);
 
         await toast.promise(
-            savePromise,
+            actionPromise,
             {
                 loading: 'Saving...',
-                success: (savedData) => {
-                    // Close the modal immediately on success
-                    setModalState({ open: false, department: null, parentId: null, parentName: '' });
-                    // Return the success message for the toast
-                    return `${data.parentId ? 'Sub-department' : 'Department'} saved successfully!`;
-                },
+                success: `Department saved successfully!`,
                 error: (err) => err.response?.data?.error || "Save operation failed.",
             }
         );
-
-        // ✅ REFETCH AND UPDATE STATE *AFTER* THE SAVE IS COMPLETE
-        const freshDepartments = await fetchDepartments();
-
-        // If a department was selected, find its updated version in the new list and set it
-        if (selectedDept) {
-            const parentId = data.parentId || selectedDept.id;
-            const updatedParent = freshDepartments.find(d => d.id === parentId);
-            if (updatedParent) {
-                setSelectedDept(updatedParent);
-            } else {
-                // If the parent was deleted or changed, go back to the list view
-                setSelectedDept(null);
-            }
+        
+        // Close the modal and refetch the main list
+        setModalState({ open: false, department: null, parentId: null, parentName: '' });
+        await fetchDepartments();
+        
+        // If we were in a detail view, we need to refresh it to show the new sub-department
+        if (selectedDeptData) {
+            const idToRefresh = data.parentId || selectedDeptData.id;
+            // Re-run the full detail fetch logic for the parent department
+            await handleSelectDepartment({ id: idToRefresh });
         }
     };
 
@@ -80,16 +92,18 @@ export default function DepartmentsPage() {
             try {
                 await deleteDepartment(id);
                 toast.success("Department deleted.");
-                await fetchDepartments();
-                setSelectedDept(null); // Always go back to the list view after deleting
+                await fetchDepartments(); // Refetch the main list
+                setSelectedDeptData(null); // Always go back to the list view after deleting
             } catch (error) {
                 toast.error(error.response?.data?.error || "Deletion failed.");
             }
         }
     };
+    
+    // --- RENDER LOGIC ---
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center min-h-screen">
+            <div className="flex items-center justify-center min-h-screen bg-slate-50 dark:bg-slate-900">
                 <LoaderCircle className="animate-spin h-12 w-12 text-indigo-500" />
             </div>
         );
@@ -97,39 +111,49 @@ export default function DepartmentsPage() {
     
     return (
         <div className="relative min-h-screen bg-slate-50 dark:bg-slate-900 p-4 md:p-8">
-            {/* <div className="absolute top-4 right-4 md:top-8 md:right-8 z-20">
+            <div className="absolute top-4 right-4 md:top-8 md:right-8 z-20">
                 <ThemeToggle />
-            </div> */}
+            </div>
 
             <header className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-8 max-w-7xl mx-auto">
                 <div>
-                    <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100 text-center sm:text-left">Departments</h1>
+                    <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100 text-center sm:text-left">
+                        Company Departments
+                    </h1>
                     <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                       Manage your company's organizational structure.
                     </p>
                 </div>
-                {!selectedDept && ( // Only show "Add Department" on the main page
-                    <Button onClick={() => setModalState({ open: true, department: null, parentId: null, parentName: '' })}>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Add Department
-                    </Button>
+                {/* Only show "Add Department" on the main list page */}
+                {!selectedDeptData && !isDetailLoading && (
+                    <div className="flex-shrink-0">
+                        <Button onClick={() => setModalState({ open: true, department: null, parentId: null, parentName: '' })}>
+                            <Plus className="mr-2 h-4 w-4" />
+                            Add Department
+                        </Button>
+                    </div>
                 )}
             </header>
 
-            <main>
-                {selectedDept ? (
-                    <DepartmentDetailView 
-                        department={selectedDept} 
-                        onBack={() => setSelectedDept(null)}
-                        setModalState={setModalState}
-                        onDelete={handleDelete}
-                    />
+            <main className="max-w-7xl mx-auto">
+                {/* Logic to show either the detail view, its loader, or the main list */}
+                {selectedDeptData || isDetailLoading ? (
+                    isDetailLoading ? (
+                        <div className="flex items-center justify-center p-20">
+                            <LoaderCircle className="animate-spin h-10 w-10 text-indigo-500" />
+                        </div>
+                    ) : (
+                        <DepartmentDetailView 
+                            department={selectedDeptData} 
+                            onBack={handleBackToList}
+                            setModalState={setModalState}
+                            onDelete={handleDelete}
+                        />
+                    )
                 ) : (
-                    // ✅ THIS IS THE FIX ✅
-                    // A responsive grid that shows 1, 2, or 3 columns depending on screen size.
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {departments.map(dept => (
-                            <DepartmentCard key={dept.id} department={dept} onClick={setSelectedDept} />
+                            <DepartmentCard key={dept.id} department={dept} onClick={handleSelectDepartment} />
                         ))}
                     </div>
                 )}

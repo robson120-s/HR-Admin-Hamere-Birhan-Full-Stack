@@ -85,7 +85,30 @@ export const updateComplaint = async (id, data) => {
   } catch (error) {
     throw new Error(error.response?.data?.error || "Could not update complaint.");
   }
+};export const createEmployee = async (payload) => {
+  try {
+    const response = await apiClient.post("/employees", payload);
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.error || "Could not create employee.");
+  }
 };
+
+/**
+ * Fetches the list of all active employees.
+ */
+export const getEmployees = async () => {
+  try {
+    const response = await apiClient.get("/employees");
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.error || "Could not fetch employees.");
+  }
+};
+
+/**
+ * Fetches a single employee by their ID.
+ */
 export const getEmployeeById = async (id) => {
   try {
     const response = await apiClient.get(`/employees/${id}`);
@@ -95,6 +118,9 @@ export const getEmployeeById = async (id) => {
   }
 };
 
+/**
+ * Updates an existing employee's details.
+ */
 export const updateEmployee = async (id, data) => {
   try {
     const response = await apiClient.patch(`/employees/${id}`, data);
@@ -103,14 +129,41 @@ export const updateEmployee = async (id, data) => {
     throw new Error(error.response?.data?.error || "Could not update employee.");
   }
 };
-export const getEmployees = async () => {
-  try {
-    const response = await apiClient.get("/employees");
+
+
+// --- LOOKUP API FUNCTIONS (For Dropdowns) ---
+
+export const getRoles = async () => {
+    const response = await apiClient.get("/lookup/roles");
     return response.data;
-  } catch (error) {
-    throw new Error(error.response?.data?.error || "Could not fetch employees.");
-  }
 };
+export const getDepartmentsLookup = async () => {
+    const response = await apiClient.get("/lookup/departments");
+    return response.data;
+};
+export const getPositionsLookup = async () => {
+    const response = await apiClient.get("/lookup/positions");
+    return response.data;
+};
+export const getMaritalStatuses = async () => {
+    const response = await apiClient.get("/lookup/marital-statuses");
+    return response.data;
+};
+export const getEmploymentTypes = async () => {
+    const response = await apiClient.get("/lookup/employment-types");
+    return response.data;
+};
+export const getJobStatuses = async () => {
+    const response = await apiClient.get("/lookup/job-statuses");
+    return response.data;
+};
+export const getAgreementStatuses = async () => {
+    const response = await apiClient.get("/lookup/agreement-statuses");
+    return response.data;
+};
+
+
+
 
 export const getTerminations = async () => {
   try {
@@ -185,6 +238,7 @@ export const getDepartmentById = async (id) => {
         throw new Error(error.response?.data?.error || "Could not fetch department details.");
     }
 };
+
 export const createDepartment = async (data) => {
     const response = await apiClient.post('/departments', data);
     return response.data;

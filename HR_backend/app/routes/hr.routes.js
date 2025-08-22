@@ -447,8 +447,11 @@ router.post("/employees", async (req, res) => { // NOTE: Add 'authenticate, auth
 
     // Specific error for duplicate username/email
     if (error.code === 'P2002') {
-        const fields = error.meta.target.join(', ');
-        return res.status(409).json({ error: `An account with this ${fields} already exists.` });
+         const fields = Array.isArray(error.meta.target) 
+        ? error.meta.target.join(', ') 
+        : error.meta.target;
+
+      return res.status(409).json({ error: `An account with this ${fields} already exists. Please choose another.` });
     }
 
     // Generic server error
@@ -597,6 +600,62 @@ router.patch("/employees/:id", async (req, res) => { // Add auth middleware back
     }
     res.status(500).json({ error: "Failed to update employee." });
   }
+});
+
+router.get("/lookup/roles", async (req, res) => {
+  try {
+    const data = await prisma.role.findMany({ select: { id: true, name: true }, orderBy: { name: 'asc' } });
+    res.json(data);
+  } catch (error) { res.status(500).json({ error: "Failed to fetch roles." }); }
+});
+
+router.get("/lookup/departments", async (req, res) => {
+  try {
+    const departments = await prisma.department.findMany({
+      // ✅ THIS IS THE FIX ✅
+      // Select the parentId so the frontend can filter by it.
+      select: { id: true, name: true, parentId: true },
+      orderBy: { name: 'asc' }
+    });
+    res.status(200).json(departments);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch departments." });
+  }
+});
+
+router.get("/lookup/positions", async (req, res) => {
+  try {
+    const data = await prisma.position.findMany({ select: { id: true, name: true }, orderBy: { name: 'asc' } });
+    res.json(data);
+  } catch (error) { res.status(500).json({ error: "Failed to fetch positions." }); }
+});
+
+router.get("/lookup/marital-statuses", async (req, res) => {
+  try {
+    const data = await prisma.maritalStatus.findMany({ select: { id: true, status: true }, orderBy: { status: 'asc' } });
+    res.json(data.map(item => ({ id: item.id, name: item.status }))); // Normalize to { id, name }
+  } catch (error) { res.status(500).json({ error: "Failed to fetch marital statuses." }); }
+});
+
+router.get("/lookup/employment-types", async (req, res) => {
+  try {
+    const data = await prisma.employmentType.findMany({ select: { id: true, type: true }, orderBy: { type: 'asc' } });
+    res.json(data.map(item => ({ id: item.id, name: item.type }))); // Normalize
+  } catch (error) { res.status(500).json({ error: "Failed to fetch employment types." }); }
+});
+
+router.get("/lookup/job-statuses", async (req, res) => {
+  try {
+    const data = await prisma.jobStatus.findMany({ select: { id: true, status: true }, orderBy: { status: 'asc' } });
+    res.json(data.map(item => ({ id: item.id, name: item.status }))); // Normalize
+  } catch (error) { res.status(500).json({ error: "Failed to fetch job statuses." }); }
+});
+
+router.get("/lookup/agreement-statuses", async (req, res) => {
+  try {
+    const data = await prisma.agreementStatus.findMany({ select: { id: true, status: true }, orderBy: { status: 'asc' } });
+    res.json(data.map(item => ({ id: item.id, name: item.status }))); // Normalize
+  } catch (error) { res.status(500).json({ error: "Failed to fetch agreement statuses." }); }
 });
 
 router.get("/terminations", async (req, res) => {
@@ -846,64 +905,220 @@ router.post("/terminations", async (req, res) => { // Add auth middleware back l
   }
 });
 
+const processDepartmentData = (department) => {
+    // Helper to categorize a list of employees
+    const processMembers = (employees) => {
+        const staff = [];
+        const interns = [];
+        // Safety check: ensure employees is an array before looping
+        (employees || []).forEach(emp => {
+            const fullName = `${emp.firstName} ${emp.lastName}`;
+            // Find the role name, assuming the first role is primary
+            const role = emp.user?.roles[0]?.role.name;
+            const memberData = { id: emp.id, name: fullName, photo: emp.photo };
+
+            if (role === 'Staff') {
+                staff.push(memberData);
+            } else if (role === 'Intern') {
+                interns.push(memberData);
+            }
+        });
+        return { staff, interns };
+    };
+
+    // Process members for the main department itself
+    const mainDeptMembers = processMembers(department.employees);
+    
+    // Process members for each sub-department
+    const subDepartmentsWithMembers = (department.subDepartments || []).map(sub => {
+        const subDeptMembers = processMembers(sub.employees);
+        return {
+            id: sub.id,
+            name: sub.name,
+            description: sub.description,
+            staff: subDeptMembers.staff,
+            interns: subDeptMembers.interns,
+        };
+    });
+    
+    // Calculate the grand total counts
+    const totalStaffCount = mainDeptMembers.staff.length + subDepartmentsWithMembers.reduce((sum, sub) => sum + sub.staff.length, 0);
+    const totalInternCount = mainDeptMembers.interns.length + subDepartmentsWithMembers.reduce((sum, sub) => sum + sub.interns.length, 0);
+
+    // Construct the final, clean payload that the frontend expects
+    return {
+        id: department.id,
+        name: department.name,
+        description: department.description,
+        staff: mainDeptMembers.staff,
+        interns: mainDeptMembers.interns,
+        subDepartments: subDepartmentsWithMembers,
+        // Add the counts for the card view
+        totalMembers: totalStaffCount + totalInternCount,
+        staffCount: totalStaffCount,
+        internCount: totalInternCount,
+    };
+};
+
+// In your backend file: routes/hr.routes.js
+
+// GET /api/hr/departments - FINAL, ROBUST VERSION
 router.get("/departments", async (req, res) => {
   try {
-    // Step 1: Fetch all departments with their employees and their roles
-    const departmentsWithEmployees = await prisma.department.findMany({
-      where: { parentId: null }, // Only fetch top-level departments
+    // Step 1: Fetch the department structure (top-level and their direct children)
+    const departments = await prisma.department.findMany({
+      where: { parentId: null },
       orderBy: { name: 'asc' },
       include: {
-        // Include employees directly in the department
-        employees: {
-          include: { user: { include: { roles: { include: { role: true } } } } }
-        },
-        // Include sub-departments, and THEIR employees with roles
         subDepartments: {
-          include: {
-            employees: {
-              include: { user: { include: { roles: { include: { role: true } } } } }
-            }
-          },
+          orderBy: { name: 'asc' },
         },
       },
     });
 
-    // Step 2: Process the data to calculate the counts
-    const departmentsWithCounts = departmentsWithEmployees.map(dept => {
-      let staffCount = 0;
-      let internCount = 0;
+    // Step 2: Iterate through each department and calculate the counts with separate, targeted queries
+    const departmentsWithCounts = await Promise.all(
+      departments.map(async (dept) => {
+        // Get a list of all relevant department IDs (the parent + all its children)
+        const allDeptIds = [dept.id, ...dept.subDepartments.map(sub => sub.id)];
 
-      // Count employees directly in the parent department
-      dept.employees.forEach(employee => {
-        if (employee.user?.roles.some(r => r.role.name === 'Staff')) staffCount++;
-        if (employee.user?.roles.some(r => r.role.name === 'Intern')) internCount++;
-      });
-      
-      // Count employees in the sub-departments
-      dept.subDepartments.forEach(subDept => {
-        subDept.employees.forEach(employee => {
-          if (employee.user?.roles.some(r => r.role.name === 'Staff')) staffCount++;
-          if (employee.user?.roles.some(r => r.role.name === 'Intern')) internCount++;
+        // Count staff in this department family
+        const staffCount = await prisma.employee.count({
+          where: {
+            OR: [
+              { departmentId: { in: allDeptIds } },
+              { subDepartmentId: { in: allDeptIds } },
+            ],
+            user: {
+              roles: { some: { role: { name: 'Staff' } } },
+            },
+          },
         });
-      });
-      
-      // We no longer need the large employee arrays, so we can remove them
-      // to keep the payload sent to the frontend small and fast.
-      delete dept.employees;
-      dept.subDepartments.forEach(sub => delete sub.employees);
-      
-      return {
-        ...dept,
-        totalMembers: staffCount + internCount,
-        staffCount,
-        internCount,
-      };
-    });
+
+        // Count interns in this department family
+        const internCount = await prisma.employee.count({
+          where: {
+            OR: [
+              { departmentId: { in: allDeptIds } },
+              { subDepartmentId: { in: allDeptIds } },
+            ],
+            user: {
+              roles: { some: { role: { name: 'Intern' } } },
+            },
+          },
+        });
+        
+        // Construct the final object for the frontend
+        return {
+          ...dept,
+          staffCount,
+          internCount,
+          totalMembers: staffCount + internCount,
+        };
+      })
+    );
 
     res.status(200).json(departmentsWithCounts);
+
   } catch (error) {
+    // This will now catch any errors from the count queries as well
     console.error("Error fetching department counts:", error);
     res.status(500).json({ error: "Failed to fetch departments." });
+  }
+});
+
+// GET /api/hr/departments/:id - Fetch a single department
+// In your backend file: routes/hr.routes.js
+
+// GET /api/hr/departments/:id - FINAL, ROBUST VERSION
+router.get("/departments/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Step 1: Fetch the department and its sub-department structure (lean query)
+    const department = await prisma.department.findUnique({
+      where: { id: parseInt(id) },
+      include: {
+        subDepartments: {
+          orderBy: { name: 'asc' },
+        },
+      },
+    });
+
+    if (!department) {
+      return res.status(404).json({ error: "Department not found." });
+    }
+
+    // A helper function to get categorized members for a list of department IDs
+    const getMembersForDepts = async (deptIds) => {
+      if (!deptIds || deptIds.length === 0) {
+          return { staff: [], interns: [] };
+      }
+      
+      // Lean query: only select the fields we absolutely need. This avoids bad date errors.
+      const employees = await prisma.employee.findMany({
+        where: {
+          OR: [
+            { departmentId: { in: deptIds } },
+            { subDepartmentId: { in: deptIds } },
+          ],
+        },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          photo: true,
+          user: {
+            select: {
+              roles: { select: { role: { select: { name: true } } } },
+            },
+          },
+        },
+      });
+
+      const staff = [];
+      const interns = [];
+      employees.forEach(emp => {
+        const fullName = `${emp.firstName} ${emp.lastName}`;
+        const role = emp.user?.roles[0]?.role.name;
+        const memberData = { id: emp.id, name: fullName, photo: emp.photo };
+
+        if (role === 'Staff') staff.push(memberData);
+        else if (role === 'Intern') interns.push(memberData);
+      });
+      return { staff, interns };
+    };
+
+    // Step 2: Get members for the main department
+    const mainDeptMembers = await getMembersForDepts([department.id]);
+
+    // Step 3: Get members for each sub-department individually
+    const subDepartmentsWithMembers = await Promise.all(
+      (department.subDepartments || []).map(async (sub) => {
+        const subDeptMembers = await getMembersForDepts([sub.id]);
+        return {
+          id: sub.id,
+          name: sub.name,
+          description: sub.description,
+          staff: subDeptMembers.staff,
+          interns: subDeptMembers.interns,
+        };
+      })
+    );
+
+    const finalResponse = {
+      id: department.id,
+      name: department.name,
+      description: department.description,
+      staff: mainDeptMembers.staff,
+      interns: mainDeptMembers.interns,
+      subDepartments: subDepartmentsWithMembers,
+    };
+
+    res.status(200).json(finalResponse);
+  } catch (error) {
+    console.error(`Error fetching department details for ID ${req.params.id}:`, error);
+    res.status(500).json({ error: "Failed to fetch department details." });
   }
 });
 
@@ -941,81 +1156,6 @@ router.post("/departments", async (req, res) => {
     res.status(500).json({ error: "Failed to create department." });
   }
 });
-
-router.get("/departments/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-    const department = await prisma.department.findUnique({
-      where: { id: parseInt(id) },
-      include: {
-        // Include employees directly in the parent department, WITH their roles
-        employees: {
-          include: { user: { include: { roles: { include: { role: true } } } } }
-        },
-        // Include sub-departments, and THEIR employees with roles
-        subDepartments: {
-          orderBy: { name: 'asc' },
-          include: {
-            employees: {
-              include: { user: { include: { roles: { include: { role: true } } } } }
-            }
-          },
-        },
-      },
-    });
-
-    if (!department) {
-      return res.status(404).json({ error: "Department not found." });
-    }
-
-    // Server-side processing to make the frontend's job easier
-    const processMembers = (employees) => {
-        const staff = [];
-        const interns = [];
-        employees.forEach(emp => {
-            const fullName = `${emp.firstName} ${emp.lastName}`;
-            const role = emp.user?.roles[0]?.role.name;
-            if (role === 'Staff') {
-                staff.push({ id: emp.id, name: fullName, photo: emp.photo });
-            } else if (role === 'Intern') {
-                interns.push({ id: emp.id, name: fullName, photo: emp.photo });
-            }
-        });
-        return { staff, interns };
-    };
-    
-    // Process members for the main department
-    const mainDeptMembers = processMembers(department.employees);
-    
-    // Process members for each sub-department
-    const subDepartmentsWithMembers = department.subDepartments.map(sub => {
-        const subDeptMembers = processMembers(sub.employees);
-        return {
-            id: sub.id,
-            name: sub.name,
-            description: sub.description,
-            staff: subDeptMembers.staff,
-            interns: subDeptMembers.interns
-        };
-    });
-
-    // Construct the final, clean payload for the frontend
-    const finalResponse = {
-        id: department.id,
-        name: department.name,
-        description: department.description,
-        staff: mainDeptMembers.staff,
-        interns: mainDeptMembers.interns,
-        subDepartments: subDepartmentsWithMembers
-    };
-
-    res.status(200).json(finalResponse);
-  } catch (error) {
-    console.error(`Error fetching department details for ID ${req.params.id}:`, error);
-    res.status(500).json({ error: "Failed to fetch department details." });
-  }
-});
-
 // PATCH /api/hr/departments/:id - Update a department's details
 router.patch("/departments/:id", async (req, res) => {
   try {
@@ -1043,24 +1183,6 @@ router.delete("/departments/:id", async (req, res) => {
   }
 });
 
-// GET /api/hr/departments/:id/employees - Fetch employees for a specific department/sub-dept
-router.get("/departments/:id/employees", async (req, res) => {
-    try {
-        const { id } = req.params;
-        const employees = await prisma.employee.findMany({
-            where: {
-                OR: [
-                    { departmentId: parseInt(id) },
-                    { subDepartmentId: parseInt(id) }
-                ]
-            },
-            select: { id: true, firstName: true, lastName: true, position: { select: { name: true } } }
-        });
-        res.status(200).json(employees);
-    } catch (error) {
-        res.status(500).json({ error: "Failed to fetch employees for this department." });
-    }
-});
 
 
 module.exports = router;
