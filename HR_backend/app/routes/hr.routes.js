@@ -1239,6 +1239,75 @@ router.patch("/leaves/:id/status", async (req, res) => {
   }
 });
 
+// GET /api/hr/overtime - Fetch all overtime requests
+// GET /api/hr/overtime - Fetch all overtime requests
+router.get("/overtime", async (req, res) => { // Add auth middleware back later
+  try {
+    const overtimeRequests = await prisma.overtimeLog.findMany({
+      orderBy: { date: 'desc' },
+      // ✅ Use a 'select' statement for a lean and specific payload
+      select: {
+        id: true,
+        date: true,
+        startTime: true, // Select the start time
+        endTime: true,   // Select the end time
+        hours: true,     // Also select the pre-calculated hours
+        reason: true,
+        approvalStatus: true,
+        compensationMethod: true,
+        employee: { select: { id: true, firstName: true, lastName: true } },
+        approver: { select: { id: true, username: true } }
+      }
+    });
+    res.status(200).json(overtimeRequests);
+  } catch (error) {
+    console.error("Error fetching overtime requests:", error);
+    res.status(500).json({ error: "Failed to fetch overtime requests." });
+  }
+});
+
+// PATCH /api/hr/overtime/:id - Approve or reject an overtime request
+// In your backend file: routes/hr.routes.js
+
+// PATCH /api/hr/overtime/:id - Approve or reject an overtime request
+router.patch("/overtime/:id", async (req, res) => { // Auth middleware can be added back later
+  const { id } = req.params;
+  try {
+    const { approvalStatus } = req.body;
+
+    // Validation
+    if (!approvalStatus || !['approved', 'rejected', 'pending'].includes(approvalStatus)) {
+      return res.status(400).json({ error: "A valid approvalStatus ('approved', 'pending', or 'rejected') is required." });
+    }
+    
+    // Fallback for approverId since auth might be disabled for testing
+    const approverId = req.user?.id || 1; // Make sure a User with ID 1 exists
+
+    const updatedOvertime = await prisma.overtimeLog.update({
+      where: { 
+        id: parseInt(id) // Ensure the ID is parsed as an integer
+      },
+      data: {
+        approvalStatus: approvalStatus, // This is the new status to save
+        approvedBy: approverId,
+      },
+      // Include the data needed by the frontend to avoid an extra fetch
+      include: {
+        employee: { select: { id: true, firstName: true, lastName: true } },
+        approver: { select: { id: true, username: true } }
+      }
+    });
+
+    res.status(200).json(updatedOvertime);
+  } catch (error) {
+    console.error(`Error updating overtime request ${id}:`, error);
+    if (error.code === 'P2025') {
+      return res.status(404).json({ error: "Overtime request not found." });
+    }
+    res.status(500).json({ error: "Failed to update overtime request." });
+  }
+});
+
 
 
 module.exports = router;

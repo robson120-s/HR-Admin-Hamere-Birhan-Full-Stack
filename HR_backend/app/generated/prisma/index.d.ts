@@ -140,8 +140,7 @@ export type Termination = $Result.DefaultSelection<Prisma.$TerminationPayload>
 export namespace $Enums {
   export const Sex: {
   male: 'male',
-  female: 'female',
-  other: 'other'
+  female: 'female'
 };
 
 export type Sex = (typeof Sex)[keyof typeof Sex]
@@ -22042,6 +22041,8 @@ export namespace Prisma {
     employeeId: number | null
     date: Date | null
     hours: Decimal | null
+    startTime: Date | null
+    endTime: Date | null
     reason: string | null
     approvedBy: number | null
     approvalStatus: $Enums.OvertimeApprovalStatus | null
@@ -22053,6 +22054,8 @@ export namespace Prisma {
     employeeId: number | null
     date: Date | null
     hours: Decimal | null
+    startTime: Date | null
+    endTime: Date | null
     reason: string | null
     approvedBy: number | null
     approvalStatus: $Enums.OvertimeApprovalStatus | null
@@ -22064,6 +22067,8 @@ export namespace Prisma {
     employeeId: number
     date: number
     hours: number
+    startTime: number
+    endTime: number
     reason: number
     approvedBy: number
     approvalStatus: number
@@ -22091,6 +22096,8 @@ export namespace Prisma {
     employeeId?: true
     date?: true
     hours?: true
+    startTime?: true
+    endTime?: true
     reason?: true
     approvedBy?: true
     approvalStatus?: true
@@ -22102,6 +22109,8 @@ export namespace Prisma {
     employeeId?: true
     date?: true
     hours?: true
+    startTime?: true
+    endTime?: true
     reason?: true
     approvedBy?: true
     approvalStatus?: true
@@ -22113,6 +22122,8 @@ export namespace Prisma {
     employeeId?: true
     date?: true
     hours?: true
+    startTime?: true
+    endTime?: true
     reason?: true
     approvedBy?: true
     approvalStatus?: true
@@ -22210,7 +22221,9 @@ export namespace Prisma {
     id: number
     employeeId: number
     date: Date
-    hours: Decimal
+    hours: Decimal | null
+    startTime: Date
+    endTime: Date
     reason: string | null
     approvedBy: number | null
     approvalStatus: $Enums.OvertimeApprovalStatus
@@ -22241,6 +22254,8 @@ export namespace Prisma {
     employeeId?: boolean
     date?: boolean
     hours?: boolean
+    startTime?: boolean
+    endTime?: boolean
     reason?: boolean
     approvedBy?: boolean
     approvalStatus?: boolean
@@ -22256,13 +22271,15 @@ export namespace Prisma {
     employeeId?: boolean
     date?: boolean
     hours?: boolean
+    startTime?: boolean
+    endTime?: boolean
     reason?: boolean
     approvedBy?: boolean
     approvalStatus?: boolean
     compensationMethod?: boolean
   }
 
-  export type OvertimeLogOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "employeeId" | "date" | "hours" | "reason" | "approvedBy" | "approvalStatus" | "compensationMethod", ExtArgs["result"]["overtimeLog"]>
+  export type OvertimeLogOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "employeeId" | "date" | "hours" | "startTime" | "endTime" | "reason" | "approvedBy" | "approvalStatus" | "compensationMethod", ExtArgs["result"]["overtimeLog"]>
   export type OvertimeLogInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     employee?: boolean | EmployeeDefaultArgs<ExtArgs>
     approver?: boolean | OvertimeLog$approverArgs<ExtArgs>
@@ -22278,7 +22295,9 @@ export namespace Prisma {
       id: number
       employeeId: number
       date: Date
-      hours: Prisma.Decimal
+      hours: Prisma.Decimal | null
+      startTime: Date
+      endTime: Date
       reason: string | null
       approvedBy: number | null
       approvalStatus: $Enums.OvertimeApprovalStatus
@@ -22658,6 +22677,8 @@ export namespace Prisma {
     readonly employeeId: FieldRef<"OvertimeLog", 'Int'>
     readonly date: FieldRef<"OvertimeLog", 'DateTime'>
     readonly hours: FieldRef<"OvertimeLog", 'Decimal'>
+    readonly startTime: FieldRef<"OvertimeLog", 'DateTime'>
+    readonly endTime: FieldRef<"OvertimeLog", 'DateTime'>
     readonly reason: FieldRef<"OvertimeLog", 'String'>
     readonly approvedBy: FieldRef<"OvertimeLog", 'Int'>
     readonly approvalStatus: FieldRef<"OvertimeLog", 'OvertimeApprovalStatus'>
@@ -28290,6 +28311,8 @@ export namespace Prisma {
     employeeId: 'employeeId',
     date: 'date',
     hours: 'hours',
+    startTime: 'startTime',
+    endTime: 'endTime',
     reason: 'reason',
     approvedBy: 'approvedBy',
     approvalStatus: 'approvalStatus',
@@ -29973,7 +29996,9 @@ export namespace Prisma {
     id?: IntFilter<"OvertimeLog"> | number
     employeeId?: IntFilter<"OvertimeLog"> | number
     date?: DateTimeFilter<"OvertimeLog"> | Date | string
-    hours?: DecimalFilter<"OvertimeLog"> | Decimal | DecimalJsLike | number | string
+    hours?: DecimalNullableFilter<"OvertimeLog"> | Decimal | DecimalJsLike | number | string | null
+    startTime?: DateTimeFilter<"OvertimeLog"> | Date | string
+    endTime?: DateTimeFilter<"OvertimeLog"> | Date | string
     reason?: StringNullableFilter<"OvertimeLog"> | string | null
     approvedBy?: IntNullableFilter<"OvertimeLog"> | number | null
     approvalStatus?: EnumOvertimeApprovalStatusFilter<"OvertimeLog"> | $Enums.OvertimeApprovalStatus
@@ -29986,7 +30011,9 @@ export namespace Prisma {
     id?: SortOrder
     employeeId?: SortOrder
     date?: SortOrder
-    hours?: SortOrder
+    hours?: SortOrderInput | SortOrder
+    startTime?: SortOrder
+    endTime?: SortOrder
     reason?: SortOrderInput | SortOrder
     approvedBy?: SortOrderInput | SortOrder
     approvalStatus?: SortOrder
@@ -30003,7 +30030,9 @@ export namespace Prisma {
     NOT?: OvertimeLogWhereInput | OvertimeLogWhereInput[]
     employeeId?: IntFilter<"OvertimeLog"> | number
     date?: DateTimeFilter<"OvertimeLog"> | Date | string
-    hours?: DecimalFilter<"OvertimeLog"> | Decimal | DecimalJsLike | number | string
+    hours?: DecimalNullableFilter<"OvertimeLog"> | Decimal | DecimalJsLike | number | string | null
+    startTime?: DateTimeFilter<"OvertimeLog"> | Date | string
+    endTime?: DateTimeFilter<"OvertimeLog"> | Date | string
     reason?: StringNullableFilter<"OvertimeLog"> | string | null
     approvedBy?: IntNullableFilter<"OvertimeLog"> | number | null
     approvalStatus?: EnumOvertimeApprovalStatusFilter<"OvertimeLog"> | $Enums.OvertimeApprovalStatus
@@ -30016,7 +30045,9 @@ export namespace Prisma {
     id?: SortOrder
     employeeId?: SortOrder
     date?: SortOrder
-    hours?: SortOrder
+    hours?: SortOrderInput | SortOrder
+    startTime?: SortOrder
+    endTime?: SortOrder
     reason?: SortOrderInput | SortOrder
     approvedBy?: SortOrderInput | SortOrder
     approvalStatus?: SortOrder
@@ -30035,7 +30066,9 @@ export namespace Prisma {
     id?: IntWithAggregatesFilter<"OvertimeLog"> | number
     employeeId?: IntWithAggregatesFilter<"OvertimeLog"> | number
     date?: DateTimeWithAggregatesFilter<"OvertimeLog"> | Date | string
-    hours?: DecimalWithAggregatesFilter<"OvertimeLog"> | Decimal | DecimalJsLike | number | string
+    hours?: DecimalNullableWithAggregatesFilter<"OvertimeLog"> | Decimal | DecimalJsLike | number | string | null
+    startTime?: DateTimeWithAggregatesFilter<"OvertimeLog"> | Date | string
+    endTime?: DateTimeWithAggregatesFilter<"OvertimeLog"> | Date | string
     reason?: StringNullableWithAggregatesFilter<"OvertimeLog"> | string | null
     approvedBy?: IntNullableWithAggregatesFilter<"OvertimeLog"> | number | null
     approvalStatus?: EnumOvertimeApprovalStatusWithAggregatesFilter<"OvertimeLog"> | $Enums.OvertimeApprovalStatus
@@ -31688,7 +31721,9 @@ export namespace Prisma {
 
   export type OvertimeLogCreateInput = {
     date: Date | string
-    hours: Decimal | DecimalJsLike | number | string
+    hours?: Decimal | DecimalJsLike | number | string | null
+    startTime: Date | string
+    endTime: Date | string
     reason?: string | null
     approvalStatus?: $Enums.OvertimeApprovalStatus
     compensationMethod?: $Enums.CompensationMethod
@@ -31700,7 +31735,9 @@ export namespace Prisma {
     id?: number
     employeeId: number
     date: Date | string
-    hours: Decimal | DecimalJsLike | number | string
+    hours?: Decimal | DecimalJsLike | number | string | null
+    startTime: Date | string
+    endTime: Date | string
     reason?: string | null
     approvedBy?: number | null
     approvalStatus?: $Enums.OvertimeApprovalStatus
@@ -31709,7 +31746,9 @@ export namespace Prisma {
 
   export type OvertimeLogUpdateInput = {
     date?: DateTimeFieldUpdateOperationsInput | Date | string
-    hours?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    hours?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
     reason?: NullableStringFieldUpdateOperationsInput | string | null
     approvalStatus?: EnumOvertimeApprovalStatusFieldUpdateOperationsInput | $Enums.OvertimeApprovalStatus
     compensationMethod?: EnumCompensationMethodFieldUpdateOperationsInput | $Enums.CompensationMethod
@@ -31721,7 +31760,9 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     employeeId?: IntFieldUpdateOperationsInput | number
     date?: DateTimeFieldUpdateOperationsInput | Date | string
-    hours?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    hours?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
     reason?: NullableStringFieldUpdateOperationsInput | string | null
     approvedBy?: NullableIntFieldUpdateOperationsInput | number | null
     approvalStatus?: EnumOvertimeApprovalStatusFieldUpdateOperationsInput | $Enums.OvertimeApprovalStatus
@@ -31732,7 +31773,9 @@ export namespace Prisma {
     id?: number
     employeeId: number
     date: Date | string
-    hours: Decimal | DecimalJsLike | number | string
+    hours?: Decimal | DecimalJsLike | number | string | null
+    startTime: Date | string
+    endTime: Date | string
     reason?: string | null
     approvedBy?: number | null
     approvalStatus?: $Enums.OvertimeApprovalStatus
@@ -31741,7 +31784,9 @@ export namespace Prisma {
 
   export type OvertimeLogUpdateManyMutationInput = {
     date?: DateTimeFieldUpdateOperationsInput | Date | string
-    hours?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    hours?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
     reason?: NullableStringFieldUpdateOperationsInput | string | null
     approvalStatus?: EnumOvertimeApprovalStatusFieldUpdateOperationsInput | $Enums.OvertimeApprovalStatus
     compensationMethod?: EnumCompensationMethodFieldUpdateOperationsInput | $Enums.CompensationMethod
@@ -31751,7 +31796,9 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     employeeId?: IntFieldUpdateOperationsInput | number
     date?: DateTimeFieldUpdateOperationsInput | Date | string
-    hours?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    hours?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
     reason?: NullableStringFieldUpdateOperationsInput | string | null
     approvedBy?: NullableIntFieldUpdateOperationsInput | number | null
     approvalStatus?: EnumOvertimeApprovalStatusFieldUpdateOperationsInput | $Enums.OvertimeApprovalStatus
@@ -33513,6 +33560,8 @@ export namespace Prisma {
     employeeId?: SortOrder
     date?: SortOrder
     hours?: SortOrder
+    startTime?: SortOrder
+    endTime?: SortOrder
     reason?: SortOrder
     approvedBy?: SortOrder
     approvalStatus?: SortOrder
@@ -33531,6 +33580,8 @@ export namespace Prisma {
     employeeId?: SortOrder
     date?: SortOrder
     hours?: SortOrder
+    startTime?: SortOrder
+    endTime?: SortOrder
     reason?: SortOrder
     approvedBy?: SortOrder
     approvalStatus?: SortOrder
@@ -33542,6 +33593,8 @@ export namespace Prisma {
     employeeId?: SortOrder
     date?: SortOrder
     hours?: SortOrder
+    startTime?: SortOrder
+    endTime?: SortOrder
     reason?: SortOrder
     approvedBy?: SortOrder
     approvalStatus?: SortOrder
@@ -36042,7 +36095,9 @@ export namespace Prisma {
 
   export type OvertimeLogCreateWithoutApproverInput = {
     date: Date | string
-    hours: Decimal | DecimalJsLike | number | string
+    hours?: Decimal | DecimalJsLike | number | string | null
+    startTime: Date | string
+    endTime: Date | string
     reason?: string | null
     approvalStatus?: $Enums.OvertimeApprovalStatus
     compensationMethod?: $Enums.CompensationMethod
@@ -36053,7 +36108,9 @@ export namespace Prisma {
     id?: number
     employeeId: number
     date: Date | string
-    hours: Decimal | DecimalJsLike | number | string
+    hours?: Decimal | DecimalJsLike | number | string | null
+    startTime: Date | string
+    endTime: Date | string
     reason?: string | null
     approvalStatus?: $Enums.OvertimeApprovalStatus
     compensationMethod?: $Enums.CompensationMethod
@@ -36195,7 +36252,9 @@ export namespace Prisma {
     id?: IntFilter<"OvertimeLog"> | number
     employeeId?: IntFilter<"OvertimeLog"> | number
     date?: DateTimeFilter<"OvertimeLog"> | Date | string
-    hours?: DecimalFilter<"OvertimeLog"> | Decimal | DecimalJsLike | number | string
+    hours?: DecimalNullableFilter<"OvertimeLog"> | Decimal | DecimalJsLike | number | string | null
+    startTime?: DateTimeFilter<"OvertimeLog"> | Date | string
+    endTime?: DateTimeFilter<"OvertimeLog"> | Date | string
     reason?: StringNullableFilter<"OvertimeLog"> | string | null
     approvedBy?: IntNullableFilter<"OvertimeLog"> | number | null
     approvalStatus?: EnumOvertimeApprovalStatusFilter<"OvertimeLog"> | $Enums.OvertimeApprovalStatus
@@ -37716,7 +37775,9 @@ export namespace Prisma {
 
   export type OvertimeLogCreateWithoutEmployeeInput = {
     date: Date | string
-    hours: Decimal | DecimalJsLike | number | string
+    hours?: Decimal | DecimalJsLike | number | string | null
+    startTime: Date | string
+    endTime: Date | string
     reason?: string | null
     approvalStatus?: $Enums.OvertimeApprovalStatus
     compensationMethod?: $Enums.CompensationMethod
@@ -37726,7 +37787,9 @@ export namespace Prisma {
   export type OvertimeLogUncheckedCreateWithoutEmployeeInput = {
     id?: number
     date: Date | string
-    hours: Decimal | DecimalJsLike | number | string
+    hours?: Decimal | DecimalJsLike | number | string | null
+    startTime: Date | string
+    endTime: Date | string
     reason?: string | null
     approvedBy?: number | null
     approvalStatus?: $Enums.OvertimeApprovalStatus
@@ -40324,7 +40387,9 @@ export namespace Prisma {
     id?: number
     employeeId: number
     date: Date | string
-    hours: Decimal | DecimalJsLike | number | string
+    hours?: Decimal | DecimalJsLike | number | string | null
+    startTime: Date | string
+    endTime: Date | string
     reason?: string | null
     approvalStatus?: $Enums.OvertimeApprovalStatus
     compensationMethod?: $Enums.CompensationMethod
@@ -40503,7 +40568,9 @@ export namespace Prisma {
 
   export type OvertimeLogUpdateWithoutApproverInput = {
     date?: DateTimeFieldUpdateOperationsInput | Date | string
-    hours?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    hours?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
     reason?: NullableStringFieldUpdateOperationsInput | string | null
     approvalStatus?: EnumOvertimeApprovalStatusFieldUpdateOperationsInput | $Enums.OvertimeApprovalStatus
     compensationMethod?: EnumCompensationMethodFieldUpdateOperationsInput | $Enums.CompensationMethod
@@ -40514,7 +40581,9 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     employeeId?: IntFieldUpdateOperationsInput | number
     date?: DateTimeFieldUpdateOperationsInput | Date | string
-    hours?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    hours?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
     reason?: NullableStringFieldUpdateOperationsInput | string | null
     approvalStatus?: EnumOvertimeApprovalStatusFieldUpdateOperationsInput | $Enums.OvertimeApprovalStatus
     compensationMethod?: EnumCompensationMethodFieldUpdateOperationsInput | $Enums.CompensationMethod
@@ -40524,7 +40593,9 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     employeeId?: IntFieldUpdateOperationsInput | number
     date?: DateTimeFieldUpdateOperationsInput | Date | string
-    hours?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    hours?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
     reason?: NullableStringFieldUpdateOperationsInput | string | null
     approvalStatus?: EnumOvertimeApprovalStatusFieldUpdateOperationsInput | $Enums.OvertimeApprovalStatus
     compensationMethod?: EnumCompensationMethodFieldUpdateOperationsInput | $Enums.CompensationMethod
@@ -41616,7 +41687,9 @@ export namespace Prisma {
   export type OvertimeLogCreateManyEmployeeInput = {
     id?: number
     date: Date | string
-    hours: Decimal | DecimalJsLike | number | string
+    hours?: Decimal | DecimalJsLike | number | string | null
+    startTime: Date | string
+    endTime: Date | string
     reason?: string | null
     approvedBy?: number | null
     approvalStatus?: $Enums.OvertimeApprovalStatus
@@ -41898,7 +41971,9 @@ export namespace Prisma {
 
   export type OvertimeLogUpdateWithoutEmployeeInput = {
     date?: DateTimeFieldUpdateOperationsInput | Date | string
-    hours?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    hours?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
     reason?: NullableStringFieldUpdateOperationsInput | string | null
     approvalStatus?: EnumOvertimeApprovalStatusFieldUpdateOperationsInput | $Enums.OvertimeApprovalStatus
     compensationMethod?: EnumCompensationMethodFieldUpdateOperationsInput | $Enums.CompensationMethod
@@ -41908,7 +41983,9 @@ export namespace Prisma {
   export type OvertimeLogUncheckedUpdateWithoutEmployeeInput = {
     id?: IntFieldUpdateOperationsInput | number
     date?: DateTimeFieldUpdateOperationsInput | Date | string
-    hours?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    hours?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
     reason?: NullableStringFieldUpdateOperationsInput | string | null
     approvedBy?: NullableIntFieldUpdateOperationsInput | number | null
     approvalStatus?: EnumOvertimeApprovalStatusFieldUpdateOperationsInput | $Enums.OvertimeApprovalStatus
@@ -41918,7 +41995,9 @@ export namespace Prisma {
   export type OvertimeLogUncheckedUpdateManyWithoutEmployeeInput = {
     id?: IntFieldUpdateOperationsInput | number
     date?: DateTimeFieldUpdateOperationsInput | Date | string
-    hours?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    hours?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
     reason?: NullableStringFieldUpdateOperationsInput | string | null
     approvedBy?: NullableIntFieldUpdateOperationsInput | number | null
     approvalStatus?: EnumOvertimeApprovalStatusFieldUpdateOperationsInput | $Enums.OvertimeApprovalStatus

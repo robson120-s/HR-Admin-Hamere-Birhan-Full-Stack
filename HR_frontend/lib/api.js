@@ -278,4 +278,23 @@ export const updateLeaveStatus = async (leaveId, status) => {
   }
 };
 
-//sosi 
+export const getOvertimeRequests = async () => {
+  try {
+    const response = await apiClient.get("/overtime");
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.error || "Could not fetch overtime requests.");
+  }
+};
+
+export const updateOvertimeStatus = async (id, status) => {
+  try {
+    const response = await apiClient.patch(`/overtime/${id}`, { approvalStatus: status });
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.error || "Could not update overtime status.");
+  }
+};
+
+
+//😍🎉sosi (●'◡'●) (❁´◡`❁)

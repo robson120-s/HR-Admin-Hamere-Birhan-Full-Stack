@@ -20,7 +20,6 @@ datasource db {
 enum Sex {
   male
   female
-  other
 }
 
 enum LeaveType {
@@ -358,10 +357,14 @@ model Holiday {
 // 8. OVERTIME & SALARY
 // ----------------------
 model OvertimeLog {
-  id                 Int                    @id @default(autoincrement())
-  employeeId         Int
-  date               DateTime
-  hours              Decimal
+  id         Int      @id @default(autoincrement())
+  employeeId Int
+  date       DateTime
+  hours      Decimal?
+
+  startTime DateTime
+  endTime   DateTime
+
   reason             String?
   approvedBy         Int?
   approvalStatus     OvertimeApprovalStatus @default(pending)

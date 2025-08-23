@@ -302,6 +302,8 @@ exports.Prisma.OvertimeLogScalarFieldEnum = {
   employeeId: 'employeeId',
   date: 'date',
   hours: 'hours',
+  startTime: 'startTime',
+  endTime: 'endTime',
   reason: 'reason',
   approvedBy: 'approvedBy',
   approvalStatus: 'approvalStatus',
@@ -484,8 +486,7 @@ exports.Prisma.TerminationOrderByRelevanceFieldEnum = {
 };
 exports.Sex = exports.$Enums.Sex = {
   male: 'male',
-  female: 'female',
-  other: 'other'
+  female: 'female'
 };
 
 exports.AttendanceStatus = exports.$Enums.AttendanceStatus = {
