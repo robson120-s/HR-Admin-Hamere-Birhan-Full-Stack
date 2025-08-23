@@ -1310,4 +1310,57 @@ router.patch("/overtime/:id", async (req, res) => { // Auth middleware can be ad
 
 
 
+// GET /api/hr/attendance/overview?year=2025&month=8 - Fetch monthly attendance data
+router.get("/attendance/overview",  async (req, res) => {
+  try {
+    const { year, month } = req.query; // month is 1-12 from the frontend
+
+    if (!year || !month) {
+      return res.status(400).json({ error: "Year and month are required." });
+    }
+
+    const startDate = new Date(Date.UTC(year, month - 1, 1));
+    const endDate = new Date(Date.UTC(year, month, 0, 23, 59, 59));
+
+    // 1. Fetch all active employees
+    const employees = await prisma.employee.findMany({
+      where: { deletedAt: null }, // Assuming you have a soft-delete mechanism
+      select: { id: true, firstName: true, lastName: true, photo: true },
+      orderBy: { firstName: 'asc' }
+    });
+
+    // 2. Fetch all attendance summaries for the given month
+    const attendanceRecords = await prisma.attendanceSummary.findMany({
+      where: {
+        date: {
+          gte: startDate,
+          lte: endDate,
+        },
+      },
+      select: {
+        employeeId: true,
+        date: true,
+        status: true, // This is the SummaryStatus enum
+      },
+    });
+
+    // 3. Transform the records into a more efficient map for the frontend
+    // The structure will be: { employeeId: { day: status, ... }, ... }
+    const attendanceMap = {};
+    attendanceRecords.forEach(record => {
+      const day = new Date(record.date).getUTCDate(); // Get day of the month (1-31)
+      if (!attendanceMap[record.employeeId]) {
+        attendanceMap[record.employeeId] = {};
+      }
+      attendanceMap[record.employeeId][day] = record.status;
+    });
+
+    res.status(200).json({ employees, attendanceMap });
+  } catch (error) {
+    console.error("Error fetching attendance overview:", error);
+    res.status(500).json({ error: "Failed to fetch attendance data." });
+  }
+});
+
+
 module.exports = router;

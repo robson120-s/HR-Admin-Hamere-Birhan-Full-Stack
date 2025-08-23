@@ -297,4 +297,16 @@ export const updateOvertimeStatus = async (id, status) => {
 };
 
 
+// In your frontend file: lib/api.js
+
+export const getAttendanceOverview = async (year, month) => {
+  try {
+    // We send year and month as query parameters
+    const response = await apiClient.get(`/attendance/overview?year=${year}&month=${month}`);
+    return response.data; // Will return { employees, attendanceMap }
+  } catch (error) {
+    throw new Error(error.response?.data?.error || "Could not fetch attendance overview.");
+  }
+};
+
 //😍🎉sosi (●'◡'●) (❁´◡`❁)
