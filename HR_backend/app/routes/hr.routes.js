@@ -1362,5 +1362,83 @@ router.get("/attendance/overview",  async (req, res) => {
   }
 });
 
+router.get("/reports/attendance",  async (req, res) => {
+  try {
+    const { timeframe } = req.query; // 'weekly' or 'monthly'
+    
+    // --- 1. Define the Date Range ---
+    const today = new Date();
+    today.setUTCHours(0, 0, 0, 0);
+    
+    let startDate;
+    if (timeframe === 'weekly') {
+      startDate = new Date(today);
+      startDate.setDate(today.getDate() - today.getDay()); // Start of the current week (Sunday)
+    } else { // monthly
+      startDate = new Date(Date.UTC(today.getFullYear(), today.getMonth(), 1));
+    }
+
+    // --- 2. Fetch Core Data ---
+    const [totalStaff, totalInterns, departments, attendanceSummaries] = await Promise.all([
+      prisma.employee.count({ where: { user: { roles: { some: { role: { name: 'Staff' } } } } } }),
+      prisma.employee.count({ where: { user: { roles: { some: { role: { name: 'Intern' } } } } } }),
+      prisma.department.findMany({ include: { employees: { select: { id: true } } } }),
+      prisma.attendanceSummary.findMany({
+        where: { date: { gte: startDate } },
+        include: { employee: { select: { departmentId: true } } }
+      })
+    ]);
+
+    // --- 3. Process the Data ---
+    const topLevelDepartments = departments.filter(d => d.parentId === null);
+    
+    // a. Overall Attendance Summary (Pie Chart)
+    const overallSummary = { present: 0, absent: 0, late: 0, on_leave: 0 };
+    attendanceSummaries.forEach(summary => {
+        if (overallSummary[summary.status] !== undefined) {
+            if (summary.status === 'present' && summary.lateArrival) {
+                overallSummary.late++;
+            } else {
+                overallSummary[summary.status]++;
+            }
+        }
+    });
+
+    // b. Department-wise Attendance (Bar Chart for top-level departments)
+    const departmentWiseSummary = topLevelDepartments.map(dept => {
+        const deptSummary = { name: dept.name, present: 0, absent: 0, late: 0, on_leave: 0 };
+        const allEmployeeIdsInDept = new Set(dept.employees.map(e => e.id));
+        
+        // This is a simplified approach. A more robust way would be to get sub-department employees too.
+        attendanceSummaries.forEach(summary => {
+            if (allEmployeeIdsInDept.has(summary.employee.id)) {
+                if (deptSummary[summary.status] !== undefined) {
+                    if (summary.status === 'present' && summary.lateArrival) {
+                        deptSummary.late++;
+                    } else {
+                        deptSummary[summary.status]++;
+                    }
+                }
+            }
+        });
+        return deptSummary;
+    });
+
+    const finalResponse = {
+      totalStaff,
+      totalInterns,
+      totalTopLevelDepartments: topLevelDepartments.length,
+      overallAttendance: overallSummary,
+      departmentAttendance: departmentWiseSummary,
+      allDepartments: departments.map(d => ({id: d.id, name: d.name})) // For the monthly table
+    };
+
+    res.status(200).json(finalResponse);
+  } catch (error) {
+    console.error("Error fetching attendance report:", error);
+    res.status(500).json({ error: "Failed to fetch report data." });
+  }
+});
+
 
 module.exports = router;

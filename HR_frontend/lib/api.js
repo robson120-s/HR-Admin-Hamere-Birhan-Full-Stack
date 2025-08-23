@@ -309,4 +309,13 @@ export const getAttendanceOverview = async (year, month) => {
   }
 };
 
-//😍🎉sosi (●'◡'●) (❁´◡`❁)
+export const getAttendanceReport = async (timeframe = 'weekly') => {
+  try {
+    const response = await apiClient.get(`/reports/attendance?timeframe=${timeframe}`);
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.error || "Could not fetch attendance report.");
+  }
+}
+
+//😍🎉sosi 🌹😍🎉🎉😍😍
