@@ -1184,5 +1184,61 @@ router.delete("/departments/:id", async (req, res) => {
 });
 
 
+// GET /api/hr/leaves - Fetch all leave requests
+router.get("/leaves",  async (req, res) => {
+  try {
+    const leaveRequests = await prisma.leave.findMany({
+      orderBy: { requestedAt: 'desc' }, // Show the newest requests first
+      include: {
+        employee: {
+          select: { // Include employee info needed for display
+            firstName: true,
+            lastName: true,
+          }
+        }
+      }
+    });
+    res.status(200).json(leaveRequests);
+  } catch (error) {
+    console.error("Error fetching leave requests:", error);
+    res.status(500).json({ error: "Failed to fetch leave requests." });
+  }
+});
+
+// PATCH /api/hr/leaves/:id/status - Update the status of a leave request
+router.patch("/leaves/:id/status", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body; // Expecting 'approved', 'pending', or 'rejected'
+
+    // Validation
+    if (!status || !['approved', 'pending', 'rejected'].includes(status)) {
+      return res.status(400).json({ error: "A valid status (approved, pending, rejected) is required." });
+    }
+
+    // Get the ID of the logged-in HR user to mark as the approver
+    const approverId = req.user?.id|| 1; 
+
+    const updatedLeave = await prisma.leave.update({
+      where: { id: parseInt(id) },
+      data: {
+        status: status,
+        approvedBy: approverId, // Log who approved/rejected the request
+      },
+      include: { // Return the full object for UI consistency
+        employee: { select: { firstName: true, lastName: true } }
+      }
+    });
+    res.status(200).json(updatedLeave);
+  } catch (error) {
+    console.error(`Error updating leave request ${req.params.id}:`, error);
+    if (error.code === 'P2025') {
+        return res.status(404).json({ error: "Leave request not found." });
+    }
+    res.status(500).json({ error: "Failed to update leave request." });
+  }
+});
+
+
 
 module.exports = router;

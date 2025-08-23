@@ -258,4 +258,24 @@ export const getEmployeesByDepartment = async (id) => {
     return response.data;
 };
 
+export const getLeaveRequests = async () => {
+  try {
+    const response = await apiClient.get("/leaves");
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.error || "Could not fetch leave requests.");
+  }
+};
+
+export const updateLeaveStatus = async (leaveId, status) => {
+  try {
+    // Map the frontend's capitalized status to the backend's lowercase enum
+    const statusPayload = status.toLowerCase();
+    const response = await apiClient.patch(`/leaves/${leaveId}/status`, { status: statusPayload });
+    return response.data;
+  } catch (error) {
+    throw new Error(error.response?.data?.error || "Could not update leave status.");
+  }
+};
+
 //sosi 
