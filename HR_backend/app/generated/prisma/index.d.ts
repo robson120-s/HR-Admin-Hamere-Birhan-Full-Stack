@@ -29379,10 +29379,10 @@ export namespace Prisma {
 
   export type EmployeeWhereUniqueInput = Prisma.AtLeast<{
     id?: number
+    userId?: number
     AND?: EmployeeWhereInput | EmployeeWhereInput[]
     OR?: EmployeeWhereInput[]
     NOT?: EmployeeWhereInput | EmployeeWhereInput[]
-    userId?: IntNullableFilter<"Employee"> | number | null
     firstName?: StringFilter<"Employee"> | string
     lastName?: StringFilter<"Employee"> | string
     baptismalName?: StringNullableFilter<"Employee"> | string | null
@@ -29431,7 +29431,7 @@ export namespace Prisma {
     terminations?: TerminationListRelationFilter
     salaries?: SalaryListRelationFilter
     overtimes?: OvertimeLogListRelationFilter
-  }, "id">
+  }, "id" | "userId">
 
   export type EmployeeOrderByWithAggregationInput = {
     id?: SortOrder

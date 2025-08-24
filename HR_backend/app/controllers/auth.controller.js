@@ -16,12 +16,25 @@ exports.login = async (req, res) =>{
     try{
         const user = await prisma.user.findUnique({
             where: {username},
-            include: {
-                roles: {
-                    include:{ role: true }
+        select: {
+            // Select only the fields you need from the User table
+            id: true,
+            username: true,
+            email: true,
+            password: true,
+            isActive: true,
+            // Select the role names through the relations
+            roles: {
+                select: {
+                    role: {
+                        select: {
+                            name: true
+                        }
+                    }
                 }
             }
-        })
+        }
+    })
         if (!user){
             return res.status(400).json({error: 'Invalid username or password.'});
         }

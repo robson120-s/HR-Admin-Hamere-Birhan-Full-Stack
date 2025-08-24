@@ -5,7 +5,6 @@ const { PrismaClient } = require("../generated/prisma");
 const prisma = new PrismaClient();
 const bcrypt = require('bcrypt');
 
-const bcrypt = require('bcryptjs');
 const { authenticate } = require('../middlewares/authMiddleware'); // This route MUST be protected
 
 // PATCH /api/auth/change-password

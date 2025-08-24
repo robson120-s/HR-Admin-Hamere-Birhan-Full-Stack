@@ -2,6 +2,7 @@ const express =require('express')
 const app =express()
 const cors = require('cors')
 const hrRoutes = require('./app/routes/hr.routes');
+const depHeadRoutes = require('./app/routes/depHead.routes');
 
 
 
@@ -24,10 +25,10 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 const attendanceLogRoutes = require('./app/routes/attendance.routes')
 // Attendance summary routes(For the HR admin)
 const attendanceSummaryRoutes = require('./app/routes/attendanceSummary.routes');
+//
+
 // Authentication routes (login)
 const authRoutes = require('./app/routes/auth.routes');
-// User routes (for HR admin to create users)
-const userRoutes = require('./app/routes/user.routes');
 // Staff routes (for employee dashboard)
 const staffRoutes = require('./app/routes/staff.routes');
 
@@ -36,7 +37,7 @@ app.use("/api/attendance-logs", attendanceLogRoutes);
 app.use("/api/attendance-summaries", attendanceSummaryRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/hr", hrRoutes);
-app.use("/api/users", userRoutes);
+app.use("/api/dep-head", depHeadRoutes);
 app.use("/api/staff", staffRoutes);
 
 

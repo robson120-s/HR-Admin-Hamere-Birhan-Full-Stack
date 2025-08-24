@@ -1,20 +1,31 @@
 // In your backend file: routes/depHead.routes.js
 
-// GET /api/dep-head/dashboard - A correctly scoped dashboard for the logged-in Department Head
+const express = require('express');
+const router = express.Router();
+const { PrismaClient } = require('../generated/prisma'); // or your generated path
+const prisma = new PrismaClient();
+const { authenticate, authorize } = require('../middlewares/authMiddleware');
+
+// ==============================================================================
+// GET /api/dep-head/dashboard 
+// This is the complete, secure, and correctly scoped endpoint.
+// ==============================================================================
 router.get('/dashboard', authenticate, authorize("Department Head"), async (req, res) => {
   try {
-    // --- STEP 1: IDENTIFY THE USER'S DEPARTMENT ---
+    // --- STEP 1: IDENTIFY THE LOGGED-IN USER'S DEPARTMENT ---
+    // The 'authenticate' middleware has already verified the token and added 'req.user'.
     const loggedInEmployee = await prisma.employee.findUnique({
       where: { userId: req.user.id },
       select: { departmentId: true } // We only need their department ID
     });
 
+    // Security check: ensure the user is a valid employee assigned to a department
     if (!loggedInEmployee || !loggedInEmployee.departmentId) {
-      return res.status(403).json({ error: "Access denied. You are not assigned to a department." });
+      return res.status(403).json({ error: "Access denied. User profile is not assigned to a department." });
     }
     const departmentId = loggedInEmployee.departmentId;
 
-    // --- STEP 2: GATHER ALL RELEVANT DEPARTMENT IDs (PARENT + CHILDREN) ---
+    // --- STEP 2: GATHER ALL RELEVANT DEPARTMENT IDs (THE PARENT + ALL ITS CHILDREN) ---
     const subDepartments = await prisma.department.findMany({
       where: { parentId: departmentId },
       select: { id: true }
@@ -22,7 +33,7 @@ router.get('/dashboard', authenticate, authorize("Department Head"), async (req,
     // This is the complete list of department IDs this user manages
     const managedDeptIds = [departmentId, ...subDepartments.map(d => d.id)];
 
-    // --- STEP 3: PERFORM SCOPED PRISMA QUERIES ---
+    // --- STEP 3: PERFORM SCOPED PRISMA QUERIES IN PARALLEL ---
     const today = new Date();
     today.setUTCHours(0, 0, 0, 0);
 
@@ -33,18 +44,17 @@ router.get('/dashboard', authenticate, authorize("Department Head"), async (req,
       absentToday,
       pendingComplaints,
       recentComplaints,
-      // Add a query for recent performance reviews
       recentReviews,
     ] = await Promise.all([
-      // Count Staff in the managed departments
+      // Count Staff ONLY in the managed departments
       prisma.employee.count({ where: { departmentId: { in: managedDeptIds }, user: { roles: { some: { role: { name: 'Staff' } } } } } }),
-      // Count Interns in the managed departments
+      // Count Interns ONLY in the managed departments
       prisma.employee.count({ where: { departmentId: { in: managedDeptIds }, user: { roles: { some: { role: { name: 'Intern' } } } } } }),
-      // Count Present today in the managed departments
+      // Count Present today ONLY in the managed departments
       prisma.attendanceSummary.count({ where: { date: today, status: 'present', employee: { departmentId: { in: managedDeptIds } } } }),
-      // Count Absent today in the managed departments
+      // Count Absent today ONLY in the managed departments
       prisma.attendanceSummary.count({ where: { date: today, status: 'absent', employee: { departmentId: { in: managedDeptIds } } } }),
-      // Count OPEN complaints from employees in the managed departments
+      // Count OPEN complaints from employees ONLY in the managed departments
       prisma.complaint.count({ where: { status: 'open', employee: { departmentId: { in: managedDeptIds } } } }),
       // Get the 3 most recent OPEN complaints for the activity feed
       prisma.complaint.findMany({
@@ -60,7 +70,6 @@ router.get('/dashboard', authenticate, authorize("Department Head"), async (req,
           take: 2,
           include: { employee: { select: { firstName: true, lastName: true } } }
       }),
-      // You could add queries for recent Leave requests, etc. here as well
     ]);
     
     // --- STEP 4: PROCESS AND COMBINE RECENT ACTIVITY ---
@@ -78,13 +87,12 @@ router.get('/dashboard', authenticate, authorize("Department Head"), async (req,
         date: r.reviewDate
     }));
 
-    // Combine and sort all activities by date, and take the most recent 5
+    // Combine, sort by date, and take the most recent 5 activities
     const recentActivity = [...formattedComplaints, ...formattedReviews]
                             .sort((a, b) => new Date(b.date) - new Date(a.date))
                             .slice(0, 5);
 
-
-    // --- STEP 5: CONSTRUCT FINAL RESPONSE ---
+    // --- STEP 5: CONSTRUCT THE FINAL RESPONSE PAYLOAD ---
     const responseData = {
         present: presentToday,
         absent: absentToday,
@@ -93,8 +101,8 @@ router.get('/dashboard', authenticate, authorize("Department Head"), async (req,
         totalSubDepartment: subDepartments.length,
         pendingComplaints: pendingComplaints,
         recentActivity: recentActivity,
-        // Mocking these for now, as calculating them requires more complex logic
-        avgPerformance: 8.4,
+        // These can be replaced with real calculations later
+        avgPerformance: 8.4, 
         staffAvg: 7.8,
         internAvg: 6.5,
     };
@@ -105,3 +113,5 @@ router.get('/dashboard', authenticate, authorize("Department Head"), async (req,
     res.status(500).json({ error: 'Failed to load dashboard data.' });
   }
 });
+
+module.exports = router;

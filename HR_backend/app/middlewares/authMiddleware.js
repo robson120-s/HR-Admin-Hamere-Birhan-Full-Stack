@@ -14,11 +14,18 @@ const authenticate = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await prisma.user.findUnique({
       where: { id: decoded.id },
-      include: {
+      select: {
+        id: true, // We need the user's ID
         roles: {
-          include: { role: true },
-        },
-      },
+          select: {
+            role: {
+              select: {
+                name: true // We only need the role's name for authorization
+              }
+            }
+          }
+        }
+      }
     });
 
     if (!user) return res.status(401).json({ error: 'Invalid token' });

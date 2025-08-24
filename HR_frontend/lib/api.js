@@ -1,5 +1,6 @@
 // lib/api.js
 import axios from "axios";
+import Excellentaxios from "axios";
 
 // Create an instance of axios with a base URL.
 // Replace 'http://localhost:5000' with your actual backend server address.
@@ -12,6 +13,28 @@ export const apiClientDepHead = axios.create({
   baseURL: "http://localhost:5555/api/dep-head", // New, dedicated base URL
   withCredentials: true,
 });
+
+const addAuthToken = (config) => {
+    const token = localStorage.getItem("authToken");
+    if (token) {
+      config.headers["Authorization"] = `Bearer ${token}`;
+    }
+    return config;
+};
+
+apiClientHr.interceptors.request.use(addAuthToken);
+apiClientDepHead.interceptors.request.use(addAuthToken);
+
+export const login = async (credentials) => {
+  try {
+    // This is a public route is solid, and your frontend UI is very attractive. Now, let's connect them to create a fully functional and, so we can make a direct axios call.
+    // The baseURL should point to your backend.
+    const response = await axios.post("http://localhost:5555/api/auth/login", credentials);
+    return response.data; // Will return { token, user }
+  } catch (error) {
+    throw new Error(error.response?.data?.error || "Login failed. Please try again.");
+  }
+};
 /**
  * IMPORTANT: Authentication
  * Your backend uses 'authenticate' and 'authorize("HR")'. This means you MUST
@@ -333,5 +356,18 @@ export const changePassword = async (passwordData) => {
     throw new Error(error.response?.data?.error || "An unknown error occurred.");
   }
 };
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+export const getDepHeadDashboard = async () => {
+    try {
+        // Use the new apiClientDepHead
+        const response = await apiClientDepHead.get('/dashboard');
+        return response.data;
+    } catch (error) {
+        throw new Error(error.response?.data?.error || "Could not fetch dashboard data.");
+    }
+}
 
 //😍🎉sosi 🌹😍🎉🎉😍😍

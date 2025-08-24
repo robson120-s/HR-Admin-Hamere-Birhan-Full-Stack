@@ -76,7 +76,7 @@ export default function Sidebar() {
           <SidebarLink href="/departmentHead" icon={<Home size={18} />} label="Dashboard" />
           <SidebarLink href="/departmentHead/editAttendance" icon={<Calendar size={18} />} label="Mark Attendance" />
           <SidebarLink href="/departmentHead/performance" icon={<LineChart size={18} />} label="Performance" />
-          <SidebarLink href="/departmentHead/evaluation" icon={<CheckCircle2 size={20} />} label="Evaluation" />
+          {/* <SidebarLink href="/departmentHead/evaluation" icon={<CheckCircle2 size={20} />} label="Evaluation" /> */}
           <SidebarLink href="/departmentHead/designation" icon={<CheckCircle2 size={20} />} label="Designation" />
           <SidebarLink href="/departmentHead/complain" icon={<AlertCircle size={20} />} label="Complain Request" />
           <SidebarLink href="/departmentHead/payment-status" icon={<FiDollarSign size={18} />} label="Payment Status" />

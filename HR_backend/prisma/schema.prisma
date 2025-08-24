@@ -210,7 +210,7 @@ model Meeting {
 // ----------------------
 model Employee {
   id                     Int       @id @default(autoincrement())
-  userId                 Int?
+  userId                 Int?      @unique 
   firstName              String
   lastName               String
   baptismalName          String?

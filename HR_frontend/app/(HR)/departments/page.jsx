@@ -7,7 +7,7 @@ import { DepartmentCard } from "./components/DepartmentCard";
 import { DepartmentDetailView } from "./components/DepartmentDetailView";
 import { AddEditDepartmentModal } from "./components/AddEditDepartmentModal";
 import toast from "react-hot-toast";
-import { Button } from "../../../components/ui/Button";
+import { Button } from "../../../components/ui/button";
 import { Plus, LoaderCircle } from "lucide-react";
 import ThemeToggle from "../dashboard/components/ThemeToggle"; // Assuming path is correct
 
@@ -111,9 +111,7 @@ export default function DepartmentsPage() {
     
     return (
         <div className="relative min-h-screen bg-slate-50 dark:bg-slate-900 p-4 md:p-8">
-            <div className="absolute top-4 right-4 md:top-8 md:right-8 z-20">
-                <ThemeToggle />
-            </div>
+            
 
             <header className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-8 max-w-7xl mx-auto">
                 <div>
