@@ -114,4 +114,139 @@ router.get('/dashboard', authenticate, authorize("Department Head"), async (req,
   }
 });
 
+
+// GET /api/dep-head/performance-data - Fetch employees and their reviews for the department
+// In your backend file: routes/depHead.routes.js
+
+// GET /api/dep-head/performance-data - FINAL, ROBUST VERSION
+router.get("/performance-data", authenticate,async (req, res) => { // Auth middleware temporarily removed
+  try {
+    const loggedInUserId = req.user.id;
+
+    const loggedInEmployee = await prisma.employee.findUnique({
+      where: { userId: loggedInUserId },
+      select: { departmentId: true }
+    });
+
+    if (!loggedInEmployee || !loggedInEmployee.departmentId) {
+      return res.status(403).json({ error: "Test user is not assigned to a department." });
+    }
+    const departmentId = loggedInEmployee.departmentId;
+
+    // Fetch the department info separately
+    const department = await prisma.department.findUnique({
+        where: { id: departmentId },
+        select: { id: true, name: true, description: true }
+    });
+
+    // Fetch all Staff and Interns in that department
+    const employeesInDept = await prisma.employee.findMany({
+      where: {
+        departmentId: departmentId,
+        user: {
+          roles: { some: { role: { name: { in: ['Staff', 'Intern'] } } } }
+        }
+      },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        user: { select: { roles: { select: { role: { select: { name: true } } } } } }
+      },
+      orderBy: { firstName: 'asc' }
+    });
+
+    if (employeesInDept.length === 0) {
+        // If no employees, return early with empty data
+        return res.status(200).json({
+            department,
+            employees: [],
+            performanceReviews: []
+        });
+    }
+
+    const employeeIds = employeesInDept.map(e => e.id);
+
+    // ✅ SIMPLIFIED REVIEW QUERY
+    // Use a more standard groupBy query to get the latest review for each employee.
+    // This is often more reliable than 'distinct'.
+    const latestReviews = await prisma.performanceReview.groupBy({
+        by: ['employeeId'],
+        where: { employeeId: { in: employeeIds } },
+        _max: {
+            reviewDate: true, // Find the latest date for each employee
+        }
+    });
+    
+    // Now fetch the full review data for only those latest reviews
+    const reviews = await prisma.performanceReview.findMany({
+        where: {
+            OR: latestReviews.map(r => ({
+                employeeId: r.employeeId,
+                reviewDate: r._max.reviewDate
+            }))
+        }
+    });
+
+    // Final payload
+    const responseData = {
+        department,
+        employees: employeesInDept.map(emp => ({
+            id: emp.id,
+            firstName: emp.firstName,
+            lastName: emp.lastName,
+            role: emp.user?.roles[0]?.role.name || 'N/A'
+        })),
+        performanceReviews: reviews
+    };
+    
+    res.status(200).json(responseData);
+  } catch (error) {
+    // This will now catch any errors from the new queries
+    console.error("Error fetching performance data:", error);
+    res.status(500).json({ error: "Failed to fetch performance data." });
+  }
+});
+
+
+// POST /api/dep-head/performance-review - Submit a new review
+router.post("/performance-review", authenticate, authorize("Department Head"), async (req, res) => {
+    try {
+        const { employeeId, score, comments } = req.body;
+        
+        // ✅ 1. Get the LOGGED-IN user's Employee profile to find their name.
+        const reviewerEmployee = await prisma.employee.findUnique({
+            where: { userId: req.user.id },
+            select: { firstName: true, lastName: true, departmentId: true }
+        });
+        const reviewerName = `${reviewerEmployee.firstName} ${reviewerEmployee.lastName}`;
+
+        if (!employeeId || score === undefined || !comments) {
+            return res.status(400).json({ error: "Employee ID, score, and comments are required." });
+        }
+        
+        // ✅ 2. SECURITY CHECK: Ensure the employee being reviewed is in the reviewer's department.
+        const employeeToReview = await prisma.employee.findUnique({ where: { id: parseInt(employeeId) } });
+        if (!employeeToReview || employeeToReview.departmentId !== reviewerEmployee.departmentId) {
+            return res.status(403).json({ error: "You can only review employees in your own department." });
+        }
+
+        const newReview = await prisma.performanceReview.create({
+            data: {
+                employeeId: parseInt(employeeId),
+                reviewDate: new Date(),
+                reviewerName: reviewerName, // Use the real reviewer's name
+                score: parseInt(score),
+                comments: comments
+            }
+        });
+
+        res.status(201).json(newReview);
+    } catch (error) {
+        console.error("Error submitting performance review:", error);
+        res.status(500).json({ error: "Failed to submit review." });
+    }
+});
+
+
 module.exports = router;

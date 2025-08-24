@@ -359,7 +359,7 @@ export const changePassword = async (passwordData) => {
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////DEPARTEMENT HEAD//////////////////////////////////////////////////////////////////////////////////////
 export const getDepHeadDashboard = async () => {
     try {
         // Use the new apiClientDepHead
@@ -369,5 +369,25 @@ export const getDepHeadDashboard = async () => {
         throw new Error(error.response?.data?.error || "Could not fetch dashboard data.");
     }
 }
+
+///PERFORMANCE
+
+export const getPerformanceData = async () => {
+    try {
+        const response = await apiClientDepHead.get('/performance-data');
+        return response.data;
+    } catch (error) {
+        throw new Error(error.response?.data?.error || "Could not fetch performance data.");
+    }
+};
+
+export const submitPerformanceReview = async (reviewData) => {
+    try {
+        const response = await apiClientDepHead.post('/performance-review', reviewData);
+        return response.data;
+    } catch (error) {
+        throw new Error(error.response?.data?.error || "Could not submit review.");
+    }
+};
 
 //😍🎉sosi 🌹😍🎉🎉😍😍
