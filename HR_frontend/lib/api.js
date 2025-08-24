@@ -3,11 +3,15 @@ import axios from "axios";
 
 // Create an instance of axios with a base URL.
 // Replace 'http://localhost:5000' with your actual backend server address.
-const apiClient = axios.create({
+const apiClientHr = axios.create({
   baseURL: "http://localhost:5555/api/hr", // Adjust the port and base path as needed
   withCredentials: true, // This is crucial for sending cookies (like auth tokens)
 });
 
+export const apiClientDepHead = axios.create({
+  baseURL: "http://localhost:5555/api/dep-head", // New, dedicated base URL
+  withCredentials: true,
+});
 /**
  * IMPORTANT: Authentication
  * Your backend uses 'authenticate' and 'authorize("HR")'. This means you MUST
@@ -35,7 +39,7 @@ const apiClient = axios.create({
 export const getDashboardData = async () => {
   try {
     // Make the GET request to your /dashboard endpoint
-    const response = await apiClient.get("/dashboard");
+    const response = await apiClientHr.get("/dashboard");
     return response.data; // Return the JSON data from the response
   } catch (error) {
     // Log the error and re-throw it so the component can handle it
@@ -46,21 +50,21 @@ export const getDashboardData = async () => {
 // lib/api.js - add these to your file
 
 export const getMeetings = async () => {
-  const response = await apiClient.get("/meetings");
+  const response = await apiClientHr.get("/meetings");
   return response.data;
 };
 
 export const addMeeting = async (meetingData) => {
-  const response = await apiClient.post("/meetings", meetingData);
+  const response = await apiClientHr.post("/meetings", meetingData);
   return response.data;
 };
 
 export const deleteMeeting = async (id) => {
-  await apiClient.delete(`/meetings/${id}`);
+  await apiClientHr.delete(`/meetings/${id}`);
 };
 // lib/api.js
 export const getEmployeesByRole = async (role) => {
-  const response = await apiClient.get(`/employees?role=${role}`);
+  const response = await apiClientHr.get(`/employees?role=${role}`);
   return response.data;
 };
 
@@ -70,7 +74,7 @@ export const getEmployeesByRole = async (role) => {
 
 export const getComplaints = async () => {
   try {
-    const response = await apiClient.get("/complaints");
+    const response = await apiClientHr.get("/complaints");
     return response.data;
   } catch (error) {
     throw new Error(error.response?.data?.error || "Could not fetch complaints.");
@@ -80,14 +84,14 @@ export const getComplaints = async () => {
 export const updateComplaint = async (id, data) => {
   try {
     // data will be an object like { status: 'resolved', response: '...' }
-    const response = await apiClient.patch(`/complaints/${id}`, data);
+    const response = await apiClientHr.patch(`/complaints/${id}`, data);
     return response.data;
   } catch (error) {
     throw new Error(error.response?.data?.error || "Could not update complaint.");
   }
 };export const createEmployee = async (payload) => {
   try {
-    const response = await apiClient.post("/employees", payload);
+    const response = await apiClientHr.post("/employees", payload);
     return response.data;
   } catch (error) {
     throw new Error(error.response?.data?.error || "Could not create employee.");
@@ -99,7 +103,7 @@ export const updateComplaint = async (id, data) => {
  */
 export const getEmployees = async () => {
   try {
-    const response = await apiClient.get("/employees");
+    const response = await apiClientHr.get("/employees");
     return response.data;
   } catch (error) {
     throw new Error(error.response?.data?.error || "Could not fetch employees.");
@@ -111,7 +115,7 @@ export const getEmployees = async () => {
  */
 export const getEmployeeById = async (id) => {
   try {
-    const response = await apiClient.get(`/employees/${id}`);
+    const response = await apiClientHr.get(`/employees/${id}`);
     return response.data;
   } catch (error) {
     throw new Error(error.response?.data?.error || "Could not fetch employee details.");
@@ -123,7 +127,7 @@ export const getEmployeeById = async (id) => {
  */
 export const updateEmployee = async (id, data) => {
   try {
-    const response = await apiClient.patch(`/employees/${id}`, data);
+    const response = await apiClientHr.patch(`/employees/${id}`, data);
     return response.data;
   } catch (error) {
     throw new Error(error.response?.data?.error || "Could not update employee.");
@@ -134,31 +138,31 @@ export const updateEmployee = async (id, data) => {
 // --- LOOKUP API FUNCTIONS (For Dropdowns) ---
 
 export const getRoles = async () => {
-    const response = await apiClient.get("/lookup/roles");
+    const response = await apiClientHr.get("/lookup/roles");
     return response.data;
 };
 export const getDepartmentsLookup = async () => {
-    const response = await apiClient.get("/lookup/departments");
+    const response = await apiClientHr.get("/lookup/departments");
     return response.data;
 };
 export const getPositionsLookup = async () => {
-    const response = await apiClient.get("/lookup/positions");
+    const response = await apiClientHr.get("/lookup/positions");
     return response.data;
 };
 export const getMaritalStatuses = async () => {
-    const response = await apiClient.get("/lookup/marital-statuses");
+    const response = await apiClientHr.get("/lookup/marital-statuses");
     return response.data;
 };
 export const getEmploymentTypes = async () => {
-    const response = await apiClient.get("/lookup/employment-types");
+    const response = await apiClientHr.get("/lookup/employment-types");
     return response.data;
 };
 export const getJobStatuses = async () => {
-    const response = await apiClient.get("/lookup/job-statuses");
+    const response = await apiClientHr.get("/lookup/job-statuses");
     return response.data;
 };
 export const getAgreementStatuses = async () => {
-    const response = await apiClient.get("/lookup/agreement-statuses");
+    const response = await apiClientHr.get("/lookup/agreement-statuses");
     return response.data;
 };
 
@@ -167,7 +171,7 @@ export const getAgreementStatuses = async () => {
 
 export const getTerminations = async () => {
   try {
-    const response = await apiClient.get("/terminations");
+    const response = await apiClientHr.get("/terminations");
     return response.data;
   } catch (error) {
     throw new Error(error.response?.data?.error || "Could not fetch terminations.");
@@ -176,7 +180,7 @@ export const getTerminations = async () => {
 
 export const createTermination = async (data) => {
     try {
-        const response = await apiClient.post("/terminations", data);
+        const response = await apiClientHr.post("/terminations", data);
         return response.data;
     } catch (error) {
         throw new Error(error.response?.data?.error || "Could not create termination.");
@@ -186,7 +190,7 @@ export const createTermination = async (data) => {
 export const updateTermination = async (id, data) => {
   try {
     // data will be an object like { status: 'Voluntary', reason: '...' }
-    const response = await apiClient.patch(`/terminations/${id}`, data);
+    const response = await apiClientHr.patch(`/terminations/${id}`, data);
     return response.data;
   } catch (error) {
     throw new Error(error.response?.data?.error || "Could not update termination.");
@@ -195,7 +199,7 @@ export const updateTermination = async (id, data) => {
 
 export const deleteTermination = async (id) => {
     try {
-        await apiClient.delete(`/terminations/${id}`);
+        await apiClientHr.delete(`/terminations/${id}`);
     } catch (error) {
         throw new Error(error.response?.data?.error || "Could not delete termination.");
     }
@@ -203,7 +207,7 @@ export const deleteTermination = async (id) => {
 
 export const getTerminationById = async (id) => {
   try {
-    const response = await apiClient.get(`/terminations/${id}`);
+    const response = await apiClientHr.get(`/terminations/${id}`);
     return response.data;
   } catch (error) {
     throw new Error(error.response?.data?.error || "Could not fetch termination record.");
@@ -218,7 +222,7 @@ export const searchEmployees = async (query) => {
   try {
     // Use URLSearchParams to safely encode the query
     const params = new URLSearchParams({ q: query });
-    const response = await apiClient.get(`/employees/search?${params.toString()}`);
+    const response = await apiClientHr.get(`/employees/search?${params.toString()}`);
     return response.data;
   } catch (error) {
     throw new Error(error.response?.data?.error || "Could not search for employees.");
@@ -226,13 +230,13 @@ export const searchEmployees = async (query) => {
 };
 
 export const getDepartments = async () => {
-    const response = await apiClient.get('/departments');
+    const response = await apiClientHr.get('/departments');
     return response.data;
 };
 
 export const getDepartmentById = async (id) => {
     try {
-        const response = await apiClient.get(`/departments/${id}`); // Assumes a GET /departments/:id endpoint exists
+        const response = await apiClientHr.get(`/departments/${id}`); // Assumes a GET /departments/:id endpoint exists
         return response.data;
     } catch (error) {
         throw new Error(error.response?.data?.error || "Could not fetch department details.");
@@ -240,27 +244,27 @@ export const getDepartmentById = async (id) => {
 };
 
 export const createDepartment = async (data) => {
-    const response = await apiClient.post('/departments', data);
+    const response = await apiClientHr.post('/departments', data);
     return response.data;
 };
 
 export const updateDepartment = async (id, data) => {
-    const response = await apiClient.patch(`/departments/${id}`, data);
+    const response = await apiClientHr.patch(`/departments/${id}`, data);
     return response.data;
 };
 
 export const deleteDepartment = async (id) => {
-    await apiClient.delete(`/departments/${id}`);
+    await apiClientHr.delete(`/departments/${id}`);
 };
 
 export const getEmployeesByDepartment = async (id) => {
-    const response = await apiClient.get(`/departments/${id}/employees`);
+    const response = await apiClientHr.get(`/departments/${id}/employees`);
     return response.data;
 };
 
 export const getLeaveRequests = async () => {
   try {
-    const response = await apiClient.get("/leaves");
+    const response = await apiClientHr.get("/leaves");
     return response.data;
   } catch (error) {
     throw new Error(error.response?.data?.error || "Could not fetch leave requests.");
@@ -271,7 +275,7 @@ export const updateLeaveStatus = async (leaveId, status) => {
   try {
     // Map the frontend's capitalized status to the backend's lowercase enum
     const statusPayload = status.toLowerCase();
-    const response = await apiClient.patch(`/leaves/${leaveId}/status`, { status: statusPayload });
+    const response = await apiClientHr.patch(`/leaves/${leaveId}/status`, { status: statusPayload });
     return response.data;
   } catch (error) {
     throw new Error(error.response?.data?.error || "Could not update leave status.");
@@ -280,7 +284,7 @@ export const updateLeaveStatus = async (leaveId, status) => {
 
 export const getOvertimeRequests = async () => {
   try {
-    const response = await apiClient.get("/overtime");
+    const response = await apiClientHr.get("/overtime");
     return response.data;
   } catch (error) {
     throw new Error(error.response?.data?.error || "Could not fetch overtime requests.");
@@ -289,7 +293,7 @@ export const getOvertimeRequests = async () => {
 
 export const updateOvertimeStatus = async (id, status) => {
   try {
-    const response = await apiClient.patch(`/overtime/${id}`, { approvalStatus: status });
+    const response = await apiClientHr.patch(`/overtime/${id}`, { approvalStatus: status });
     return response.data;
   } catch (error) {
     throw new Error(error.response?.data?.error || "Could not update overtime status.");
@@ -302,7 +306,7 @@ export const updateOvertimeStatus = async (id, status) => {
 export const getAttendanceOverview = async (year, month) => {
   try {
     // We send year and month as query parameters
-    const response = await apiClient.get(`/attendance/overview?year=${year}&month=${month}`);
+    const response = await apiClientHr.get(`/attendance/overview?year=${year}&month=${month}`);
     return response.data; // Will return { employees, attendanceMap }
   } catch (error) {
     throw new Error(error.response?.data?.error || "Could not fetch attendance overview.");
@@ -311,11 +315,23 @@ export const getAttendanceOverview = async (year, month) => {
 
 export const getAttendanceReport = async (timeframe = 'weekly') => {
   try {
-    const response = await apiClient.get(`/reports/attendance?timeframe=${timeframe}`);
+    const response = await apiClientHr.get(`/reports/attendance?timeframe=${timeframe}`);
     return response.data;
   } catch (error) {
     throw new Error(error.response?.data?.error || "Could not fetch attendance report.");
   }
 }
+
+
+export const changePassword = async (passwordData) => {
+  try {
+    // We use the new /api/auth endpoint
+    const response = await apiClientHr.patch("/auth/change-password", passwordData);
+    return response.data;
+  } catch (error) {
+    // Re-throw the error with the specific message from the backend
+    throw new Error(error.response?.data?.error || "An unknown error occurred.");
+  }
+};
 
 //😍🎉sosi 🌹😍🎉🎉😍😍

@@ -1,137 +1,165 @@
+// /settings/page.jsx
 "use client";
 
 import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
-import { Lock, Sun, Moon } from "lucide-react"; // Corrected icon names
-// import { Lock, Sun, Moon } from "lucide-react"; // Using lucide-react for icons
-import toast from "react-hot-toast"; // Assuming you have react-hot-toast for notifications
-import { changePassword } from "../../../lib/api"; // We will create this API function
+import { Lock, Palette, Bell, Save, KeyRound } from "lucide-react";
+import toast from "react-hot-toast";
+import { changePassword } from "../../../lib/api"; // Adjust path if needed
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "../../../components/ui/card";
+import { Button } from "../../../components/ui/button";
+import { Input } from "../../../components/ui/input";
+import { Switch } from "../../../components/ui/switch";
+import { Label } from "../../../components/ui/label";
+import { AttractiveThemeToggle } from "../dashboard/components/AttractiveThemeToggle"; // Reusing the attractive toggle
 
-export default function SettingsPanel() {
-  const { theme, setTheme } = useTheme();
+export default function SettingsPage() {
   const [mounted, setMounted] = useState(false);
-  const [fontSize, setFontSize] = useState("medium");
-
-  // State for the password form
   const [formData, setFormData] = useState({
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: "",
+    currentPassword: "", newPassword: "", confirmPassword: "",
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  useEffect(() => { setMounted(true); }, []);
 
-  // Handler for form input changes
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Handler for form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // 1. Frontend validation
     if (formData.newPassword !== formData.confirmPassword) {
-      toast.error("New passwords do not match.");
-      return;
+      return toast.error("New passwords do not match.");
     }
     if (formData.newPassword.length < 8) {
-      toast.error("New password must be at least 8 characters long.");
-      return;
+      return toast.error("New password must be at least 8 characters long.");
     }
 
+    setIsSubmitting(true);
     try {
-      // 2. Call the API
       const response = await changePassword({
         currentPassword: formData.currentPassword,
         newPassword: formData.newPassword,
       });
       toast.success(response.message || "Password updated successfully!");
-      // Reset form on success
       setFormData({ currentPassword: "", newPassword: "", confirmPassword: "" });
     } catch (error) {
-      // Display error message from the backend
-      toast.error(error.message || "Failed to update password.");
+      toast.error(error.message);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   if (!mounted) return null;
 
-  const fontSizeClass = {
-    small: "text-sm",
-    medium: "text-base",
-    large: "text-lg",
-  }[fontSize];
-
   return (
-    <div className={`max-w-md mx-auto mt-8 p-6 rounded-2xl shadow-lg bg-white dark:bg-gray-800 border dark:border-gray-700 transition-all ${fontSizeClass}`}>
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">⚙️ Settings</h2>
-        <button
-          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"
-        >
-          {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
-        </button>
-      </div>
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 p-4 md:p-8">
+      <div className="max-w-3xl mx-auto space-y-8">
+        <header>
+          <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100">Settings</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+            Manage your account, appearance, and notification preferences.
+          </p>
+        </header>
 
-      {/* Change Password Section */}
-      <div className="mt-6">
-        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <Lock className="h-5 w-5 text-gray-500" />
-          Change Password
-        </h3>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            type="password"
-            name="currentPassword"
-            placeholder="Current Password"
-            value={formData.currentPassword}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
-          <input
-            type="password"
-            name="newPassword"
-            placeholder="New Password (min. 8 characters)"
-            value={formData.newPassword}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
-          <input
-            type="password"
-            name="confirmPassword"
-            placeholder="Confirm New Password"
-            value={formData.confirmPassword}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
-          <button
-            type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-all hover:scale-105"
-          >
-            Update Password
-          </button>
-        </form>
-      </div>
+        {/* Account Security Card */}
+        <Card className="bg-white dark:bg-slate-800/50 shadow-sm">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-3">
+              <Lock className="text-rose-500"/>
+              Account Security
+            </CardTitle>
+            <CardDescription>Update your login credentials.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <h4 className="font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                <KeyRound className="h-4 w-4 text-slate-500"/> Change Password
+              </h4>
+              <Input
+                type="password"
+                name="currentPassword"
+                placeholder="Current Password"
+                value={formData.currentPassword}
+                onChange={handleChange}
+                required
+              />
+              <Input
+                type="password"
+                name="newPassword"
+                placeholder="New Password (min. 8 characters)"
+                value={formData.newPassword}
+                onChange={handleChange}
+                required
+              />
+              <Input
+                type="password"
+                name="confirmPassword"
+                placeholder="Confirm New Password"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                required
+              />
+              <Button type="submit" disabled={isSubmitting} className="w-full">
+                <Save className="mr-2 h-4 w-4" />
+                {isSubmitting ? "Updating..." : "Update Password"}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
 
-      {/* Font Size Section */}
-      <div className="mt-8">
-        <label className="block mb-2 text-gray-700 dark:text-gray-300">Font Size</label>
-        <select
-          value={fontSize}
-          onChange={(e) => setFontSize(e.target.value)}
-          className="w-full p-2 rounded-md border dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
-        >
-          <option value="small">Small</option>
-          <option value="medium">Medium</option>
-          <option value="large">Large</option>
-        </select>
+        {/* Appearance Card */}
+        <Card className="bg-white dark:bg-slate-800/50 shadow-sm">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-3">
+              <Palette className="text-indigo-500"/>
+              Appearance
+            </CardTitle>
+            <CardDescription>Customize the look and feel of the application.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between p-4 rounded-lg bg-slate-50 dark:bg-slate-900/50">
+              <div>
+                <Label className="font-medium text-slate-700 dark:text-slate-200">
+                  Theme
+                </Label>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Switch between light and dark mode.
+                </p>
+              </div>
+              <AttractiveThemeToggle />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Notifications Card */}
+        {/* <Card className="bg-white dark:bg-slate-800/50 shadow-sm">
+            <CardHeader>
+                <CardTitle className="flex items-center gap-3">
+                    <Bell className="text-blue-500"/>
+                    Notifications
+                </CardTitle>
+                <CardDescription>Manage how you receive notifications.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between p-4 rounded-lg bg-slate-50 dark:bg-slate-900/50">
+                <div>
+                  <Label htmlFor="notifyComplaints" className="font-medium text-slate-700 dark:text-slate-200">
+                    Notify on New Complaints
+                  </Label>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Receive an email when a new complaint is submitted.
+                  </p>
+                </div>
+                <Switch
+                  id="notifyComplaints"
+                  // checked={...}
+                  // onCheckedChange={...}
+                />
+              </div>
+            </CardContent>
+        </Card> */}
+
       </div>
     </div>
   );

@@ -1,7 +1,9 @@
+// Your file path, e.g., app/(HR)/sidebar/sidebar.jsx
 "use client";
-import React, { useState, useEffect } from "react";
+
+import React, { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation"; // Import usePathname to track the current page
+import { usePathname } from "next/navigation";
 import {
   Home,
   Calendar,
@@ -54,16 +56,15 @@ export default function Sidebar() {
       )}
 
       {/* Sidebar Panel */}
-      <aside
-        className={`fixed top-0 left-0 h-full bg-green-900 border-r border-green-800 shadow-xl p-4 w-64 text-white flex flex-col
-                   transform ${
-                     isOpen ? "translate-x-0" : "-translate-x-full"
-                   } transition-transform duration-300 ease-in-out
-                   md:translate-x-0 z-40
-                   scrollbar-thin scrollbar-thumb-green-700 scrollbar-track-green-900`} // Custom scrollbar styles
-      >
+<aside
+    className={`fixed top-0 left-0 h-full bg-green-900 border-r border-green-800 shadow-xl p-4 w-64 text-white flex flex-col
+               transform ${
+                 isOpen ? "translate-x-0" : "-translate-x-full"
+               } transition-transform duration-300 ease-in-out
+               md:translate-x-0 z-40
+               scrollbar-thin scrollbar-thumb-green-700 scrollbar-track-green-900`}
+>
         {/* Header/Logo Section */}
-        
         <div className="flex items-center gap-3 p-2 border-b border-white/20 pb-4">
           <img
             src="/assets/images/logo.png"
@@ -76,7 +77,7 @@ export default function Sidebar() {
         </div>
 
         {/* Navigation Links */}
-        <nav className="flex-1 flex flex-col space-y-1 mt-6">
+        <nav className="flex-1 flex flex-col space-y-1 mt-6 overflow-y-auto">
           <SidebarLink
             href="/dashboard"
             icon={<Home size={18} />}
@@ -162,9 +163,6 @@ export default function Sidebar() {
 // Reusable Sidebar Link Component with Active State Logic
 function SidebarLink({ href, icon, label, isDanger = false }) {
   const pathname = usePathname();
-  // Check if the current path starts with the link's href.
-  // This handles nested routes (e.g., /dashboard/analytics will still highlight /dashboard).
-  // Handle the root path as a special case.
   const isActive =
     (href === "/dashboard" && pathname === href) ||
     (href !== "/dashboard" && pathname.startsWith(href));

@@ -7,6 +7,7 @@ import {
   UserX,
   Users,
   User2,
+  Briefcase,
   AlertCircle,
   Star,
   MessageSquare,
@@ -176,51 +177,33 @@ export default function DepartmentHeadDashboard() {
             </CardContent>
           </Card>
 
-          {/* Pending Complaints */}
-          <Card className="text-center border border-yellow-300 bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow duration-300">
+          {/* Total SubDepartment */}
+          <Card className="text-center border border-purple-300 bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow duration-300">
             <CardHeader>
-              <AlertCircle className="mx-auto text-yellow-600 w-8 h-8" />
+              <Briefcase className="mx-auto text-purple-600 w-8 h-8" />
             </CardHeader>
             <CardContent>
-              <CardTitle className="text-lg text-yellow-800 dark:text-yellow-300 font-semibold">
-                Pending Complaints
+              <CardTitle className="text-lg text-purple-800 dark:text-purple-300 font-semibold">
+                Sub Department
               </CardTitle>
-              <p className="text-2xl font-bold text-yellow-700 dark:text-yellow-500">
-                {data.pendingComplaints}
+              <p className="text-2xl font-bold text-purple-700 dark:text-purple-500">
+                {data.totalSubDepartment}
               </p>
             </CardContent>
           </Card>
 
-          {/* Average Performance */}
-          <Card className="text-center border border-teal-300 bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-shadow duration-300">
-            <CardHeader>
-              <Star className="mx-auto text-teal-600 w-8 h-8" />
-            </CardHeader>
-            <CardContent>
-              <CardTitle className="text-lg text-teal-800 dark:text-teal-300 font-semibold">
-                Avg. Performance
-              </CardTitle>
-              <p className="text-2xl font-bold text-teal-700 dark:text-teal-500">
-                {data.avgPerformance.toFixed(1)}
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Performance Cards */}
-        <div className="mb-10 flex gap-6 flex-wrap max-w-4xl mx-auto justify-center">
-          <PerformanceCard
-            title="Staff Performance"
-            score={data.staffAvg}
-            icon={<User2 className="w-10 h-10" />}
-          />
           <PerformanceCard
             title="Intern Performance"
             score={data.internAvg}
             icon={<Users className="w-10 h-10" />}
           />
+
+
+
+
         </div>
 
+        
         {/* Recent Activity */}
         <section className="max-w-4xl mx-auto">
           <h2 className="text-2xl font-semibold mb-6 text-green-800 dark:text-green-400">
