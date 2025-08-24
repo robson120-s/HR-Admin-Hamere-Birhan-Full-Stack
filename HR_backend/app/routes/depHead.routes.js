@@ -4,6 +4,7 @@ const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('../generated/prisma'); // or your generated path
 const prisma = new PrismaClient();
+const bcrypt = require('bcrypt');
 const { authenticate, authorize } = require('../middlewares/authMiddleware');
 
 // ==============================================================================
@@ -248,5 +249,248 @@ router.post("/performance-review", authenticate, authorize("Department Head"), a
     }
 });
 
+////////////Designation Routes
+const getManagedDepartmentId = async (userId) => {
+    const employee = await prisma.employee.findUnique({
+        where: { userId: userId },
+        select: { departmentId: true }
+    });
+    return employee?.departmentId;
+};
 
+// GET /api/dep-head/sub-departments - Fetch sub-departments for the logged-in head
+// In your backend file: routes/depHead.routes.js
+
+// GET /api/dep-head/sub-departments - Fetch sub-departments with DETAILED member counts
+// In your backend file: routes/depHead.routes.js
+
+// GET /api/dep-head/sub-departments - FINAL, EFFICIENT VERSION
+router.get("/sub-departments", authenticate, authorize("Department Head"), async (req, res) => {
+  try {
+    const departmentId = await getManagedDepartmentId(req.user.id);
+    if (!departmentId) {
+      return res.status(403).json({ error: "User is not assigned to a department." });
+    }
+    
+    // Step 1: Fetch the basic list of sub-departments for the logged-in head.
+    const subDepartments = await prisma.department.findMany({
+      where: { parentId: departmentId },
+      orderBy: { name: 'asc' },
+      select: { id: true, name: true, description: true } // Select only what we need
+    });
+
+    // Step 2: For each sub-department, run separate, targeted count queries.
+    // We use Promise.all to run all these database calls in parallel for maximum speed.
+    const subDepartmentsWithCounts = await Promise.all(
+      subDepartments.map(async (subDept) => {
+        
+        // Count staff specifically in this sub-department
+        const staffCount = await prisma.employee.count({
+          where: {
+            // Check both departmentId and subDepartmentId fields
+            OR: [
+                { departmentId: subDept.id },
+                { subDepartmentId: subDept.id }
+            ],
+            user: {
+              roles: { some: { role: { name: 'Staff' } } },
+            },
+          },
+        });
+
+        // Count interns specifically in this sub-department
+        const internCount = await prisma.employee.count({
+          where: {
+            OR: [
+                { departmentId: subDept.id },
+                { subDepartmentId: subDept.id }
+            ],
+            user: {
+              roles: { some: { role: { name: 'Intern' } } },
+            },
+          },
+        });
+        
+        // Construct the final object for this sub-department
+        return {
+          ...subDept,
+          staffCount: staffCount,
+          internCount: internCount,
+          totalMembers: staffCount + internCount,
+        };
+      })
+    );
+
+    res.status(200).json(subDepartmentsWithCounts);
+
+  } catch (error) {
+    console.error("Error fetching sub-departments:", error);
+    res.status(500).json({ error: "Failed to fetch sub-departments." });
+  }
+});
+
+// POST /api/dep-head/sub-departments - Create a new sub-department under the user's dept
+router.post("/sub-departments", authenticate, authorize("Department Head"), async (req, res) => {
+    try {
+        const departmentId = await getManagedDepartmentId(req.user.id);
+        if (!departmentId) { return res.status(403).json({ error: "Cannot add sub-department." }); }
+        
+        const { name, description } = req.body;
+        if (!name) { return res.status(400).json({ error: "Sub-department name is required." }); }
+
+        const newSubDept = await prisma.department.create({
+            data: { name, description, parentId: departmentId } // Automatically assign the correct parent
+        });
+        res.status(201).json(newSubDept);
+    } catch (error) {
+        if (error.code === 'P2002') {
+            return res.status(409).json({ error: "A department with this name already exists." });
+        }
+        res.status(500).json({ error: "Failed to create sub-department." });
+    }
+});
+
+// PATCH /api/dep-head/sub-departments/:id - Update a sub-department
+router.patch("/sub-departments/:id", authenticate, authorize("Department Head"), async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, description } = req.body;
+        // Security check could be added here to ensure the sub-dept belongs to the user's dept
+        const updatedSubDept = await prisma.department.update({
+            where: { id: parseInt(id) },
+            data: { name, description }
+        });
+        res.status(200).json(updatedSubDept);
+    } catch (error) {
+        res.status(500).json({ error: "Failed to update sub-department." });
+    }
+});
+
+// DELETE /api/dep-head/sub-departments/:id - Delete a sub-department
+router.delete("/sub-departments/:id", authenticate, authorize("Department Head"), async (req, res) => {
+    try {
+        const { id } = req.params;
+        // Security check could be added here
+        await prisma.department.delete({ where: { id: parseInt(id) } });
+        res.status(204).send();
+    } catch (error) {
+        res.status(500).json({ error: "Failed to delete sub-department." });
+    }
+});
+
+
+
+
+
+
+
+
+
+
+
+///////PROFILE
+// In your backend file: routes/depHead.routes.js
+
+// ... your existing router setup and other routes ...
+
+// GET /api/dep-head/profile - Fetch the profile of the currently logged-in user
+router.get("/profile", authenticate, authorize("Department Head"), async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const employeeProfile = await prisma.employee.findUnique({
+      where: { userId: userId },
+      // ✅ SELECT all fields from the Employee model
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        baptismalName: true,
+        dateOfBirth: true,
+        sex: true,
+        nationality: true,
+        phone: true,
+        address: true,
+        subCity: true,
+        emergencyContactName: true,
+        emergencyContactPhone: true,
+        repentanceFatherName: true,
+        repentanceFatherChurch: true,
+        repentanceFatherPhone: true,
+        academicQualification: true,
+        educationalInstitution: true,
+        salary: true,
+        bonusSalary: true,
+        accountNumber: true,
+        photo: true,
+        employmentDate: true,
+        // Include all related data for a rich profile view
+        user: { select: { email: true } },
+        department: { select: { name: true } },
+        position: { select: { name: true } },
+        maritalStatus: { select: { status: true } },
+        employmentType: { select: { type: true } },
+        jobStatus: { select: { status: true } },
+        agreementStatus: { select: { status: true } },
+      },
+    });
+
+    if (!employeeProfile) {
+      return res.status(404).json({ error: "Employee profile not found for the logged-in user." });
+    }
+
+    // No need to format on the backend; we can send the raw data.
+    // The frontend will handle formatting.
+    res.status(200).json(employeeProfile);
+  } catch (error) {
+    console.error("Error fetching profile:", error);
+    res.status(500).json({ error: "Failed to fetch profile data." });
+  }
+});
+
+router.patch("/settings/change-password", authenticate, authorize("Department Head"), async (req, res) => {
+  try {
+    // 1. Get the user ID from the 'authenticate' middleware. This is secure.
+    const userId = req.user.id;
+    const { currentPassword, newPassword } = req.body;
+
+    // 2. Server-side validation
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: "Current and new passwords are required." });
+    }
+    if (newPassword.length < 8) {
+      return res.status(400).json({ error: "New password must be at least 8 characters long." });
+    }
+
+    // 3. Fetch the user's current record from the database
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found." });
+    }
+
+    // 4. Verify the provided 'currentPassword' against the hashed password in the DB
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ error: "Incorrect current password. Please try again." });
+    }
+
+    // 5. Hash the new password before saving it
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    // 6. Update the user's record with the new hashed password
+    await prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword },
+    });
+
+    res.status(200).json({ message: "Password updated successfully." });
+  } catch (error) {
+    console.error("Error changing password:", error);
+    res.status(500).json({ error: "An internal server error occurred." });
+  }
+});
 module.exports = router;

@@ -25,6 +25,7 @@ const addAuthToken = (config) => {
 apiClientHr.interceptors.request.use(addAuthToken);
 apiClientDepHead.interceptors.request.use(addAuthToken);
 
+
 export const login = async (credentials) => {
   try {
     // This is a public route is solid, and your frontend UI is very attractive. Now, let's connect them to create a fully functional and, so we can make a direct axios call.
@@ -388,6 +389,59 @@ export const submitPerformanceReview = async (reviewData) => {
     } catch (error) {
         throw new Error(error.response?.data?.error || "Could not submit review.");
     }
+};
+
+///////////////Designation
+
+// In your frontend file: lib/api.js
+// ... import { apiClientDepHead } ...
+
+export const getSubDepartments = async () => {
+    const response = await apiClientDepHead.get('/sub-departments');
+    return response.data;
+};
+export const createSubDepartment = async (data) => {
+    const response = await apiClientDepHead.post('/sub-departments', data);
+    return response.data;
+};
+export const updateSubDepartment = async (id, data) => {
+    const response = await apiClientDepHead.patch(`/sub-departments/${id}`, data);
+    return response.data;
+};
+export const deleteSubDepartment = async (id) => {
+    await apiClientDepHead.delete(`/sub-departments/${id}`);
+};
+
+
+
+
+
+
+///////PROFILE
+export const getMyProfile = async () => {
+    try {
+        const response = await apiClientDepHead.get('/profile');
+        return response.data;
+    } catch (error) {
+        throw new Error(error.response?.data?.error || "Could not fetch your profile.");
+    }
+};
+
+//////Settings
+/**
+ * Updates the password for the logged-in Department Head.
+ * @param {object} passwordData - Should contain { currentPassword, newPassword }.
+ */
+
+export const changePassworddep = async (passwordData) => {
+  try {
+    // Use the apiClientDepHead to ensure the request goes to /api/dep-head/...
+    const response = await apiClientDepHead.patch("/settings/change-password", passwordData);
+    return response.data; // Should return { message: "..." }
+  } catch (error) {
+    // Re-throw the error with the specific message from the backend
+    throw new Error(error.response?.data?.error || "An unknown error occurred.");
+  }
 };
 
 //😍🎉sosi 🌹😍🎉🎉😍😍

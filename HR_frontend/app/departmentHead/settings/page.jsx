@@ -1,94 +1,130 @@
-// app/(DepHead)/settings/page.jsx
+// /departmentHead/settings/page.jsx
 "use client";
 
-import { useState, useEffect } from "react";
-// ... other imports
-import { Input } from "../../../components/ui/input";
+import React, { useState, useEffect, useCallback } from "react";
+import { useTheme } from "next-themes";
+import toast from "react-hot-toast";
+import { Lock, Palette, Bell, Save, KeyRound, UserCog } from "lucide-react";
+import { getMyProfile, changePassworddep } from "../../../lib/api"; // Adjust path if needed
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "../../../components/ui/card";
 import { Button } from "../../../components/ui/button";
+import { Input } from "../../../components/ui/input";
 import { Switch } from "../../../components/ui/switch";
 import { Label } from "../../../components/ui/label";
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "../../../components/ui/card";
+import {AttractiveThemeToggle} from "../components/AttractiveThemeToggle";
 import Sidebar from "../Sidebar";
-import { UserCog, Bell, Save, KeyRound } from 'lucide-react';
-import toast from "react-hot-toast";
-import { changePassword } from "../../../lib/api"; // Assuming you have this API function
 
+// ==============================================================================
+// MAIN PAGE COMPONENT
+// ==============================================================================
 export default function SettingsPage() {
-  const [settings, setSettings] = useState({
-    notifyComplaints: true,
-  });
-
-  // ✅ 1. ADD 'currentPassword' TO THE STATE
-  const [userCredentials, setUserCredentials] = useState({
-    username: "dept_head_1",
+  const [mounted, setMounted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    username: "",
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
   });
+  
+  // Placeholder for notification settings
+  const [notifications, setNotifications] = useState({
+      notifyComplaints: true,
+  });
 
-  // This handler already works for the new input, no changes needed
+  // Fetch the user's profile to get their current username
+  const fetchProfile = useCallback(async () => {
+    try {
+        const profile = await getMyProfile(); // Assumes you have this API from the profile page
+        if (profile && profile.user) {
+            setFormData(prev => ({ ...prev, username: profile.user.username }));
+        }
+    } catch (error) {
+        toast.error("Could not fetch user profile information.");
+    }
+  }, []);
+
+  useEffect(() => {
+    setMounted(true);
+    fetchProfile();
+  }, [fetchProfile]);
+
   const handleChange = (e) => {
-    setUserCredentials({ ...userCredentials, [e.target.name]: e.target.value });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleAccountUpdate = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (userCredentials.newPassword && userCredentials.newPassword !== userCredentials.confirmPassword) {
-      toast.error("New passwords do not match!");
-      return;
+
+    // Frontend validation
+    if (formData.newPassword !== formData.confirmPassword) {
+      return toast.error("New passwords do not match.");
     }
-    
+    if (formData.newPassword && formData.newPassword.length < 8) {
+      return toast.error("New password must be at least 8 characters long.");
+    }
+
+    setIsSubmitting(true);
+    const passwordPayload = {
+      currentPassword: formData.currentPassword,
+      newPassword: formData.newPassword,
+    };
+
     try {
-      // ✅ 2. SEND ALL THREE PASSWORDS TO THE API
-      await changePassword({
-        currentPassword: userCredentials.currentPassword,
-        newPassword: userCredentials.newPassword,
-      });
-      toast.success("Password updated successfully!");
-      // Reset all password fields on success
-      setUserCredentials({
-        ...userCredentials,
+      const response = await changePassworddep(passwordPayload);
+      toast.success(response.message || "Password updated successfully!");
+      // Reset only the password fields on success
+      setFormData(prev => ({
+        ...prev,
         currentPassword: "",
         newPassword: "",
         confirmPassword: "",
-      });
+      }));
     } catch (error) {
       toast.error(error.message || "Failed to update password.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  // ... rest of the component (return statement) ...
+  if (!mounted) {
+    // Return a skeleton or null to avoid hydration mismatch
+    return <div className="flex min-h-screen bg-slate-50 dark:bg-slate-900"></div>;
+  }
+
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-slate-900">
-      <aside className="h-screen sticky top-0"><Sidebar /></aside>
-      <main className="flex-1 p-6 lg:p-10">
-        <div className="max-w-2xl mx-auto space-y-8">
+      <Sidebar />
+      <main className="flex-1 p-6 lg:p-8">
+        <div className="max-w-3xl mx-auto space-y-8">
           <header>
             <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100">Settings</h1>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-              Manage your account and notification preferences.
+              Manage your account, appearance, and notification preferences.
             </p>
           </header>
 
+          {/* Account Security Card */}
           <Card className="bg-white dark:bg-slate-800/50 shadow-sm">
-            <CardHeader className="flex flex-row items-center gap-4">
-                <div className="flex items-center justify-center h-12 w-12 rounded-full bg-rose-100 dark:bg-rose-900/50">
-                  <UserCog className="h-6 w-6 text-rose-600 dark:text-rose-400" />
-                </div>
-                <div>
-                  <CardTitle>Account Setting</CardTitle>
-                  <CardDescription>Update your username and password.</CardDescription>
-                </div>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-3">
+                <UserCog className="text-rose-500"/>
+                Account Security
+              </CardTitle>
+              <CardDescription>Update your login credentials.</CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleAccountUpdate} className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
                   <Label htmlFor="username">Username</Label>
                   <Input
                     id="username"
-                    name="username" // Add name for consistency
-                    value={userCredentials.username}
+                    name="username"
+                    value={formData.username}
                     onChange={handleChange}
+                    // Typically username is not editable, so we can disable it
+                    disabled 
+                    className="mt-1 cursor-not-allowed"
                   />
                 </div>
                 
@@ -97,20 +133,19 @@ export default function SettingsPage() {
                      <KeyRound className="h-4 w-4 text-slate-500" /> Change Password
                    </h4>
                    <div className="space-y-4">
-                      {/* ✅ 3. ADD THE 'Current Password' INPUT FIELD */}
                        <Input
                          type="password"
                          name="currentPassword"
                          placeholder="Current Password"
-                         value={userCredentials.currentPassword}
+                         value={formData.currentPassword}
                          onChange={handleChange}
-                         required // Make it required
+                         required
                        />
                        <Input
                          type="password"
                          name="newPassword"
-                         placeholder="New Password"
-                         value={userCredentials.newPassword}
+                         placeholder="New Password (min. 8 characters)"
+                         value={formData.newPassword}
                          onChange={handleChange}
                          required
                        />
@@ -118,19 +153,47 @@ export default function SettingsPage() {
                          type="password"
                          name="confirmPassword"
                          placeholder="Confirm New Password"
-                         value={userCredentials.confirmPassword}
+                         value={formData.confirmPassword}
                          onChange={handleChange}
                          required
                        />
                    </div>
                 </div>
-                <Button type="submit" className="w-full bg-rose-600 hover:bg-rose-700 text-white">
+                <Button type="submit" disabled={isSubmitting} className="w-full">
                   <Save className="mr-2 h-4 w-4" />
-                  Update Account
+                  {isSubmitting ? "Updating Password..." : "Update Password"}
                 </Button>
               </form>
             </CardContent>
           </Card>
+
+          {/* Appearance Card */}
+          <Card className="bg-white dark:bg-slate-800/50 shadow-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-3">
+                <Palette className="text-indigo-500"/>
+                Appearance
+              </CardTitle>
+              <CardDescription>Customize the look and feel of the application.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between p-4 rounded-lg bg-slate-50 dark:bg-slate-900/50">
+                <div>
+                  <Label className="font-medium text-slate-700 dark:text-slate-200">
+                    Theme
+                  </Label>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Switch between light and dark mode.
+                  </p>
+                </div>
+                <AttractiveThemeToggle />
+              </div>
+            </CardContent>
+          </Card>
+
+      
+          
+
         </div>
       </main>
     </div>
