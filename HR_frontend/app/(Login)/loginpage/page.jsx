@@ -64,6 +64,8 @@
 //       router.push("/dashboard");
 //     } else if (role === "admin") {
 //       router.push("/admin");
+       } else if (role === "intern") {
+//       router.push("/intern");
 //     } else if (role === "staff") {
 //       router.push("/staff");
 //     } else if (role === "departmentHead") {
@@ -179,6 +181,7 @@
 //               >
 //                 <option value="HR">HR</option>
 //                 <option value="admin">Admin</option>
+                   <option value="intern">intern</option>
 //                 <option value="staff">Staff</option>
 //                 <option value="departmentHead">Department Head</option>
 //               </select>
