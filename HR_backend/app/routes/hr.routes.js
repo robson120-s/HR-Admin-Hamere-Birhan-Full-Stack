@@ -1440,6 +1440,61 @@ router.get("/reports/attendance",  async (req, res) => {
   }
 });
 
+router.get("/profile", authenticate, authorize("HR"), async (req, res) => {
+  try {
+    // The 'authenticate' middleware provides req.user.id
+    const userId = req.user.id;
+
+    const employeeProfile = await prisma.employee.findUnique({
+      where: {
+        userId: userId,
+      },
+      // ✅ SELECT all fields from the Employee model to match the frontend
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        baptismalName: true,
+        dateOfBirth: true,
+        sex: true,
+        nationality: true,
+        phone: true,
+        address: true,
+        subCity: true,
+        emergencyContactName: true,
+        emergencyContactPhone: true,
+        repentanceFatherName: true,
+        repentanceFatherChurch: true,
+        repentanceFatherPhone: true,
+        academicQualification: true,
+        educationalInstitution: true,
+        salary: true,
+        bonusSalary: true,
+        accountNumber: true,
+        photo: true,
+        employmentDate: true,
+        // Include all related data for a rich profile view
+        user: { select: { email: true } },
+        department: { select: { name: true } },
+        position: { select: { name: true } },
+        maritalStatus: { select: { status: true } },
+      },
+    });
+
+    if (!employeeProfile) {
+      return res.status(404).json({ error: "Employee profile not found for the logged-in user." });
+    }
+
+    // The frontend will handle formatting, so we can send the raw data.
+    res.status(200).json(employeeProfile);
+  } catch (error) {
+    console.error("Error fetching HR profile:", error);
+    res.status(500).json({ error: "Failed to fetch profile data." });
+  }
+});
+
+module.exports = router;
+
 
 
 

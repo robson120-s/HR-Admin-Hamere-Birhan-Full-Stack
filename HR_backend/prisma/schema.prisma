@@ -208,6 +208,7 @@ model Meeting {
 // ----------------------
 // 5. EMPLOYEES
 // ----------------------
+
 model Employee {
   id                     Int       @id @default(autoincrement())
   userId                 Int?      @unique 
