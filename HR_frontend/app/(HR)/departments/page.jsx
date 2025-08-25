@@ -7,7 +7,7 @@ import { DepartmentCard } from "./components/DepartmentCard";
 import { DepartmentDetailView } from "./components/DepartmentDetailView";
 import { AddEditDepartmentModal } from "./components/AddEditDepartmentModal";
 import toast from "react-hot-toast";
-import {Button} from "../../components/ui/button";
+import {Button} from ".//../../../components/ui/button";
 import { Plus, LoaderCircle } from "lucide-react";
 import ThemeToggle from "../dashboard/components/ThemeToggle"; // Assuming path is correct
 
