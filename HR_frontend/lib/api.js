@@ -358,6 +358,17 @@ export const changePassword = async (passwordData) => {
   }
 };
 
+// profile
+
+export const getHrProfile = async () => {
+    try {
+        const response = await apiClientHr.get('/profile');
+        return response.data;
+    } catch (error) {
+        throw new Error(error.response?.data?.error || "Could not fetch your profile.");
+    }
+};
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////DEPARTEMENT HEAD//////////////////////////////////////////////////////////////////////////////////////
@@ -443,5 +454,6 @@ export const changePassworddep = async (passwordData) => {
     throw new Error(error.response?.data?.error || "An unknown error occurred.");
   }
 };
+
 
 //😍🎉sosi 🌹😍🎉🎉😍😍
