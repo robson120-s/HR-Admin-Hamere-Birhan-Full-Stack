@@ -571,7 +571,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "C:\\Users\\hp\\OneDrive\\Desktop\\hh\\HR-Admin-FrontEnd-Hamere-Birhan-\\HR_backend\\app\\generated\\prisma",
+      "value": "C:\\Users\\hp\\Desktop\\HR project\\HR admin frontend\\HR-Admin-FrontEnd-Hamere-Birhan-\\HR_backend\\app\\generated\\prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -585,7 +585,7 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "C:\\Users\\hp\\OneDrive\\Desktop\\hh\\HR-Admin-FrontEnd-Hamere-Birhan-\\HR_backend\\prisma\\schema.prisma",
+    "sourceFilePath": "C:\\Users\\hp\\Desktop\\HR project\\HR admin frontend\\HR-Admin-FrontEnd-Hamere-Birhan-\\HR_backend\\prisma\\schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
