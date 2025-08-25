@@ -49,7 +49,7 @@ export default function ComplaintsPage() {
       <div className="max-w-2xl mx-auto">
         {/* Header Section */}
         <div className="flex items-center gap-3 mb-4">
-          <MailWarning className="h-8 w-8 text-green-600" />
+          <MailWarning className="h-8 w-8 text-red-600" />
           <div>
             <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Submit a Complaint</h1>
             <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -68,7 +68,7 @@ export default function ComplaintsPage() {
             <div
               className={`flex items-center gap-3 p-3 rounded-lg text-sm ${
                 status.ok
-                  ? "bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300"
+                  ? "bg-green-100 text-red-800 dark:bg-green-900/50 dark:text-red-300"
                   : "bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300"
               }`}
             >
@@ -84,7 +84,7 @@ export default function ComplaintsPage() {
               id="subject"
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
-              className="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-lg shadow-sm focus:border-green-500 focus:ring-green-500"
+              className="w-full border-gray-300 dark:border-red-600 dark:bg-gray-700 rounded-lg shadow-sm focus:border-red-500 focus:ring-red-500"
               placeholder="Brief title of your complaint"
               required
             />
@@ -98,7 +98,7 @@ export default function ComplaintsPage() {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={6}
-              className="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-lg shadow-sm focus:border-green-500 focus:ring-green-500"
+              className="w-full border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-lg shadow-sm focus:border-red-500 focus:ring--500"
               placeholder="Describe the issue with dates, people involved, and any evidence."
               required
             />
@@ -109,7 +109,7 @@ export default function ComplaintsPage() {
             <button
               type="submit"
               disabled={submitting}
-              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border border-transparent shadow-sm bg-green-600 text-white font-semibold hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border border-transparent shadow-sm bg-red-600 text-white font-semibold hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {submitting ? (
                 <>
