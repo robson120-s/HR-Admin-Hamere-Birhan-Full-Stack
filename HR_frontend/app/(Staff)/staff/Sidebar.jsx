@@ -51,6 +51,7 @@ export default function Sidebar() {
 
           <SidebarLink href="/staff/profile" icon={<Users size={18} />} label="Profile" />
           <SidebarLink href="/staff/setting" icon={<Settings size={18} />} label="Settings" />
+           <SidebarLink href="/staff/complain" icon={<Settings size={18} />} label="complain" />
           <SidebarLink
             href="/loginpage"
             icon={<LogOut size={18} />}
