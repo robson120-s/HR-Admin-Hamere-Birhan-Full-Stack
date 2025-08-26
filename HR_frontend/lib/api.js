@@ -457,6 +457,17 @@ export const createLeaveRequest = async (data) => {
     return response.data;
 };
 
+//Mark Attendace
+export const getAttendanceRoster = async (date) => {
+    const response = await apiClientDepHead.get(`/attendance-roster?date=${date}`);
+    return response.data;
+};
+
+export const saveAttendance = async (data) => {
+    const response = await apiClientDepHead.post('/attendance', data);
+    return response.data;
+};
+
 
 
 

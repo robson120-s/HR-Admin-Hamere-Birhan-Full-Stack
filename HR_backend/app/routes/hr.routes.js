@@ -6,6 +6,7 @@ const { PrismaClient } = require('../generated/prisma');
 const prisma = new PrismaClient();
 const { authenticate, authorize } = require("../middlewares/authMiddleware");
 const hrController = require("../controllers/hr.controller");
+const { processDailyAttendance } = require("../jobs/attendanceProcessor");
 
 // router.get(
 //   "/complaints",
@@ -18,10 +19,15 @@ const hrController = require("../controllers/hr.controller");
 // );
 
 // GET /api/hr/dashboard
+
+
+// in your backend router file (e.g., hr.routes.js)
+// in hr.routes.js
+
 router.get("/dashboard", async (req, res) => {
   try {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const now = new Date();
+    const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
 
     const [
       totalEmployees,
@@ -33,143 +39,61 @@ router.get("/dashboard", async (req, res) => {
       totalWorkingDays,
       pendingLeaveApproval,
       todaysPresent,
-      totalOpenComplaints,
+      totalComplaintsAllTime,
       recentComplaints,
-      presentPerDepartment,
+      departmentHeads, // --- ADDITION 1: Add the new variable name here ---
     ] = await Promise.all([
-      // 1. Total employees (non-HR, non-intern)
-      prisma.employee.count({
-        where: {
-          user: {
-            roles: {
-              some: {
-                role: {
-                  name: { notIn: ["HR", "Intern"] },
-                },
-              },
-            },
-          },
-        },
-      }),
-
-      // 2. Total departments
+      // ... (Your first 11 queries remain exactly the same)
+      prisma.employee.count({ where: { user: { roles: { some: { role: { name: { notIn: ["HR"] } } } } } } }),
       prisma.department.count(),
-
-      // 3. Total staff (non-HR, non-intern)
-      prisma.employee.count({
+      prisma.employee.count({ where: { user: { roles: { some: { role: { name: "Staff" } } } } } }),
+      prisma.employee.count({ where: { user: { roles: { some: { role: { name: "Intern" } } } } } }),
+      prisma.leave.count({ where: { status: "approved", startDate: { lte: today }, endDate: { gte: today } } }),
+      prisma.attendanceSummary.count({ where: { date: today, status: "absent" } }),
+      prisma.attendanceSummary.groupBy({ by: ["date"], where: { date: { gte: new Date(today.getFullYear(), 0, 1) } } }).then((days) => days.length),
+      prisma.leave.count({ where: { status: "pending" } }),
+      prisma.attendanceSummary.count({ where: { date: today, status: "present" } }),
+      prisma.complaint.count(),
+      prisma.complaint.findMany({ where: { status: { in: ["open", "in_review"] } }, select: { createdAt: true, description: true }, orderBy: { createdAt: "desc" }, take: 5, }),
+      
+      // --- ADDITION 2: Add the new query for department heads ---
+      prisma.employee.findMany({
         where: {
-          user: {
-            roles: {
-              some: {
-                role: {
-                  name: "Staff",
-                },
-              },
-            },
-          },
+          user: { roles: { some: { role: { name: "Department Head" } } } },
         },
-      }),
-
-      // 4. Total interns
-      prisma.employee.count({
-        where: {
-          user: {
-            roles: {
-              some: {
-                role: {
-                  name: "Intern",
-                },
-              },
-            },
-          },
-        },
-      }),
-
-      // 5. Total on leave today (status approved, date range includes today)
-      prisma.leave.count({
-        where: {
-          status: "approved",
-          startDate: { lte: today },
-          endDate: { gte: today },
-        },
-      }),
-
-      // 6. Total absent today (attendanceSummary status = 'absent')
-      prisma.attendanceSummary.count({
-        where: {
-          date: today,
-          status: "absent",
-        },
-      }),
-
-      // 7. Total working days (exclude Sundays, count from attendance logs)
-      prisma.attendanceSummary
-        .groupBy({
-          by: ["date"],
-          where: {
-            date: {
-              gte: new Date(today.getFullYear(), 0, 1), // from start of year
-            },
-          },
-        })
-        .then((days) => days.filter((d) => d.date.getDay() !== 0).length),
-
-      // 8. Pending leave approvals
-      prisma.leave.count({
-        where: {
-          status: "pending",
-        },
-      }),
-
-      // 9. Today's Present
-      prisma.attendanceSummary.count({
-        where: {
-          date: today,
-          status: "present",
-        },
-      }),
-
-      // 10. Total open complaints (status = open)
-      prisma.complaint.count({
-        where: { status: "open" },
-      }),
-
-      // 11. Recent complaints (day sent + description only)
-      prisma.complaint.findMany({
-        where: { status: "in_review" },
         select: {
-          createdAt: true,
-          description: true,
+          id: true,
+          firstName: true,
+          lastName: true,
+          phone: true,
+          department: {
+            select: {
+              name: true,
+            },
+          },
         },
-        orderBy: { createdAt: "desc" },
-        take: 5,
-      }),
-
-      // 12. Chart: Present per department
-      prisma.attendanceSummary.groupBy({
-        by: ["departmentId"],
-        where: {
-          date: today,
-          status: "present",
-        },
-        _count: { _all: true },
       }),
     ]);
 
-    const presentPerDepartmentWithNames = await Promise.all(
-      presentPerDepartment.map(async (item) => {
-        const dept = await prisma.department.findUnique({
-          where: { id: item.departmentId },
-          select: { name: true },
-        });
-        return {
-          departmentId: item.departmentId,
-          departmentName: dept?.name || "Unknown",
-          presentCount: item._count._all,
-        };
-      })
-    );
+    // ... (The chart logic remains exactly the same)
+    const presentSummaries = await prisma.attendanceSummary.findMany({
+        where: { date: today, status: { in: ['present', 'absent'] }, departmentId: { not: null } },
+        include: { department: { select: { name: true } } }
+    });
+    const departmentStatsMap = new Map();
+    presentSummaries.forEach(summary => {
+        const deptName = summary.department?.name || 'Unknown Department';
+        if (!departmentStatsMap.has(deptName)) { departmentStatsMap.set(deptName, { present: 0, absent: 0 }); }
+        const stats = departmentStatsMap.get(deptName);
+        if (summary.status === 'present') { stats.present++; } else if (summary.status === 'absent') { stats.absent++; }
+    });
+    const presentPerDepartmentChartData = Array.from(departmentStatsMap, ([name, counts]) => ({
+        department: name,
+        present: counts.present,
+        absent: counts.absent,
+    }));
 
+    // --- Send the final JSON response ---
     res.status(200).json({
       totalEmployees,
       totalDepartments,
@@ -180,15 +104,37 @@ router.get("/dashboard", async (req, res) => {
       totalWorkingDays,
       pendingLeaveApproval,
       todaysPresent,
-      totalOpenComplaints,
+      totalComplaintsAllTime,
       recentComplaints,
-      presentPerDepartment: presentPerDepartmentWithNames,
+      departmentHeads: departmentHeads, // --- ADDITION 3: Add the new data to the response ---
+      presentPerDepartment: presentPerDepartmentChartData,
     });
   } catch (error) {
     console.error("Error fetching HR dashboard data:", error);
     res.status(500).json({ error: "Failed to load dashboard data" });
   }
 });
+
+router.post("/process-attendance", authenticate, authorize("HR"), async (req, res) => {
+    try {
+        const { date } = req.body;
+        if (!date) {
+            return res.status(400).json({ error: "A 'date' string (e.g., '2025-08-26') is required in the request body." });
+        }
+
+        const targetDate = new Date(date);
+        targetDate.setUTCHours(0, 0, 0, 0); // Normalize the date
+
+        // Call the core logic function
+        await processDailyAttendance(targetDate);
+
+        res.status(200).json({ message: `Successfully processed attendance summaries for ${date}.` });
+    } catch (error) {
+        console.error("Manual attendance processing failed:", error);
+        res.status(500).json({ error: "Failed to process attendance." });
+    }
+});
+
 // In your HR routes file where the /dashboard route is
 // In your backend hr.routes.js file
 

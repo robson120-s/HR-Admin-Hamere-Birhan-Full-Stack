@@ -1,62 +1,34 @@
-import { ThemeProvider } from "next-themes";
-import { Inter } from "next/font/google";
-import "./globals.css";
+// app/layout.jsx
+import './globals.css';
+import React from 'react';
+import { ThemeProvider } from '../components/ThemeProvider'; // Assuming this is your custom provider wrapper
 
-import { Toaster } from 'react-hot-toast';
-
-const inter = Inter({ subsets: ["latin"], display: "swap" });
-
-// app/layout.js
-
-
-
-
-
+// This is the metadata for the entire application.
 export const metadata = {
-  title: "Attendance Management System",
-  description: "Manage and track attendance efficiently.",
-  icons: {
-    icon: "/favicon-32.ico", // Update this if needed
+  title: {
+    default: 'SJC Summer Camp HRMS',
+    template: '%s | SJC Summer Camp HRMS', // Page titles will look like "Dashboard | SJC Summer Camp HRMS"
   },
-  authors: [
-    { name: "ሐመረ ብርሃን የብራና መጽሐፍት ሥራ | Hamere Berhan Parchment Books Work" }
-  ],
-  openGraph: {
-    title: "ቅዱስ ዮሐንስ አፈወርቅ የትምህርት ፕሮግራም | የክረምት ትምህርት መርሐግብር ፳፻፲፯ | St. John Chrysostom Education Program | Summer Camp 2025",
-    description: "እንኳን ወደ ቅዱስ ዮሐንስ አፈወርቅ ልዩ የዘመነ ክረምት የሕጻናት ት/ት መርሐግብር በደኅና መጡ። ቅዱስ ዮሐንስ አፈወርቅ የዘመነ ክረምት የሕጻናት ት/ት መርሐግብር ዕድሜያቸው ከ7 እስከ 14 ዓመት ለሆኑ ሕጻናት በአዳር እንዲሁም በተመላላሽ የት/ት ማዕቀፍ ለ6 ሳምንታት የሚሰጥ ስልጠና ነው። | Join us for an enriching summer experience at St. John Chrysostom's Education Program Summer Camp 2025.",
-    url: "https://sjc.hamereberhan.org",
-    siteName: "ቅዱስ ዮሐንስ አፈወርቅ የትምህርት ፕሮግራም | St. John Chrysostom Education Program",
-    images: [
-      {
-        url: "https://hamereberhan.org/SJC2025/metadata/SJCSummerCamp2025-OG.webp",
-        width: 1200,
-        height: 630,
-      },
-    ],
-    locale: "en_US",
-    type: "website",
-  }
+  description: 'Human Resources Management System for SJC Summer Camp.',
+  icons: {
+    icon: '/assets/image/logo.png', // Main site icon
+  },
 };
 
+// This is the ROOT layout. It MUST contain the <html> and <body> tags.
 export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        {/* put inside <head> area or head.js */}
-        <link rel="icon" href="/favicon-32.ico" sizes="32x32" />
-
-      </head>
-      <body className={`${inter.className} antialiased`}>
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+      <body>
+        {/* The ThemeProvider wraps EVERYTHING, ensuring the theme is available to all pages. */}
+        <ThemeProvider>
+          {/*
+            The `children` prop here will be your nested layouts 
+            (like DepartmentHeadLayout) or your page components.
+          */}
           {children}
-        <Toaster position="top-right" reverseOrder={false} />
         </ThemeProvider>
       </body>
     </html>
   );
 }
-
-
-
-

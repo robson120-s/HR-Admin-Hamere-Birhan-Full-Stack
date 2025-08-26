@@ -15,12 +15,20 @@ import ThemeToggle from "./components/ThemeToggle";
 import InfoWidgets from "./components/InfoWidgets";
 import LoadingSpinner from "./loading";
 import { meetingsData } from "../../../lib/mockData"; // Keep this for now, see note below
+import DepartmentHeadsCard from "./components/DepartmentHeadsCard";
 
 // Dynamically import heavy components
-const AttendanceChart = dynamic(() => import("./components/AttendanceChart"), { /* ... */ });
-const MeetingSchedule = dynamic(() => import("./components/MeetingSchedule"), { /* ... */ });
-const DashboardCalendar = dynamic(() => import("./components/DashboardCalendar"), { /* ... */ });
-
+const AttendanceChart = dynamic(
+  () => import("./components/AttendanceChart"), 
+  { ssr: false });
+  const MeetingSchedule = dynamic(
+  () => import("./components/MeetingSchedule"), 
+  { ssr: false } // It's good practice to do this for all client-heavy components
+);
+const DashboardCalendar = dynamic(
+  () => import("./components/DashboardCalendar"), 
+  { ssr: false } // Do this here as well
+);
 export default function DashboardPage() {
   const router = useRouter();
 
@@ -91,10 +99,16 @@ export default function DashboardPage() {
 
       {/* Row 3: Meetings and Calendar */}
       {/* Note: Your backend doesn't provide meeting data, so we keep using mock data for now. */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <MeetingSchedule initialMeetings={meetingsData} />
+    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+
+        {/* --- CHANGE 2: Wrapped MeetingSchedule to make it span 2 columns --- */}
+        <div className="lg:col-span-2">
+            <MeetingSchedule initialMeetings={meetingsData} />
+        </div>
+
+        <DepartmentHeadsCard heads={dashboardData.departmentHeads} />
         <DashboardCalendar />
-      </div>
+    </div>
     </div>
   );
 }

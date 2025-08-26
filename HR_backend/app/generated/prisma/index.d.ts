@@ -3014,11 +3014,13 @@ export namespace Prisma {
   export type DepartmentCountOutputType = {
     subDepartments: number
     employees: number
+    attendanceSummaries: number
   }
 
   export type DepartmentCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     subDepartments?: boolean | DepartmentCountOutputTypeCountSubDepartmentsArgs
     employees?: boolean | DepartmentCountOutputTypeCountEmployeesArgs
+    attendanceSummaries?: boolean | DepartmentCountOutputTypeCountAttendanceSummariesArgs
   }
 
   // Custom InputTypes
@@ -3044,6 +3046,13 @@ export namespace Prisma {
    */
   export type DepartmentCountOutputTypeCountEmployeesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: EmployeeWhereInput
+  }
+
+  /**
+   * DepartmentCountOutputType without action
+   */
+  export type DepartmentCountOutputTypeCountAttendanceSummariesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AttendanceSummaryWhereInput
   }
 
 
@@ -6626,6 +6635,7 @@ export namespace Prisma {
     parent?: boolean | Department$parentArgs<ExtArgs>
     subDepartments?: boolean | Department$subDepartmentsArgs<ExtArgs>
     employees?: boolean | Department$employeesArgs<ExtArgs>
+    attendanceSummaries?: boolean | Department$attendanceSummariesArgs<ExtArgs>
     _count?: boolean | DepartmentCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["department"]>
 
@@ -6645,6 +6655,7 @@ export namespace Prisma {
     parent?: boolean | Department$parentArgs<ExtArgs>
     subDepartments?: boolean | Department$subDepartmentsArgs<ExtArgs>
     employees?: boolean | Department$employeesArgs<ExtArgs>
+    attendanceSummaries?: boolean | Department$attendanceSummariesArgs<ExtArgs>
     _count?: boolean | DepartmentCountOutputTypeDefaultArgs<ExtArgs>
   }
 
@@ -6654,6 +6665,7 @@ export namespace Prisma {
       parent: Prisma.$DepartmentPayload<ExtArgs> | null
       subDepartments: Prisma.$DepartmentPayload<ExtArgs>[]
       employees: Prisma.$EmployeePayload<ExtArgs>[]
+      attendanceSummaries: Prisma.$AttendanceSummaryPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: number
@@ -7005,6 +7017,7 @@ export namespace Prisma {
     parent<T extends Department$parentArgs<ExtArgs> = {}>(args?: Subset<T, Department$parentArgs<ExtArgs>>): Prisma__DepartmentClient<$Result.GetResult<Prisma.$DepartmentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     subDepartments<T extends Department$subDepartmentsArgs<ExtArgs> = {}>(args?: Subset<T, Department$subDepartmentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DepartmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     employees<T extends Department$employeesArgs<ExtArgs> = {}>(args?: Subset<T, Department$employeesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EmployeePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    attendanceSummaries<T extends Department$attendanceSummariesArgs<ExtArgs> = {}>(args?: Subset<T, Department$attendanceSummariesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AttendanceSummaryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -7447,6 +7460,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: EmployeeScalarFieldEnum | EmployeeScalarFieldEnum[]
+  }
+
+  /**
+   * Department.attendanceSummaries
+   */
+  export type Department$attendanceSummariesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AttendanceSummary
+     */
+    select?: AttendanceSummarySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AttendanceSummary
+     */
+    omit?: AttendanceSummaryOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AttendanceSummaryInclude<ExtArgs> | null
+    where?: AttendanceSummaryWhereInput
+    orderBy?: AttendanceSummaryOrderByWithRelationInput | AttendanceSummaryOrderByWithRelationInput[]
+    cursor?: AttendanceSummaryWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: AttendanceSummaryScalarFieldEnum | AttendanceSummaryScalarFieldEnum[]
   }
 
   /**
@@ -19266,6 +19303,7 @@ export namespace Prisma {
     remarks?: boolean
     departmentId?: boolean
     employee?: boolean | EmployeeDefaultArgs<ExtArgs>
+    department?: boolean | AttendanceSummary$departmentArgs<ExtArgs>
   }, ExtArgs["result"]["attendanceSummary"]>
 
 
@@ -19286,12 +19324,14 @@ export namespace Prisma {
   export type AttendanceSummaryOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "employeeId" | "date" | "status" | "lateArrival" | "earlyDeparture" | "unplannedAbsence" | "totalWorkHours" | "remarks" | "departmentId", ExtArgs["result"]["attendanceSummary"]>
   export type AttendanceSummaryInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     employee?: boolean | EmployeeDefaultArgs<ExtArgs>
+    department?: boolean | AttendanceSummary$departmentArgs<ExtArgs>
   }
 
   export type $AttendanceSummaryPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "AttendanceSummary"
     objects: {
       employee: Prisma.$EmployeePayload<ExtArgs>
+      department: Prisma.$DepartmentPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: number
@@ -19645,6 +19685,7 @@ export namespace Prisma {
   export interface Prisma__AttendanceSummaryClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     employee<T extends EmployeeDefaultArgs<ExtArgs> = {}>(args?: Subset<T, EmployeeDefaultArgs<ExtArgs>>): Prisma__EmployeeClient<$Result.GetResult<Prisma.$EmployeePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    department<T extends AttendanceSummary$departmentArgs<ExtArgs> = {}>(args?: Subset<T, AttendanceSummary$departmentArgs<ExtArgs>>): Prisma__DepartmentClient<$Result.GetResult<Prisma.$DepartmentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -20024,6 +20065,25 @@ export namespace Prisma {
      * Limit how many AttendanceSummaries to delete.
      */
     limit?: number
+  }
+
+  /**
+   * AttendanceSummary.department
+   */
+  export type AttendanceSummary$departmentArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Department
+     */
+    select?: DepartmentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Department
+     */
+    omit?: DepartmentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DepartmentInclude<ExtArgs> | null
+    where?: DepartmentWhereInput
   }
 
   /**
@@ -28908,6 +28968,7 @@ export namespace Prisma {
     parent?: XOR<DepartmentNullableScalarRelationFilter, DepartmentWhereInput> | null
     subDepartments?: DepartmentListRelationFilter
     employees?: EmployeeListRelationFilter
+    attendanceSummaries?: AttendanceSummaryListRelationFilter
   }
 
   export type DepartmentOrderByWithRelationInput = {
@@ -28920,6 +28981,7 @@ export namespace Prisma {
     parent?: DepartmentOrderByWithRelationInput
     subDepartments?: DepartmentOrderByRelationAggregateInput
     employees?: EmployeeOrderByRelationAggregateInput
+    attendanceSummaries?: AttendanceSummaryOrderByRelationAggregateInput
     _relevance?: DepartmentOrderByRelevanceInput
   }
 
@@ -28936,6 +28998,7 @@ export namespace Prisma {
     parent?: XOR<DepartmentNullableScalarRelationFilter, DepartmentWhereInput> | null
     subDepartments?: DepartmentListRelationFilter
     employees?: EmployeeListRelationFilter
+    attendanceSummaries?: AttendanceSummaryListRelationFilter
   }, "id" | "name">
 
   export type DepartmentOrderByWithAggregationInput = {
@@ -29779,6 +29842,7 @@ export namespace Prisma {
     remarks?: StringNullableFilter<"AttendanceSummary"> | string | null
     departmentId?: IntNullableFilter<"AttendanceSummary"> | number | null
     employee?: XOR<EmployeeScalarRelationFilter, EmployeeWhereInput>
+    department?: XOR<DepartmentNullableScalarRelationFilter, DepartmentWhereInput> | null
   }
 
   export type AttendanceSummaryOrderByWithRelationInput = {
@@ -29793,6 +29857,7 @@ export namespace Prisma {
     remarks?: SortOrderInput | SortOrder
     departmentId?: SortOrderInput | SortOrder
     employee?: EmployeeOrderByWithRelationInput
+    department?: DepartmentOrderByWithRelationInput
     _relevance?: AttendanceSummaryOrderByRelevanceInput
   }
 
@@ -29812,6 +29877,7 @@ export namespace Prisma {
     remarks?: StringNullableFilter<"AttendanceSummary"> | string | null
     departmentId?: IntNullableFilter<"AttendanceSummary"> | number | null
     employee?: XOR<EmployeeScalarRelationFilter, EmployeeWhereInput>
+    department?: XOR<DepartmentNullableScalarRelationFilter, DepartmentWhereInput> | null
   }, "id" | "employeeId_date">
 
   export type AttendanceSummaryOrderByWithAggregationInput = {
@@ -30641,6 +30707,7 @@ export namespace Prisma {
     parent?: DepartmentCreateNestedOneWithoutSubDepartmentsInput
     subDepartments?: DepartmentCreateNestedManyWithoutParentInput
     employees?: EmployeeCreateNestedManyWithoutDepartmentInput
+    attendanceSummaries?: AttendanceSummaryCreateNestedManyWithoutDepartmentInput
   }
 
   export type DepartmentUncheckedCreateInput = {
@@ -30652,6 +30719,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     subDepartments?: DepartmentUncheckedCreateNestedManyWithoutParentInput
     employees?: EmployeeUncheckedCreateNestedManyWithoutDepartmentInput
+    attendanceSummaries?: AttendanceSummaryUncheckedCreateNestedManyWithoutDepartmentInput
   }
 
   export type DepartmentUpdateInput = {
@@ -30662,6 +30730,7 @@ export namespace Prisma {
     parent?: DepartmentUpdateOneWithoutSubDepartmentsNestedInput
     subDepartments?: DepartmentUpdateManyWithoutParentNestedInput
     employees?: EmployeeUpdateManyWithoutDepartmentNestedInput
+    attendanceSummaries?: AttendanceSummaryUpdateManyWithoutDepartmentNestedInput
   }
 
   export type DepartmentUncheckedUpdateInput = {
@@ -30673,6 +30742,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     subDepartments?: DepartmentUncheckedUpdateManyWithoutParentNestedInput
     employees?: EmployeeUncheckedUpdateManyWithoutDepartmentNestedInput
+    attendanceSummaries?: AttendanceSummaryUncheckedUpdateManyWithoutDepartmentNestedInput
   }
 
   export type DepartmentCreateManyInput = {
@@ -31501,8 +31571,8 @@ export namespace Prisma {
     unplannedAbsence?: boolean
     totalWorkHours?: Decimal | DecimalJsLike | number | string | null
     remarks?: string | null
-    departmentId?: number | null
     employee: EmployeeCreateNestedOneWithoutAttendanceSummariesInput
+    department?: DepartmentCreateNestedOneWithoutAttendanceSummariesInput
   }
 
   export type AttendanceSummaryUncheckedCreateInput = {
@@ -31526,8 +31596,8 @@ export namespace Prisma {
     unplannedAbsence?: BoolFieldUpdateOperationsInput | boolean
     totalWorkHours?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     remarks?: NullableStringFieldUpdateOperationsInput | string | null
-    departmentId?: NullableIntFieldUpdateOperationsInput | number | null
     employee?: EmployeeUpdateOneRequiredWithoutAttendanceSummariesNestedInput
+    department?: DepartmentUpdateOneWithoutAttendanceSummariesNestedInput
   }
 
   export type AttendanceSummaryUncheckedUpdateInput = {
@@ -31564,7 +31634,6 @@ export namespace Prisma {
     unplannedAbsence?: BoolFieldUpdateOperationsInput | boolean
     totalWorkHours?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     remarks?: NullableStringFieldUpdateOperationsInput | string | null
-    departmentId?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type AttendanceSummaryUncheckedUpdateManyInput = {
@@ -32515,7 +32584,17 @@ export namespace Prisma {
     none?: DepartmentWhereInput
   }
 
+  export type AttendanceSummaryListRelationFilter = {
+    every?: AttendanceSummaryWhereInput
+    some?: AttendanceSummaryWhereInput
+    none?: AttendanceSummaryWhereInput
+  }
+
   export type DepartmentOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type AttendanceSummaryOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -32863,12 +32942,6 @@ export namespace Prisma {
     none?: AttendanceLogWhereInput
   }
 
-  export type AttendanceSummaryListRelationFilter = {
-    every?: AttendanceSummaryWhereInput
-    some?: AttendanceSummaryWhereInput
-    none?: AttendanceSummaryWhereInput
-  }
-
   export type ComplaintListRelationFilter = {
     every?: ComplaintWhereInput
     some?: ComplaintWhereInput
@@ -32902,10 +32975,6 @@ export namespace Prisma {
   }
 
   export type AttendanceLogOrderByRelationAggregateInput = {
-    _count?: SortOrder
-  }
-
-  export type AttendanceSummaryOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -34254,6 +34323,13 @@ export namespace Prisma {
     connect?: EmployeeWhereUniqueInput | EmployeeWhereUniqueInput[]
   }
 
+  export type AttendanceSummaryCreateNestedManyWithoutDepartmentInput = {
+    create?: XOR<AttendanceSummaryCreateWithoutDepartmentInput, AttendanceSummaryUncheckedCreateWithoutDepartmentInput> | AttendanceSummaryCreateWithoutDepartmentInput[] | AttendanceSummaryUncheckedCreateWithoutDepartmentInput[]
+    connectOrCreate?: AttendanceSummaryCreateOrConnectWithoutDepartmentInput | AttendanceSummaryCreateOrConnectWithoutDepartmentInput[]
+    createMany?: AttendanceSummaryCreateManyDepartmentInputEnvelope
+    connect?: AttendanceSummaryWhereUniqueInput | AttendanceSummaryWhereUniqueInput[]
+  }
+
   export type DepartmentUncheckedCreateNestedManyWithoutParentInput = {
     create?: XOR<DepartmentCreateWithoutParentInput, DepartmentUncheckedCreateWithoutParentInput> | DepartmentCreateWithoutParentInput[] | DepartmentUncheckedCreateWithoutParentInput[]
     connectOrCreate?: DepartmentCreateOrConnectWithoutParentInput | DepartmentCreateOrConnectWithoutParentInput[]
@@ -34266,6 +34342,13 @@ export namespace Prisma {
     connectOrCreate?: EmployeeCreateOrConnectWithoutDepartmentInput | EmployeeCreateOrConnectWithoutDepartmentInput[]
     createMany?: EmployeeCreateManyDepartmentInputEnvelope
     connect?: EmployeeWhereUniqueInput | EmployeeWhereUniqueInput[]
+  }
+
+  export type AttendanceSummaryUncheckedCreateNestedManyWithoutDepartmentInput = {
+    create?: XOR<AttendanceSummaryCreateWithoutDepartmentInput, AttendanceSummaryUncheckedCreateWithoutDepartmentInput> | AttendanceSummaryCreateWithoutDepartmentInput[] | AttendanceSummaryUncheckedCreateWithoutDepartmentInput[]
+    connectOrCreate?: AttendanceSummaryCreateOrConnectWithoutDepartmentInput | AttendanceSummaryCreateOrConnectWithoutDepartmentInput[]
+    createMany?: AttendanceSummaryCreateManyDepartmentInputEnvelope
+    connect?: AttendanceSummaryWhereUniqueInput | AttendanceSummaryWhereUniqueInput[]
   }
 
   export type DepartmentUpdateOneWithoutSubDepartmentsNestedInput = {
@@ -34306,6 +34389,20 @@ export namespace Prisma {
     deleteMany?: EmployeeScalarWhereInput | EmployeeScalarWhereInput[]
   }
 
+  export type AttendanceSummaryUpdateManyWithoutDepartmentNestedInput = {
+    create?: XOR<AttendanceSummaryCreateWithoutDepartmentInput, AttendanceSummaryUncheckedCreateWithoutDepartmentInput> | AttendanceSummaryCreateWithoutDepartmentInput[] | AttendanceSummaryUncheckedCreateWithoutDepartmentInput[]
+    connectOrCreate?: AttendanceSummaryCreateOrConnectWithoutDepartmentInput | AttendanceSummaryCreateOrConnectWithoutDepartmentInput[]
+    upsert?: AttendanceSummaryUpsertWithWhereUniqueWithoutDepartmentInput | AttendanceSummaryUpsertWithWhereUniqueWithoutDepartmentInput[]
+    createMany?: AttendanceSummaryCreateManyDepartmentInputEnvelope
+    set?: AttendanceSummaryWhereUniqueInput | AttendanceSummaryWhereUniqueInput[]
+    disconnect?: AttendanceSummaryWhereUniqueInput | AttendanceSummaryWhereUniqueInput[]
+    delete?: AttendanceSummaryWhereUniqueInput | AttendanceSummaryWhereUniqueInput[]
+    connect?: AttendanceSummaryWhereUniqueInput | AttendanceSummaryWhereUniqueInput[]
+    update?: AttendanceSummaryUpdateWithWhereUniqueWithoutDepartmentInput | AttendanceSummaryUpdateWithWhereUniqueWithoutDepartmentInput[]
+    updateMany?: AttendanceSummaryUpdateManyWithWhereWithoutDepartmentInput | AttendanceSummaryUpdateManyWithWhereWithoutDepartmentInput[]
+    deleteMany?: AttendanceSummaryScalarWhereInput | AttendanceSummaryScalarWhereInput[]
+  }
+
   export type NullableIntFieldUpdateOperationsInput = {
     set?: number | null
     increment?: number
@@ -34340,6 +34437,20 @@ export namespace Prisma {
     update?: EmployeeUpdateWithWhereUniqueWithoutDepartmentInput | EmployeeUpdateWithWhereUniqueWithoutDepartmentInput[]
     updateMany?: EmployeeUpdateManyWithWhereWithoutDepartmentInput | EmployeeUpdateManyWithWhereWithoutDepartmentInput[]
     deleteMany?: EmployeeScalarWhereInput | EmployeeScalarWhereInput[]
+  }
+
+  export type AttendanceSummaryUncheckedUpdateManyWithoutDepartmentNestedInput = {
+    create?: XOR<AttendanceSummaryCreateWithoutDepartmentInput, AttendanceSummaryUncheckedCreateWithoutDepartmentInput> | AttendanceSummaryCreateWithoutDepartmentInput[] | AttendanceSummaryUncheckedCreateWithoutDepartmentInput[]
+    connectOrCreate?: AttendanceSummaryCreateOrConnectWithoutDepartmentInput | AttendanceSummaryCreateOrConnectWithoutDepartmentInput[]
+    upsert?: AttendanceSummaryUpsertWithWhereUniqueWithoutDepartmentInput | AttendanceSummaryUpsertWithWhereUniqueWithoutDepartmentInput[]
+    createMany?: AttendanceSummaryCreateManyDepartmentInputEnvelope
+    set?: AttendanceSummaryWhereUniqueInput | AttendanceSummaryWhereUniqueInput[]
+    disconnect?: AttendanceSummaryWhereUniqueInput | AttendanceSummaryWhereUniqueInput[]
+    delete?: AttendanceSummaryWhereUniqueInput | AttendanceSummaryWhereUniqueInput[]
+    connect?: AttendanceSummaryWhereUniqueInput | AttendanceSummaryWhereUniqueInput[]
+    update?: AttendanceSummaryUpdateWithWhereUniqueWithoutDepartmentInput | AttendanceSummaryUpdateWithWhereUniqueWithoutDepartmentInput[]
+    updateMany?: AttendanceSummaryUpdateManyWithWhereWithoutDepartmentInput | AttendanceSummaryUpdateManyWithWhereWithoutDepartmentInput[]
+    deleteMany?: AttendanceSummaryScalarWhereInput | AttendanceSummaryScalarWhereInput[]
   }
 
   export type EmployeeCreateNestedManyWithoutPositionInput = {
@@ -35266,6 +35377,12 @@ export namespace Prisma {
     connect?: EmployeeWhereUniqueInput
   }
 
+  export type DepartmentCreateNestedOneWithoutAttendanceSummariesInput = {
+    create?: XOR<DepartmentCreateWithoutAttendanceSummariesInput, DepartmentUncheckedCreateWithoutAttendanceSummariesInput>
+    connectOrCreate?: DepartmentCreateOrConnectWithoutAttendanceSummariesInput
+    connect?: DepartmentWhereUniqueInput
+  }
+
   export type EnumSummaryStatusFieldUpdateOperationsInput = {
     set?: $Enums.SummaryStatus
   }
@@ -35284,6 +35401,16 @@ export namespace Prisma {
     upsert?: EmployeeUpsertWithoutAttendanceSummariesInput
     connect?: EmployeeWhereUniqueInput
     update?: XOR<XOR<EmployeeUpdateToOneWithWhereWithoutAttendanceSummariesInput, EmployeeUpdateWithoutAttendanceSummariesInput>, EmployeeUncheckedUpdateWithoutAttendanceSummariesInput>
+  }
+
+  export type DepartmentUpdateOneWithoutAttendanceSummariesNestedInput = {
+    create?: XOR<DepartmentCreateWithoutAttendanceSummariesInput, DepartmentUncheckedCreateWithoutAttendanceSummariesInput>
+    connectOrCreate?: DepartmentCreateOrConnectWithoutAttendanceSummariesInput
+    upsert?: DepartmentUpsertWithoutAttendanceSummariesInput
+    disconnect?: DepartmentWhereInput | boolean
+    delete?: DepartmentWhereInput | boolean
+    connect?: DepartmentWhereUniqueInput
+    update?: XOR<XOR<DepartmentUpdateToOneWithWhereWithoutAttendanceSummariesInput, DepartmentUpdateWithoutAttendanceSummariesInput>, DepartmentUncheckedUpdateWithoutAttendanceSummariesInput>
   }
 
   export type EmployeeCreateNestedOneWithoutLeavesInput = {
@@ -36384,6 +36511,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     parent?: DepartmentCreateNestedOneWithoutSubDepartmentsInput
     employees?: EmployeeCreateNestedManyWithoutDepartmentInput
+    attendanceSummaries?: AttendanceSummaryCreateNestedManyWithoutDepartmentInput
   }
 
   export type DepartmentUncheckedCreateWithoutSubDepartmentsInput = {
@@ -36394,6 +36522,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     employees?: EmployeeUncheckedCreateNestedManyWithoutDepartmentInput
+    attendanceSummaries?: AttendanceSummaryUncheckedCreateNestedManyWithoutDepartmentInput
   }
 
   export type DepartmentCreateOrConnectWithoutSubDepartmentsInput = {
@@ -36408,6 +36537,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     subDepartments?: DepartmentCreateNestedManyWithoutParentInput
     employees?: EmployeeCreateNestedManyWithoutDepartmentInput
+    attendanceSummaries?: AttendanceSummaryCreateNestedManyWithoutDepartmentInput
   }
 
   export type DepartmentUncheckedCreateWithoutParentInput = {
@@ -36418,6 +36548,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     subDepartments?: DepartmentUncheckedCreateNestedManyWithoutParentInput
     employees?: EmployeeUncheckedCreateNestedManyWithoutDepartmentInput
+    attendanceSummaries?: AttendanceSummaryUncheckedCreateNestedManyWithoutDepartmentInput
   }
 
   export type DepartmentCreateOrConnectWithoutParentInput = {
@@ -36529,6 +36660,39 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type AttendanceSummaryCreateWithoutDepartmentInput = {
+    date: Date | string
+    status: $Enums.SummaryStatus
+    lateArrival?: boolean
+    earlyDeparture?: boolean
+    unplannedAbsence?: boolean
+    totalWorkHours?: Decimal | DecimalJsLike | number | string | null
+    remarks?: string | null
+    employee: EmployeeCreateNestedOneWithoutAttendanceSummariesInput
+  }
+
+  export type AttendanceSummaryUncheckedCreateWithoutDepartmentInput = {
+    id?: number
+    employeeId: number
+    date: Date | string
+    status: $Enums.SummaryStatus
+    lateArrival?: boolean
+    earlyDeparture?: boolean
+    unplannedAbsence?: boolean
+    totalWorkHours?: Decimal | DecimalJsLike | number | string | null
+    remarks?: string | null
+  }
+
+  export type AttendanceSummaryCreateOrConnectWithoutDepartmentInput = {
+    where: AttendanceSummaryWhereUniqueInput
+    create: XOR<AttendanceSummaryCreateWithoutDepartmentInput, AttendanceSummaryUncheckedCreateWithoutDepartmentInput>
+  }
+
+  export type AttendanceSummaryCreateManyDepartmentInputEnvelope = {
+    data: AttendanceSummaryCreateManyDepartmentInput | AttendanceSummaryCreateManyDepartmentInput[]
+    skipDuplicates?: boolean
+  }
+
   export type DepartmentUpsertWithoutSubDepartmentsInput = {
     update: XOR<DepartmentUpdateWithoutSubDepartmentsInput, DepartmentUncheckedUpdateWithoutSubDepartmentsInput>
     create: XOR<DepartmentCreateWithoutSubDepartmentsInput, DepartmentUncheckedCreateWithoutSubDepartmentsInput>
@@ -36547,6 +36711,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     parent?: DepartmentUpdateOneWithoutSubDepartmentsNestedInput
     employees?: EmployeeUpdateManyWithoutDepartmentNestedInput
+    attendanceSummaries?: AttendanceSummaryUpdateManyWithoutDepartmentNestedInput
   }
 
   export type DepartmentUncheckedUpdateWithoutSubDepartmentsInput = {
@@ -36557,6 +36722,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     employees?: EmployeeUncheckedUpdateManyWithoutDepartmentNestedInput
+    attendanceSummaries?: AttendanceSummaryUncheckedUpdateManyWithoutDepartmentNestedInput
   }
 
   export type DepartmentUpsertWithWhereUniqueWithoutParentInput = {
@@ -36601,6 +36767,38 @@ export namespace Prisma {
   export type EmployeeUpdateManyWithWhereWithoutDepartmentInput = {
     where: EmployeeScalarWhereInput
     data: XOR<EmployeeUpdateManyMutationInput, EmployeeUncheckedUpdateManyWithoutDepartmentInput>
+  }
+
+  export type AttendanceSummaryUpsertWithWhereUniqueWithoutDepartmentInput = {
+    where: AttendanceSummaryWhereUniqueInput
+    update: XOR<AttendanceSummaryUpdateWithoutDepartmentInput, AttendanceSummaryUncheckedUpdateWithoutDepartmentInput>
+    create: XOR<AttendanceSummaryCreateWithoutDepartmentInput, AttendanceSummaryUncheckedCreateWithoutDepartmentInput>
+  }
+
+  export type AttendanceSummaryUpdateWithWhereUniqueWithoutDepartmentInput = {
+    where: AttendanceSummaryWhereUniqueInput
+    data: XOR<AttendanceSummaryUpdateWithoutDepartmentInput, AttendanceSummaryUncheckedUpdateWithoutDepartmentInput>
+  }
+
+  export type AttendanceSummaryUpdateManyWithWhereWithoutDepartmentInput = {
+    where: AttendanceSummaryScalarWhereInput
+    data: XOR<AttendanceSummaryUpdateManyMutationInput, AttendanceSummaryUncheckedUpdateManyWithoutDepartmentInput>
+  }
+
+  export type AttendanceSummaryScalarWhereInput = {
+    AND?: AttendanceSummaryScalarWhereInput | AttendanceSummaryScalarWhereInput[]
+    OR?: AttendanceSummaryScalarWhereInput[]
+    NOT?: AttendanceSummaryScalarWhereInput | AttendanceSummaryScalarWhereInput[]
+    id?: IntFilter<"AttendanceSummary"> | number
+    employeeId?: IntFilter<"AttendanceSummary"> | number
+    date?: DateTimeFilter<"AttendanceSummary"> | Date | string
+    status?: EnumSummaryStatusFilter<"AttendanceSummary"> | $Enums.SummaryStatus
+    lateArrival?: BoolFilter<"AttendanceSummary"> | boolean
+    earlyDeparture?: BoolFilter<"AttendanceSummary"> | boolean
+    unplannedAbsence?: BoolFilter<"AttendanceSummary"> | boolean
+    totalWorkHours?: DecimalNullableFilter<"AttendanceSummary"> | Decimal | DecimalJsLike | number | string | null
+    remarks?: StringNullableFilter<"AttendanceSummary"> | string | null
+    departmentId?: IntNullableFilter<"AttendanceSummary"> | number | null
   }
 
   export type EmployeeCreateWithoutPositionInput = {
@@ -37411,6 +37609,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     parent?: DepartmentCreateNestedOneWithoutSubDepartmentsInput
     subDepartments?: DepartmentCreateNestedManyWithoutParentInput
+    attendanceSummaries?: AttendanceSummaryCreateNestedManyWithoutDepartmentInput
   }
 
   export type DepartmentUncheckedCreateWithoutEmployeesInput = {
@@ -37421,6 +37620,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     subDepartments?: DepartmentUncheckedCreateNestedManyWithoutParentInput
+    attendanceSummaries?: AttendanceSummaryUncheckedCreateNestedManyWithoutDepartmentInput
   }
 
   export type DepartmentCreateOrConnectWithoutEmployeesInput = {
@@ -37593,7 +37793,7 @@ export namespace Prisma {
     unplannedAbsence?: boolean
     totalWorkHours?: Decimal | DecimalJsLike | number | string | null
     remarks?: string | null
-    departmentId?: number | null
+    department?: DepartmentCreateNestedOneWithoutAttendanceSummariesInput
   }
 
   export type AttendanceSummaryUncheckedCreateWithoutEmployeeInput = {
@@ -37862,6 +38062,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     parent?: DepartmentUpdateOneWithoutSubDepartmentsNestedInput
     subDepartments?: DepartmentUpdateManyWithoutParentNestedInput
+    attendanceSummaries?: AttendanceSummaryUpdateManyWithoutDepartmentNestedInput
   }
 
   export type DepartmentUncheckedUpdateWithoutEmployeesInput = {
@@ -37872,6 +38073,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     subDepartments?: DepartmentUncheckedUpdateManyWithoutParentNestedInput
+    attendanceSummaries?: AttendanceSummaryUncheckedUpdateManyWithoutDepartmentNestedInput
   }
 
   export type PositionUpsertWithoutEmployeesInput = {
@@ -38081,22 +38283,6 @@ export namespace Prisma {
   export type AttendanceSummaryUpdateManyWithWhereWithoutEmployeeInput = {
     where: AttendanceSummaryScalarWhereInput
     data: XOR<AttendanceSummaryUpdateManyMutationInput, AttendanceSummaryUncheckedUpdateManyWithoutEmployeeInput>
-  }
-
-  export type AttendanceSummaryScalarWhereInput = {
-    AND?: AttendanceSummaryScalarWhereInput | AttendanceSummaryScalarWhereInput[]
-    OR?: AttendanceSummaryScalarWhereInput[]
-    NOT?: AttendanceSummaryScalarWhereInput | AttendanceSummaryScalarWhereInput[]
-    id?: IntFilter<"AttendanceSummary"> | number
-    employeeId?: IntFilter<"AttendanceSummary"> | number
-    date?: DateTimeFilter<"AttendanceSummary"> | Date | string
-    status?: EnumSummaryStatusFilter<"AttendanceSummary"> | $Enums.SummaryStatus
-    lateArrival?: BoolFilter<"AttendanceSummary"> | boolean
-    earlyDeparture?: BoolFilter<"AttendanceSummary"> | boolean
-    unplannedAbsence?: BoolFilter<"AttendanceSummary"> | boolean
-    totalWorkHours?: DecimalNullableFilter<"AttendanceSummary"> | Decimal | DecimalJsLike | number | string | null
-    remarks?: StringNullableFilter<"AttendanceSummary"> | string | null
-    departmentId?: IntNullableFilter<"AttendanceSummary"> | number | null
   }
 
   export type LeaveUpsertWithWhereUniqueWithoutEmployeeInput = {
@@ -38912,6 +39098,32 @@ export namespace Prisma {
     create: XOR<EmployeeCreateWithoutAttendanceSummariesInput, EmployeeUncheckedCreateWithoutAttendanceSummariesInput>
   }
 
+  export type DepartmentCreateWithoutAttendanceSummariesInput = {
+    name: string
+    description?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    parent?: DepartmentCreateNestedOneWithoutSubDepartmentsInput
+    subDepartments?: DepartmentCreateNestedManyWithoutParentInput
+    employees?: EmployeeCreateNestedManyWithoutDepartmentInput
+  }
+
+  export type DepartmentUncheckedCreateWithoutAttendanceSummariesInput = {
+    id?: number
+    name: string
+    description?: string | null
+    parentId?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    subDepartments?: DepartmentUncheckedCreateNestedManyWithoutParentInput
+    employees?: EmployeeUncheckedCreateNestedManyWithoutDepartmentInput
+  }
+
+  export type DepartmentCreateOrConnectWithoutAttendanceSummariesInput = {
+    where: DepartmentWhereUniqueInput
+    create: XOR<DepartmentCreateWithoutAttendanceSummariesInput, DepartmentUncheckedCreateWithoutAttendanceSummariesInput>
+  }
+
   export type EmployeeUpsertWithoutAttendanceSummariesInput = {
     update: XOR<EmployeeUpdateWithoutAttendanceSummariesInput, EmployeeUncheckedUpdateWithoutAttendanceSummariesInput>
     create: XOR<EmployeeCreateWithoutAttendanceSummariesInput, EmployeeUncheckedCreateWithoutAttendanceSummariesInput>
@@ -39010,6 +39222,38 @@ export namespace Prisma {
     terminations?: TerminationUncheckedUpdateManyWithoutEmployeeNestedInput
     salaries?: SalaryUncheckedUpdateManyWithoutEmployeeNestedInput
     overtimes?: OvertimeLogUncheckedUpdateManyWithoutEmployeeNestedInput
+  }
+
+  export type DepartmentUpsertWithoutAttendanceSummariesInput = {
+    update: XOR<DepartmentUpdateWithoutAttendanceSummariesInput, DepartmentUncheckedUpdateWithoutAttendanceSummariesInput>
+    create: XOR<DepartmentCreateWithoutAttendanceSummariesInput, DepartmentUncheckedCreateWithoutAttendanceSummariesInput>
+    where?: DepartmentWhereInput
+  }
+
+  export type DepartmentUpdateToOneWithWhereWithoutAttendanceSummariesInput = {
+    where?: DepartmentWhereInput
+    data: XOR<DepartmentUpdateWithoutAttendanceSummariesInput, DepartmentUncheckedUpdateWithoutAttendanceSummariesInput>
+  }
+
+  export type DepartmentUpdateWithoutAttendanceSummariesInput = {
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    parent?: DepartmentUpdateOneWithoutSubDepartmentsNestedInput
+    subDepartments?: DepartmentUpdateManyWithoutParentNestedInput
+    employees?: EmployeeUpdateManyWithoutDepartmentNestedInput
+  }
+
+  export type DepartmentUncheckedUpdateWithoutAttendanceSummariesInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    parentId?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    subDepartments?: DepartmentUncheckedUpdateManyWithoutParentNestedInput
+    employees?: EmployeeUncheckedUpdateManyWithoutDepartmentNestedInput
   }
 
   export type EmployeeCreateWithoutLeavesInput = {
@@ -40644,6 +40888,18 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type AttendanceSummaryCreateManyDepartmentInput = {
+    id?: number
+    employeeId: number
+    date: Date | string
+    status: $Enums.SummaryStatus
+    lateArrival?: boolean
+    earlyDeparture?: boolean
+    unplannedAbsence?: boolean
+    totalWorkHours?: Decimal | DecimalJsLike | number | string | null
+    remarks?: string | null
+  }
+
   export type DepartmentUpdateWithoutParentInput = {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
@@ -40651,6 +40907,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     subDepartments?: DepartmentUpdateManyWithoutParentNestedInput
     employees?: EmployeeUpdateManyWithoutDepartmentNestedInput
+    attendanceSummaries?: AttendanceSummaryUpdateManyWithoutDepartmentNestedInput
   }
 
   export type DepartmentUncheckedUpdateWithoutParentInput = {
@@ -40661,6 +40918,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     subDepartments?: DepartmentUncheckedUpdateManyWithoutParentNestedInput
     employees?: EmployeeUncheckedUpdateManyWithoutDepartmentNestedInput
+    attendanceSummaries?: AttendanceSummaryUncheckedUpdateManyWithoutDepartmentNestedInput
   }
 
   export type DepartmentUncheckedUpdateManyWithoutParentInput = {
@@ -40793,6 +41051,41 @@ export namespace Prisma {
     deletedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AttendanceSummaryUpdateWithoutDepartmentInput = {
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumSummaryStatusFieldUpdateOperationsInput | $Enums.SummaryStatus
+    lateArrival?: BoolFieldUpdateOperationsInput | boolean
+    earlyDeparture?: BoolFieldUpdateOperationsInput | boolean
+    unplannedAbsence?: BoolFieldUpdateOperationsInput | boolean
+    totalWorkHours?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    remarks?: NullableStringFieldUpdateOperationsInput | string | null
+    employee?: EmployeeUpdateOneRequiredWithoutAttendanceSummariesNestedInput
+  }
+
+  export type AttendanceSummaryUncheckedUpdateWithoutDepartmentInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    employeeId?: IntFieldUpdateOperationsInput | number
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumSummaryStatusFieldUpdateOperationsInput | $Enums.SummaryStatus
+    lateArrival?: BoolFieldUpdateOperationsInput | boolean
+    earlyDeparture?: BoolFieldUpdateOperationsInput | boolean
+    unplannedAbsence?: BoolFieldUpdateOperationsInput | boolean
+    totalWorkHours?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    remarks?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type AttendanceSummaryUncheckedUpdateManyWithoutDepartmentInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    employeeId?: IntFieldUpdateOperationsInput | number
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: EnumSummaryStatusFieldUpdateOperationsInput | $Enums.SummaryStatus
+    lateArrival?: BoolFieldUpdateOperationsInput | boolean
+    earlyDeparture?: BoolFieldUpdateOperationsInput | boolean
+    unplannedAbsence?: BoolFieldUpdateOperationsInput | boolean
+    totalWorkHours?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
+    remarks?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type EmployeeCreateManyPositionInput = {
@@ -41782,7 +42075,7 @@ export namespace Prisma {
     unplannedAbsence?: BoolFieldUpdateOperationsInput | boolean
     totalWorkHours?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
     remarks?: NullableStringFieldUpdateOperationsInput | string | null
-    departmentId?: NullableIntFieldUpdateOperationsInput | number | null
+    department?: DepartmentUpdateOneWithoutAttendanceSummariesNestedInput
   }
 
   export type AttendanceSummaryUncheckedUpdateWithoutEmployeeInput = {

@@ -5,6 +5,7 @@ const router = express.Router();
 const { PrismaClient } = require('../generated/prisma'); // or your generated path
 const prisma = new PrismaClient();
 const bcrypt = require('bcrypt');
+
 const { authenticate, authorize } = require('../middlewares/authMiddleware');
 
 // ==============================================================================
@@ -640,6 +641,207 @@ router.post("/leaves", authenticate, authorize("Department Head"), async (req, r
     } catch (error) {
         res.status(500).json({ error: "Failed to create leave request." });
     }
+});
+
+
+//////Mark Attendance 
+// In your backend file: routes/depHead.routes.js
+
+// In your backend file: routes/depHead.routes.js
+
+// GET /api/dep-head/attendance-roster?date=... - FINAL, ROBUST VERSION
+// In your backend file: routes/depHead.routes.js
+
+// GET /api/dep-head/attendance-roster?date=... - 
+
+// in depHead.routes.js
+
+router.get("/attendance-roster", authenticate, authorize("Department Head"), async (req, res) => {
+  try {
+    const { date } = req.query;
+    if (!date) { return res.status(400).json({ error: "A date parameter is required." }); }
+    
+    const targetDate = new Date(date);
+    targetDate.setUTCHours(0, 0, 0, 0);
+
+    const loggedInUser = req.user;
+    if (!loggedInUser.employee || !loggedInUser.employee.departmentId) {
+      return res.status(403).json({ error: "Access denied: Your user account is not linked to a department." });
+    }
+    const departmentId = loggedInUser.employee.departmentId;
+
+    // STEP 1: Get the IDs of all sub-departments managed by the department head.
+    const subDepartments = await prisma.department.findMany({
+        where: { parentId: departmentId },
+        select: { id: true, name: true }
+    });
+
+    if (subDepartments.length === 0) {
+        return res.status(200).json({ subDepartments: [], attendanceRecords: {}, onLeaveIds: [] });
+    }
+    const subDepartmentIds = subDepartments.map(sd => sd.id);
+
+    // STEP 2: Find all employees who belong to ANY of those sub-departments.
+    // ✅ THIS IS THE CRITICAL CHANGE ✅
+    // We are now querying the `subDepartmentId` field.
+    const employees = await prisma.employee.findMany({
+        where: {
+            subDepartmentId: { in: subDepartmentIds },
+            user: { roles: { some: { role: { name: { in: ['Staff', 'Intern'] } } } } }
+        },
+        select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            subDepartmentId: true, // select the subDepartmentId to help with sorting
+            user: { select: { roles: { select: { role: { select: { name: true } } } } } }
+        }
+    });
+
+    // STEP 3: Process the roster by grouping employees into their sub-departments.
+    const processedRoster = subDepartments.map(sd => {
+        const staff = [];
+        const interns = [];
+
+        // Find employees from the list that belong to the current sub-department (sd)
+        employees.forEach(emp => {
+            if (emp.subDepartmentId === sd.id) {
+                const role = emp.user?.roles[0]?.role.name;
+                const employeeData = { id: emp.id, name: `${emp.firstName} ${emp.lastName}` };
+                if (role === 'Staff') staff.push(employeeData);
+                else if (role === 'Intern') interns.push(employeeData);
+            }
+        });
+        return { id: sd.id, name: sd.name, staff, interns };
+    });
+
+    // The rest of the logic remains the same.
+    const allEmployeeIds = employees.map(e => e.id);
+
+    if (allEmployeeIds.length === 0) {
+        return res.status(200).json({ subDepartments: processedRoster, attendanceRecords: {}, onLeaveIds: [] });
+    }
+
+    const leaves = await prisma.leave.findMany({
+      where: { employeeId: { in: allEmployeeIds }, status: 'approved', startDate: { lte: targetDate }, endDate: { gte: targetDate } },
+      select: { employeeId: true }
+    });
+    const onLeaveEmployeeIds = new Set(leaves.map(l => l.employeeId));
+
+    const attendanceLogs = await prisma.attendanceLog.findMany({
+      where: { date: targetDate, employeeId: { in: allEmployeeIds } },
+      select: { employeeId: true, sessionId: true, status: true }
+    });
+
+    const attendanceMap = {};
+    attendanceLogs.forEach(log => {
+        const sessionMap = { 1: 'morning', 2: 'afternoon', 3: 'evening' };
+        const session = sessionMap[log.sessionId];
+        if (session) {
+            if (!attendanceMap[log.employeeId]) attendanceMap[log.employeeId] = {};
+            attendanceMap[log.employeeId][session] = log.status;
+        }
+    });
+    
+    res.status(200).json({
+      subDepartments: processedRoster,
+      attendanceRecords: attendanceMap,
+      onLeaveIds: Array.from(onLeaveEmployeeIds)
+    });
+  } catch (error) {
+    console.error("Error fetching attendance roster:", error);
+    res.status(500).json({ error: "Failed to fetch attendance roster." });
+  }
+});
+
+
+// POST /api/dep-head/attendance - Save attendance for the day// in depHead.routes.js
+
+// POST /api/dep-head/attendance - CORRECTED to use subDepartmentId
+router.post("/attendance", authenticate, authorize("Department Head"), async (req, res) => {
+  try {
+    const { date, attendance } = req.body;
+    const loggedInUser = req.user;
+
+    // 1. INPUT VALIDATION
+    if (!date || typeof attendance !== 'object' || attendance === null) {
+      return res.status(400).json({ error: "Invalid request body. 'date' and 'attendance' object are required." });
+    }
+    const targetDate = new Date(date);
+    if (isNaN(targetDate.getTime())) {
+      return res.status(400).json({ error: "Invalid date format." });
+    }
+    targetDate.setUTCHours(0, 0, 0, 0);
+
+    // 2. SECURITY CHECK: Get a list of employees this manager is ALLOWED to edit.
+    if (!loggedInUser.employee || !loggedInUser.employee.departmentId) {
+      return res.status(403).json({ error: "Access denied: Your user account is not linked to a department." });
+    }
+    const parentDepartmentId = loggedInUser.employee.departmentId;
+
+    // ✅ FIX: First, find the IDs of the sub-departments this manager oversees.
+    const managedSubDepts = await prisma.department.findMany({
+        where: { parentId: parentDepartmentId },
+        select: { id: true }
+    });
+    const managedSubDeptIds = managedSubDepts.map(d => d.id);
+
+    if (managedSubDeptIds.length === 0) {
+        // This is a valid 404: the manager's department has no sub-departments.
+        return res.status(404).json({ error: "You are not managing any sub-departments." });
+    }
+
+    // ✅ FIX: Now, find all employees who belong to those sub-departments.
+    const managedEmployees = await prisma.employee.findMany({
+        where: {
+            subDepartmentId: { in: managedSubDeptIds }
+        },
+        select: { id: true }
+    });
+    const managedEmployeeIds = new Set(managedEmployees.map(emp => emp.id));
+
+
+    // 3. BUILD DATABASE OPERATIONS (with validation)
+    const operations = [];
+    const validStatuses = ['present', 'late', 'absent', 'permission'];
+
+    for (const employeeIdStr in attendance) {
+      const employeeId = parseInt(employeeIdStr, 10);
+
+      // SECURITY: Skip any employee ID that is not managed by this Department Head.
+      if (!managedEmployeeIds.has(employeeId)) {
+        console.warn(`SECURITY WARNING: User ${loggedInUser.id} attempted to save attendance for unmanaged employee ${employeeId}. Skipping.`);
+        continue; // Silently ignore and move to the next employee
+      }
+
+      for (const session in attendance[employeeIdStr]) {
+        const sessionId = { morning: 1, afternoon: 2, evening: 3 }[session];
+        const status = attendance[employeeIdStr][session];
+        
+        if (sessionId && status && validStatuses.includes(status)) {
+            operations.push(
+                prisma.attendanceLog.upsert({
+                    where: { employeeId_date_sessionId: { employeeId, date: targetDate, sessionId } },
+                    update: { status: status },
+                    create: { employeeId, date: targetDate, sessionId, status }
+                })
+            );
+        }
+      }
+    }
+
+    if (operations.length === 0) {
+      return res.status(200).json({ message: "No valid attendance data was provided to save." });
+    }
+    
+    // 4. EXECUTE TRANSACTION
+    await prisma.$transaction(operations);
+    res.status(200).json({ message: "Attendance saved successfully." });
+
+  } catch (error) {
+    console.error("Failed to save attendance:", error);
+    res.status(500).json({ error: "An unexpected error occurred while saving attendance." });
+  }
 });
 
 
