@@ -493,4 +493,154 @@ router.patch("/settings/change-password", authenticate, authorize("Department He
     res.status(500).json({ error: "An internal server error occurred." });
   }
 });
+
+////////////////Complain request
+// POST /api/dep-head/complaints/submit - Submit a complaint for the LOGGED-IN user
+router.post("/complaints/submit", authenticate, authorize("Department Head"), async (req, res) => {
+  try {
+    const { subject, description } = req.body;
+    
+    // --- 1. Get Employee ID securely from the authenticated user ---
+    // The 'authenticate' middleware adds 'req.user' which includes the employee profile
+    const loggedInEmployeeId = req.user.employee?.id;
+
+    // --- 2. Validation ---
+    if (!loggedInEmployeeId) {
+        return res.status(403).json({ error: "Your user account is not linked to an employee profile." });
+    }
+    if (!subject || !description) {
+      return res.status(400).json({ error: "Subject and description are required." });
+    }
+
+    // --- 3. Create the Complaint ---
+    const newComplaint = await prisma.complaint.create({
+      data: {
+        employeeId: loggedInEmployeeId, // Use the secure, server-side ID
+        subject: subject,
+        description: description,
+      },
+    });
+
+    res.status(201).json(newComplaint);
+  } catch (error) {
+    console.error("Error submitting complaint:", error);
+    res.status(500).json({ error: "Failed to submit complaint." });
+  }
+});
+
+// GET /api/dep-head/complaints - Fetch all complaints submitted BY the logged-in user
+router.get("/complaints", authenticate, authorize("Department Head"), async (req, res) => {
+  try {
+    // 1. Get the logged-in user's Employee ID securely from the middleware
+    const loggedInEmployeeId = req.user.employee?.id;
+
+    if (!loggedInEmployeeId) {
+      return res.status(403).json({ error: "Your user account is not linked to an employee profile." });
+    }
+
+    // 2. Fetch only the complaints where the employeeId matches the logged-in user
+    const myComplaints = await prisma.complaint.findMany({
+      where: {
+        employeeId: loggedInEmployeeId,
+      },
+      orderBy: {
+        createdAt: 'desc', // Show the most recent complaints first
+      },
+      select: {
+          id: true,
+          subject: true,
+          description: true,
+          status: true,
+          response: true,
+          createdAt: true,
+          updatedAt: true,
+      }
+    });
+
+    res.status(200).json(myComplaints);
+  } catch (error) {
+    console.error("Error fetching user's complaints:", error);
+    res.status(500).json({ error: "Failed to fetch complaints." });
+  }
+});
+
+
+////////////Leave Request
+router.get("/employees-for-leave", authenticate, authorize("Department Head"), async (req, res) => {
+    try {
+        const departmentId = await getManagedDepartmentId(req.user.id);
+        if (!departmentId) { return res.status(403).json({ error: "User not assigned to a department." }); }
+
+        const subDepts = await prisma.department.findMany({ where: { parentId: departmentId }, select: { id: true }});
+        const managedDeptIds = [departmentId, ...subDepts.map(d => d.id)];
+
+        const employees = await prisma.employee.findMany({
+            where: { departmentId: { in: managedDeptIds } },
+            select: { id: true, firstName: true, lastName: true }
+        });
+        
+        const formatted = employees.map(e => ({ id: e.id, name: `${e.firstName} ${e.lastName}` }));
+        res.json(formatted);
+    } catch(error) {
+        res.status(500).json({ error: "Failed to fetch employees." });
+    }
+});
+
+// GET /api/dep-head/leaves - Fetch leave requests for the user's department
+router.get("/leaves", authenticate, authorize("Department Head"), async (req, res) => {
+  try {
+    const departmentId = await getManagedDepartmentId(req.user.id);
+    if (!departmentId) { return res.status(403).json({ error: "User not assigned to a department." }); }
+
+    const subDepts = await prisma.department.findMany({ where: { parentId: departmentId }, select: { id: true }});
+    const managedDeptIds = [departmentId, ...subDepts.map(d => d.id)];
+    
+    const leaveRequests = await prisma.leave.findMany({
+      where: { employee: { departmentId: { in: managedDeptIds } } },
+      orderBy: { requestedAt: 'desc' },
+      include: { employee: { select: { firstName: true, lastName: true } } }
+    });
+    res.status(200).json(leaveRequests);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch leave requests." });
+  }
+});
+
+// POST /api/dep-head/leaves - Submit a new leave request for an employee
+router.post("/leaves", authenticate, authorize("Department Head"), async (req, res) => {
+    try {
+        const { employeeId, leaveType, startDate, endDate, reason } = req.body;
+        if (!employeeId || !leaveType || !startDate || !endDate) {
+            return res.status(400).json({ error: "All fields are required." });
+        }
+        
+        // Security Check: is the employee in the manager's department?
+        const departmentId = await getManagedDepartmentId(req.user.id);
+        const employee = await prisma.employee.findUnique({ where: { id: parseInt(employeeId) }});
+        if (!employee || employee.departmentId !== departmentId) {
+            return res.status(403).json({ error: "You can only submit requests for employees in your department." });
+        }
+        
+        const newLeaveRequest = await prisma.leave.create({
+            data: {
+                employeeId: parseInt(employeeId),
+                leaveType: leaveType.toLowerCase(), // Match enum 'annual', 'sick', etc.
+                startDate: new Date(startDate),
+                endDate: new Date(endDate),
+                reason: reason,
+                status: 'pending' // Default status
+            }
+        });
+        // Include employee name in response for easy UI update
+        const finalResponse = await prisma.leave.findUnique({
+            where: { id: newLeaveRequest.id },
+            include: { employee: { select: { firstName: true, lastName: true } } }
+        });
+        res.status(201).json(finalResponse);
+    } catch (error) {
+        res.status(500).json({ error: "Failed to create leave request." });
+    }
+});
+
+
 module.exports = router;

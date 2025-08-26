@@ -423,7 +423,39 @@ export const deleteSubDepartment = async (id) => {
     await apiClientDepHead.delete(`/sub-departments/${id}`);
 };
 
+///////Complain request
+export const submitComplaint = async (complaintData) => {
+    // complaintData will now just be { subject, description }
+    try {
+        // Use the new, more specific endpoint
+        const response = await apiClientDepHead.post('/complaints/submit', complaintData);
+        return response.data;
+    } catch (error) {
+        throw new Error(error.response?.data?.error || "Could not submit complaint.");
+    }
+};
+export const getMyComplaints = async () => {
+    try {
+        const response = await apiClientDepHead.get('/complaints');
+        return response.data;
+    } catch (error) {
+        throw new Error(error.response?.data?.error || "Could not fetch your complaints.");
+    }
+};
 
+///Leave Request
+export const getScopedEmployeesForLeave = async () => {
+    const response = await apiClientDepHead.get('/employees-for-leave');
+    return response.data;
+};
+export const getScopedLeaveRequests = async () => {
+    const response = await apiClientDepHead.get('/leaves');
+    return response.data;
+};
+export const createLeaveRequest = async (data) => {
+    const response = await apiClientDepHead.post('/leaves', data);
+    return response.data;
+};
 
 
 

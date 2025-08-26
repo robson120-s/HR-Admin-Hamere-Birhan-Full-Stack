@@ -15,38 +15,61 @@ const authenticate = async (req, res, next) => {
     const user = await prisma.user.findUnique({
       where: { id: decoded.id },
       select: {
-        id: true, // We need the user's ID
+        id: true,
+        username: true,
+        email: true,
+        isActive: true,
         roles: {
           select: {
             role: {
               select: {
-                name: true // We only need the role's name for authorization
+                name: true
               }
             }
+          }
+        },
+        // CRITICAL: Also fetch the employee profile linked to this user
+        employees: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            departmentId: true,
           }
         }
       }
     });
 
-    if (!user) return res.status(401).json({ error: 'Invalid token' });
+if (!user || !user.isActive) {
+      return res.status(401).json({ error: "User not found or is inactive." });
+    }
+    
+    // 3. Attach a clean, combined user/employee object to the request.
+    // We take the first employee profile found (as there should only be one).
+    req.user = {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        roles: user.roles.map(r => r.role.name),
+        // This will now correctly contain the employee object if it exists
+        employee: user.employees[0] || null
+    };
 
-    req.user = user;
-    req.roles = user.roles.map((r) => r.role.name);
-    next();
+    next(); // Proceed to the next middleware (authorize) or the route handler
+
   } catch (err) {
-    console.error(err);
-    res.status(401).json({ error: 'Invalid or expired token' });
+    console.error("Authentication Error:", err.message);
+    return res.status(401).json({ error: "Not authorized: Token is invalid or has expired." });
   }
 };
 
-// Authorization middleware to check if user has required roles
-const authorize = (...allowedRoles) => {
+const authorize = (...roles) => {
   return (req, res, next) => {
-    const hasRole = req.roles.some((role) => allowedRoles.includes(role));
-    if (!hasRole) {
-      return res.status(403).json({ error: 'Access denied: insufficient role' });
+    // Check if the user object from 'authenticate' has at least one of the required roles
+    if (!req.user || !req.user.roles.some(role => roles.includes(role))) {
+      return res.status(403).json({ error: "Access denied: You do not have the required role." });
     }
-    next();
+    next(); // User has the role, proceed
   };
 };
 
