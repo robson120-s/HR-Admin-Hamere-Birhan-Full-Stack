@@ -132,34 +132,6 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        {/* Notifications Card */}
-        {/* <Card className="bg-white dark:bg-slate-800/50 shadow-sm">
-            <CardHeader>
-                <CardTitle className="flex items-center gap-3">
-                    <Bell className="text-blue-500"/>
-                    Notifications
-                </CardTitle>
-                <CardDescription>Manage how you receive notifications.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between p-4 rounded-lg bg-slate-50 dark:bg-slate-900/50">
-                <div>
-                  <Label htmlFor="notifyComplaints" className="font-medium text-slate-700 dark:text-slate-200">
-                    Notify on New Complaints
-                  </Label>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Receive an email when a new complaint is submitted.
-                  </p>
-                </div>
-                <Switch
-                  id="notifyComplaints"
-                  // checked={...}
-                  // onCheckedChange={...}
-                />
-              </div>
-            </CardContent>
-        </Card> */}
-
       </div>
     </div>
   );

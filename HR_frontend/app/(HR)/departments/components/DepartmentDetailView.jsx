@@ -1,16 +1,19 @@
-// app/(HR)/departments/components/DepartmentDetailView.jsx
 "use client";
 
 import { Fragment } from "react";
-import { ArrowLeft, Plus, Users, Edit, Trash2, Building, Briefcase, ChevronDown } from "lucide-react";
+import { ArrowLeft, Plus, Users, Edit, Trash2, Building, Briefcase, ChevronDown, Star } from "lucide-react";
 import { Button } from "../../../../components/ui/Button";
 import { Disclosure, Transition } from '@headlessui/react';
 import Image from 'next/image';
 
 // --- Reusable Accordion Component for displaying member lists ---
-const MemberAccordion = ({ title, staff, interns }) => {
-    // Only render the accordion if there are members to show
-    if ((staff?.length || 0) === 0 && (interns?.length || 0) === 0) {
+// ✅ FIX: Now accepts a `heads` prop.
+const MemberAccordion = ({ title, heads, staff, interns }) => {
+    const headsCount = heads?.length || 0;
+    const staffCount = staff?.length || 0;
+    const internsCount = interns?.length || 0;
+
+    if (headsCount === 0 && staffCount === 0 && internsCount === 0) {
         return <p className="text-center text-sm text-slate-500 dark:text-slate-400 py-4">No members assigned to this group.</p>;
     }
 
@@ -21,7 +24,10 @@ const MemberAccordion = ({ title, staff, interns }) => {
               <Disclosure.Button className="flex justify-between w-full px-4 py-3 text-sm font-medium text-left text-indigo-900 bg-indigo-100 rounded-lg hover:bg-indigo-200 focus:outline-none focus-visible:ring focus-visible:ring-indigo-500 dark:bg-indigo-900/50 dark:text-indigo-200 dark:hover:bg-indigo-900">
                 <span>{title}</span>
                 <div className="flex items-center gap-4">
-                    <span className="text-xs font-normal">Staff: {staff?.length || 0} | Interns: {interns?.length || 0}</span>
+                    {/* ✅ FIX: Display count of heads */}
+                    <span className="text-xs font-normal">
+                        Heads: {headsCount} | Staff: {staffCount} | Interns: {internsCount}
+                    </span>
                     <ChevronDown className={`${open ? 'transform rotate-180' : ''} w-5 h-5 text-indigo-500 transition-transform`} />
                 </div>
               </Disclosure.Button>
@@ -31,6 +37,8 @@ const MemberAccordion = ({ title, staff, interns }) => {
                 leave="transition ease-in duration-75" leaveFrom="transform opacity-100 scale-100" leaveTo="transform opacity-0 scale-95"
               >
                 <Disclosure.Panel as="div" className="px-4 pt-4 pb-2 text-sm text-gray-500 dark:text-gray-400">
+                    {/* ✅ FIX: Display the grid for heads */}
+                    <MemberGrid title="Department Heads" members={heads || []} isHead={true} />
                     <MemberGrid title="Staff Members" members={staff || []} />
                     <MemberGrid title="Interns" members={interns || []} />
                 </Disclosure.Panel>
@@ -42,7 +50,8 @@ const MemberAccordion = ({ title, staff, interns }) => {
 };
 
 // --- Reusable Grid for displaying individual members ---
-const MemberGrid = ({ title, members }) => {
+// ✅ FIX: Now accepts an `isHead` prop to render the star icon.
+const MemberGrid = ({ title, members, isHead = false }) => {
     if (!members || members.length === 0) return null;
 
     return (
@@ -52,7 +61,9 @@ const MemberGrid = ({ title, members }) => {
                 {members.map(member => (
                     <div key={member.id} className="flex items-center gap-2 p-2 rounded-md bg-slate-100 dark:bg-slate-700/50" title={member.name}>
                         <Image src={member.photo || '/images/default-avatar.png'} alt={member.name} width={24} height={24} className="rounded-full object-cover flex-shrink-0"/>
-                        <span className="text-xs text-slate-800 dark:text-slate-200 truncate">{member.name}</span>
+                        <span className="text-xs text-slate-800 dark:text-slate-200 truncate flex-1">{member.name}</span>
+                        {/* ✅ FIX: Conditionally render the star icon for heads */}
+                        {isHead && <Star className="text-yellow-500 flex-shrink-0" size={14} />}
                     </div>
                 ))}
             </div>
@@ -66,11 +77,12 @@ export function DepartmentDetailView({ department, onBack, setModalState, onDele
     if (!department) {
         return null;
     }
-
-    // The counts are now calculated from the detailed lists provided by the backend.
+    
+    // ✅ FIX: Calculate total members by summing heads, staff, and interns.
+    const totalHeads = (department.heads?.length || 0) + (department.subDepartments || []).reduce((sum, sub) => sum + (sub.heads?.length || 0), 0);
     const totalStaff = (department.staff?.length || 0) + (department.subDepartments || []).reduce((sum, sub) => sum + (sub.staff?.length || 0), 0);
     const totalInterns = (department.interns?.length || 0) + (department.subDepartments || []).reduce((sum, sub) => sum + (sub.interns?.length || 0), 0);
-
+    
     return (
         <div className="animate-fadeIn space-y-8">
             <button onClick={onBack} className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 font-semibold">
@@ -78,7 +90,6 @@ export function DepartmentDetailView({ department, onBack, setModalState, onDele
                 Back to All Departments
             </button>
 
-            {/* Department Header Card */}
             <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6">
                  <div className="flex flex-col sm:flex-row items-start gap-6">
                     <div className="p-4 w-fit rounded-xl bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/70 dark:to-purple-900/70">
@@ -95,6 +106,10 @@ export function DepartmentDetailView({ department, onBack, setModalState, onDele
                             </Button>
                         </div>
                         <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm">
+                             {/* ✅ FIX: Display the count of heads */}
+                            <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+                                <span className="font-semibold">{totalHeads}</span> Heads
+                            </div>
                             <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
                                 <span className="font-semibold">{totalStaff}</span> Staff
                             </div>
@@ -108,11 +123,10 @@ export function DepartmentDetailView({ department, onBack, setModalState, onDele
                         </div>
                     </div>
                 </div>
-                {/* Accordion for members assigned directly to the parent department */}
-                <MemberAccordion title="View General Members" staff={department.staff} interns={department.interns} />
+                {/* ✅ FIX: Pass the 'heads' data to the accordion */}
+                <MemberAccordion title="View General Members" heads={department.heads} staff={department.staff} interns={department.interns} />
             </div>
 
-            {/* Sub-Departments Management Card */}
             <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg">
                 <header className="p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
                     <h2 className="font-semibold text-slate-800 dark:text-slate-100">Sub-Departments & Members</h2>
@@ -133,7 +147,8 @@ export function DepartmentDetailView({ department, onBack, setModalState, onDele
                                             <button onClick={() => onDelete(sub.id)} className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-md"><Trash2 size={16}/></button>
                                         </div>
                                     </div>
-                                    <MemberAccordion title="View Members" staff={sub.staff} interns={sub.interns} />
+                                    {/* ✅ FIX: Pass the 'heads' data for sub-departments too */}
+                                    <MemberAccordion title="View Members" heads={sub.heads} staff={sub.staff} interns={sub.interns} />
                                 </div>
                             )
                         ))

@@ -1,7 +1,6 @@
-// /overtime-approval/page.jsx
 "use client";
 
-import { useEffect, useState, useMemo, useCallback, Fragment } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { toast } from "react-hot-toast";
 import { 
   Card, CardContent, CardHeader, CardTitle 
@@ -13,15 +12,22 @@ import {
 } from "../../../components/ui/table";
 import { 
   Clock, RefreshCw, Hourglass, ThumbsUp, ThumbsDown,
-  Search, ChevronUp, ChevronDown, Info, CheckCircle2, XCircle, Plus
+  Search, Info
 } from "lucide-react";
 import { getOvertimeRequests, updateOvertimeStatus } from "../../../lib/api";
-import StatusDropdown from "./components/StatusDropdown";
 import { SimpleStatusDropdown } from "./components/SimpleStatusDropdown";
 
 // ==============================================================================
-// HELPER COMPONENTS
+// HELPER COMPONENTS (No changes needed here)
 // ==============================================================================
+
+const getStatusBadgeStyles = (status) => ({
+  approved: 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300',
+  pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300',
+  rejected: 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300',
+}[status] || 'bg-gray-100 text-gray-800');
+
+
 
 const StatCard = ({ title, value, icon, className }) => (
   <Card className="rounded-xl shadow-sm bg-white dark:bg-slate-800">
@@ -36,6 +42,7 @@ const StatCard = ({ title, value, icon, className }) => (
 );
 
 
+// --- MODIFIED: The DetailsModal now displays department info ---
 const DetailsModal = ({ request, onClose }) => {
   if (!request) return null;
   
@@ -55,6 +62,11 @@ const DetailsModal = ({ request, onClose }) => {
         </CardHeader>
         <CardContent className="space-y-4 text-sm">
           <p><span className="font-medium text-slate-500 dark:text-slate-400 w-32 inline-block">Employee:</span> {`${request.employee.firstName} ${request.employee.lastName}`}</p>
+          
+          {/* --- ADDITION: Display Department and Sub-Department in the modal --- */}
+          <p><span className="font-medium text-slate-500 dark:text-slate-400 w-32 inline-block">Department:</span> {request.employee.departmentName}</p>
+          <p><span className="font-medium text-slate-500 dark:text-slate-400 w-32 inline-block">Sub-Dept.:</span> {request.employee.subDepartmentName}</p>
+          
           <p><span className="font-medium text-slate-500 dark:text-slate-400 w-32 inline-block">Date:</span> {new Date(request.date).toLocaleDateString()}</p>
           <p><span className="font-medium text-slate-500 dark:text-slate-400 w-32 inline-block">Time:</span> {`${timeFormatter.format(new Date(request.startTime))} - ${timeFormatter.format(new Date(request.endTime))}`}</p>
           <p><span className="font-medium text-slate-500 dark:text-slate-400 w-32 inline-block">Duration:</span> {parseFloat(request.hours).toFixed(2)} hours</p>
@@ -83,17 +95,11 @@ export default function OvertimeApprovalPage() {
   const [overtimeData, setOvertimeData] = useState([]);
   const [updatingId, setUpdatingId] = useState(null);
   const [selectedRequest, setSelectedRequest] = useState(null);
-
-  
   const [refreshKey, setRefreshKey] = useState(0);
-  
   const [filters, setFilters] = useState({ searchTerm: "", status: "all" });
   const [sortConfig, setSortConfig] = useState({ key: 'date', direction: 'desc' });
   const [currentPage, setCurrentPage] = useState(1);
-  
   const ITEMS_PER_PAGE = 10;
-
-
 
   useEffect(() => {
     setIsLoading(true);
@@ -109,7 +115,6 @@ export default function OvertimeApprovalPage() {
     try {
       await updateOvertimeStatus(id, newStatus);
       toast.success(`Request has been updated to ${status}.`);
-      // This is the core of the fix: force a re-mount of the table.
       setRefreshKey(prevKey => prevKey + 1);
     } catch (error) {
       toast.error(error.message);
@@ -118,12 +123,18 @@ export default function OvertimeApprovalPage() {
     }
   };
 
- 
-
+  // --- MODIFIED: The search logic now includes department fields ---
   const processedData = useMemo(() => {
     let items = [...overtimeData];
     if (filters.status !== 'all') { items = items.filter(item => item.approvalStatus === filters.status); }
-    if (filters.searchTerm) { items = items.filter(item => `${item.employee.firstName} ${item.employee.lastName}`.toLowerCase().includes(filters.searchTerm.toLowerCase())); }
+    if (filters.searchTerm) {
+      const term = filters.searchTerm.toLowerCase();
+      items = items.filter(item => 
+        `${item.employee.firstName} ${item.employee.lastName}`.toLowerCase().includes(term) ||
+        (item.employee.departmentName?.toLowerCase() || '').includes(term) ||
+        (item.employee.subDepartmentName?.toLowerCase() || '').includes(term)
+      );
+    }
     items.sort((a, b) => {
       const valA = a[sortConfig.key];
       const valB = b[sortConfig.key];
@@ -151,12 +162,6 @@ export default function OvertimeApprovalPage() {
     rejected: overtimeData.filter(d => d.approvalStatus === 'rejected').length,
   }), [overtimeData]);
 
-  const getStatusBadgeStyles = (status) => ({
-    approved: 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300',
-    pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300',
-    rejected: 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300',
-  }[status] || 'bg-gray-100 text-gray-800');
-  
   const timeFormatter = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
 
   return (
@@ -167,7 +172,6 @@ export default function OvertimeApprovalPage() {
           Overtime Approval
         </h1>
         <div className="flex items-center gap-2">
-            
             <Button onClick={() => setRefreshKey(prevKey => prevKey + 1)} disabled={isLoading} variant="outline">
             <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} /> Refresh
         </Button>
@@ -184,7 +188,15 @@ export default function OvertimeApprovalPage() {
         <CardHeader className="flex-col md:flex-row md:items-center md:justify-between gap-4">
           <CardTitle>All Requests</CardTitle>
           <div className="flex items-center gap-2">
-            <div className="relative"><Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"/><Input placeholder="Search employee..." className="pl-9 w-48" value={filters.searchTerm} onChange={e => setFilters({...filters, searchTerm: e.target.value})} /></div>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"/>
+              <Input 
+                placeholder="Search by name, department..." 
+                className="pl-9 w-48" 
+                value={filters.searchTerm} 
+                onChange={e => setFilters({...filters, searchTerm: e.target.value})} 
+              />
+            </div>
             <select value={filters.status} onChange={e => setFilters({...filters, status: e.target.value})} className="w-40 px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-slate-800">
               <option value="all">All Statuses</option><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option>
             </select>
@@ -192,10 +204,15 @@ export default function OvertimeApprovalPage() {
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
-            <Table  key={refreshKey}>
+            <Table key={refreshKey}>
               <TableHeader>
                 <TableRow>
                   <TableHead>Employee</TableHead>
+                  
+                  {/* --- ADDITION: New table headers for department info --- */}
+                  <TableHead>Department</TableHead>
+                  <TableHead>Sub-Dept.</TableHead>
+                  
                   <TableHead className="cursor-pointer" onClick={() => handleSort('date')}>Date</TableHead>
                   <TableHead>Time</TableHead>
                   <TableHead className="text-center cursor-pointer" onClick={() => handleSort('hours')}>Duration (Hrs)</TableHead>
@@ -205,8 +222,8 @@ export default function OvertimeApprovalPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {isLoading ? ( <TableRow><TableCell colSpan={7} className="h-24 text-center">Loading data...</TableCell></TableRow> ) 
-                : paginatedData.length === 0 ? ( <TableRow><TableCell colSpan={7} className="h-24 text-center">No results found.</TableCell></TableRow> ) 
+                {isLoading ? ( <TableRow><TableCell colSpan={9} className="h-24 text-center">Loading data...</TableCell></TableRow> ) 
+                : paginatedData.length === 0 ? ( <TableRow><TableCell colSpan={9} className="h-24 text-center">No results found.</TableCell></TableRow> ) 
                 : (
                   paginatedData.map((row) => {
                     const fullName = `${row.employee.firstName} ${row.employee.lastName}`;
@@ -216,14 +233,17 @@ export default function OvertimeApprovalPage() {
                         <TableCell>
                           <div>
                             <div className="font-medium text-slate-800 dark:text-slate-100">{fullName}</div>
-                            <div className="text-sm text-slate-500">{row.employee.id}</div>
+                            <div className="text-sm text-slate-500">ID: {row.employee.id}</div>
                           </div>
                         </TableCell>
+
+                        {/* --- ADDITION: New table cells to display department data --- */}
+                        <TableCell className="text-sm text-slate-500">{row.employee.departmentName}</TableCell>
+                        <TableCell className="text-sm text-slate-500">{row.employee.subDepartmentName}</TableCell>
+
                         <TableCell>{new Date(row.date).toLocaleDateString()}</TableCell>
                         <TableCell className="text-sm">{`${timeFormatter.format(new Date(row.startTime))} - ${timeFormatter.format(new Date(row.endTime))}`}</TableCell>
-                        <TableCell className="text-center font-medium">
-  {row.hours != null ? parseFloat(row.hours).toFixed(2) : 'N/A'}
-</TableCell>
+                        <TableCell className="text-center font-medium">{row.hours != null ? parseFloat(row.hours).toFixed(2) : 'N/A'}</TableCell>
                         <TableCell className="text-sm text-slate-600 max-w-xs truncate" title={row.reason}>{row.reason}</TableCell>
                         <TableCell className="text-center">
                           <span className={`inline-flex items-center rounded-md px-2.5 py-1 text-xs font-semibold capitalize ${getStatusBadgeStyles(row.approvalStatus)}`}>
@@ -235,14 +255,11 @@ export default function OvertimeApprovalPage() {
                             <button onClick={() => setSelectedRequest(row)} className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded-md transition-colors" title="View Details">
                                 <Info size={16}/>
                             </button>
-                            
                               <SimpleStatusDropdown
                                 currentStatus={currentStatusDisplay}
                                 onStatusChange={(option) => handleUpdateStatus(row.id, option)}
                               />
                             {updatingId === row.id && <RefreshCw className="w-4 h-4 animate-spin"/>}
-                            
-                            
                           </div>
                         </TableCell>
                       </TableRow>
@@ -262,8 +279,6 @@ export default function OvertimeApprovalPage() {
         </CardContent>
       </Card>
       {selectedRequest && <DetailsModal request={selectedRequest} onClose={() => setSelectedRequest(null)} />}
-      {/* Remove the AddOvertimeRequestModal if HR doesn't add requests from this page */}
-      {/* <AddOvertimeRequestModal open={isModalOpen} onClose={() => setIsModalOpen(false)} onSuccess={handleCreateSuccess} /> */}
     </div>
   );
 }

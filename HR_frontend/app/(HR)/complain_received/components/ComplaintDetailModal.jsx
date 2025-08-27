@@ -1,8 +1,7 @@
-// app/(HR)/complaints/components/ComplaintDetailModal.jsx
 import { useState } from "react";
 import { updateComplaint } from "../../../../lib/api"; // Adjust path if needed
 import toast from "react-hot-toast";
-import { X, UserCircle, Calendar, MessageSquare } from "lucide-react";
+import { X, UserCircle, Calendar, MessageSquare, Building } from "lucide-react"; // Import the Building icon
 
 export function ComplaintDetailModal({ complaint, onClose, onUpdate }) {
   const [status, setStatus] = useState(complaint.status);
@@ -15,8 +14,7 @@ export function ComplaintDetailModal({ complaint, onClose, onUpdate }) {
     try {
       await updateComplaint(complaint.id, { status, response });
       toast.success("Complaint updated successfully!");
-      onUpdate();
-      onClose();
+      onUpdate(); // This will trigger the main page to refetch and close the modal
     } catch (error) {
       toast.error(error.message);
     } finally {
@@ -35,8 +33,8 @@ export function ComplaintDetailModal({ complaint, onClose, onUpdate }) {
           </button>
         </header>
         
-        {/* ✅ NEW: Improved layout for details */}
         <div className="p-6 space-y-6 overflow-y-auto">
+          {/* --- MODIFIED: The grid now includes department info --- */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-sm">
             <div className="flex items-center gap-3">
               <UserCircle className="text-gray-400" size={20}/>
@@ -52,6 +50,17 @@ export function ComplaintDetailModal({ complaint, onClose, onUpdate }) {
                 <p className="font-semibold text-gray-800 dark:text-gray-200">{new Date(complaint.createdAt).toLocaleString()}</p>
               </div>
             </div>
+            
+            {/* --- ADDITION: Display Department and Sub-Department --- */}
+            <div className="flex items-center gap-3 md:col-span-2"> {/* Take full width on medium screens */}
+              <Building className="text-gray-400" size={20}/>
+              <div>
+                <span className="text-gray-500 dark:text-gray-400">Department:</span>
+                <p className="font-semibold text-gray-800 dark:text-gray-200">
+                  {complaint.employee.departmentName} / {complaint.employee.subDepartmentName}
+                </p>
+              </div>
+            </div>
           </div>
           
           <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-lg">
@@ -65,9 +74,8 @@ export function ComplaintDetailModal({ complaint, onClose, onUpdate }) {
           </div>
         </div>
 
-        {/* The form remains largely the same but is now visually separated */}
         <form onSubmit={handleSubmit} className="p-6 border-t dark:border-gray-700 space-y-4 bg-gray-50 dark:bg-gray-800/50 flex-shrink-0">
-          {/* ... form content ... */}
+          {/* Form remains the same */}
           <div>
             <label htmlFor="status" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Update Status</label>
             <select id="status" value={status} onChange={(e) => setStatus(e.target.value)} className="w-full p-2 rounded-md border dark:bg-gray-700 dark:border-gray-600">

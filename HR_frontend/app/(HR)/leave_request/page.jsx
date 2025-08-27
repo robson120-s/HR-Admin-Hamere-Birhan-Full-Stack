@@ -1,4 +1,3 @@
-// /leave_request/page.jsx
 "use client";
 
 import { useState, useEffect, useCallback, memo } from 'react';
@@ -8,7 +7,8 @@ import StatusDropdown from './components/StatusDropdown';
 import { getLeaveRequests, updateLeaveStatus } from '../../../lib/api'; // Adjust path if needed
 
 // ==============================================================================
-// SUB-COMPONENTS (Defined within the main page file for simplicity)
+// SUB-COMPONENTS
+// These are small, reusable parts of our UI, kept in the same file for simplicity.
 // ==============================================================================
 
 const SunIcon = ({ className }) => (
@@ -50,6 +50,7 @@ const getStatusBadgeStyles = (status) => {
   }
 };
 
+// --- MODIFIED: This component now displays the department columns ---
 const LeaveRequestRow = memo(function LeaveRequestRow({ leave, onStatusChange }) {
   const handleStatusUpdate = (newStatus) => {
     onStatusChange(leave.id, newStatus);
@@ -62,9 +63,18 @@ const LeaveRequestRow = memo(function LeaveRequestRow({ leave, onStatusChange })
   const statusFormatted = leave.status.charAt(0).toUpperCase() + leave.status.slice(1);
   const fullName = `${leave.employee?.firstName || ''} ${leave.employee?.lastName || 'N/A'}`;
 
+  // Get department and sub-department names safely from the enriched API data
+  const departmentName = leave.employee?.department?.name || 'N/A';
+  const subDepartmentName = leave.employee?.subDepartmentName || 'N/A';
+
   return (
     <tr className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
       <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">{fullName}</td>
+      
+      {/* --- ADDITION: New table cells for department info --- */}
+      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{departmentName}</td>
+      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{subDepartmentName}</td>
+      
       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{leave.leaveType}</td>
       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{duration}</td>
       <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{days}</td>
@@ -94,15 +104,6 @@ const LeaveRequests = () => {
   
   const [refreshKey, setRefreshKey] = useState(0);
 
-  const fetchLeaveRequests = useCallback(async () => {
-    try {
-      const data = await getLeaveRequests();
-      setLeaveRequests(data);
-    } catch (error) {
-      toast.error(error.message);
-    }
-  }, []);
-
   useEffect(() => {
     setIsLoading(true);
     getLeaveRequests()
@@ -113,23 +114,26 @@ const LeaveRequests = () => {
 
   const handleStatusChange = useCallback(async (leaveId, newStatus) => {
     try {
-      // 1. Make the API call first.
       await updateLeaveStatus(leaveId, newStatus);
       toast.success("Leave status updated.");
-      
-      // 2. If successful, refetch the entire list to get the new state.
       setRefreshKey(prevKey => prevKey + 1);
     } catch (error) {
       toast.error(error.message);
     }
-  }, [fetchLeaveRequests]);
+  }, []);
 
-  const filteredLeaveData = leaveRequests.filter((leave) =>
-    (leave.leaveType?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-    (leave.reason?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-    (leave.employee?.firstName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-    (leave.employee?.lastName?.toLowerCase() || '').includes(searchTerm.toLowerCase())
-  );
+  // --- MODIFIED: The search logic now includes department fields ---
+  const filteredLeaveData = leaveRequests.filter((leave) => {
+    const term = searchTerm.toLowerCase();
+    return (
+      (leave.leaveType?.toLowerCase() || '').includes(term) ||
+      (leave.reason?.toLowerCase() || '').includes(term) ||
+      (leave.employee?.firstName?.toLowerCase() || '').includes(term) ||
+      (leave.employee?.lastName?.toLowerCase() || '').includes(term) ||
+      (leave.employee?.department?.name?.toLowerCase() || '').includes(term) ||
+      (leave.employee?.subDepartmentName?.toLowerCase() || '').includes(term)
+    );
+  });
 
   const totalCount = leaveRequests.length;
   const approvedCount = leaveRequests.filter(r => r.status === 'approved').length;
@@ -154,13 +158,18 @@ const LeaveRequests = () => {
       <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm overflow-x-auto">
         <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
           <div className="flex items-center"><span className="mr-2 text-sm text-gray-600 dark:text-gray-400">Show</span><select className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md p-2 text-sm"><option>10</option><option>25</option><option>50</option></select><span className="ml-2 text-sm text-gray-600 dark:text-gray-400">entries</span></div>
-          <div className="flex items-center"><span className="mr-2 text-sm text-gray-600 dark:text-gray-400">Search:</span><input type="text" className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md p-2 text-sm" placeholder="Search by type, reason, name..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}/></div>
+          <div className="flex items-center"><span className="mr-2 text-sm text-gray-600 dark:text-gray-400">Search:</span><input type="text" className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md p-2 text-sm" placeholder="Search by name, department..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}/></div>
         </div>
 
-        <table key={refreshKey} className="w-full min-w-[800px] min-h-[300px] block">
+        <table key={refreshKey} className="w-full min-w-[1000px] block">
           <thead>
             <tr className="bg-gray-50 dark:bg-gray-700/50">
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Employee Name</th>
+              
+              {/* --- ADDITION: New table headers for department info --- */}
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Department</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Sub-Dept.</th>
+
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Leave Type</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Leave Duration</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Days</th>
@@ -171,9 +180,11 @@ const LeaveRequests = () => {
           </thead>
           <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
             {isLoading ? (
-                <tr><td colSpan="7" className="text-center py-16 text-gray-500">Loading leave requests...</td></tr>
+                // --- MODIFIED: Colspan updated from 7 to 9 ---
+                <tr><td colSpan="9" className="text-center py-16 text-gray-500">Loading leave requests...</td></tr>
             ) : filteredLeaveData.length === 0 ? (
-                <tr><td colSpan="7" className="text-center py-16 text-gray-500">No requests match your search.</td></tr>
+                // --- MODIFIED: Colspan updated from 7 to 9 ---
+                <tr><td colSpan="9" className="text-center py-16 text-gray-500">No requests match your search.</td></tr>
             ) : (
                 filteredLeaveData.map((leave) => (
                   <LeaveRequestRow 

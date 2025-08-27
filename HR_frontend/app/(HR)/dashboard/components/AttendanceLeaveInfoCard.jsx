@@ -47,12 +47,12 @@ export default function AttendanceLeaveInfoCard({ stats }) {
             <p className="text-lg font-bold text-sky-500">{stats.workingDays}</p>
             <p className="text-sm text-gray-500 dark:text-gray-300">Working Days</p>
           </div>
-          <div>
-            {/* CHANGE 1: Use the correct variable from the API */}
+          {/* <div>
+
             <p className="text-lg font-bold text-red-500">{stats.totalComplaintsAllTime}</p>            
-            {/* CHANGE 2: Corrected the label to match the data */}
+
             <p className="text-sm text-gray-500 dark:text-gray-300">Total Complaints</p>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>

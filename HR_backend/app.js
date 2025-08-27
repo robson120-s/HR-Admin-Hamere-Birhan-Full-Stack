@@ -29,6 +29,7 @@ const attendanceSummaryRoutes = require('./app/routes/attendanceSummary.routes')
 
 // Authentication routes (login)
 const authRoutes = require('./app/routes/auth.routes');
+app.use("/api/auth", authRoutes);
 // Staff routes (for employee dashboard)
 const staffRoutes = require('./app/routes/staff.routes');
 

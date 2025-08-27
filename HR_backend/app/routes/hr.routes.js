@@ -200,33 +200,47 @@ router.delete("/meetings/:id",  async (req, res) => {
 // GET /api/hr/complaints - Fetch all complaints, ordered by newest first
 router.get("/complaints", async (req, res) => {
   try {
+    // Step 1: Fetch all departments into a Map for efficient lookups (ID -> Name)
+    const allDepartments = await prisma.department.findMany({ select: { id: true, name: true } });
+    const departmentMap = new Map(allDepartments.map(dept => [dept.id, dept.name]));
+
+    // Step 2: Fetch complaints with rich employee data
     const complaints = await prisma.complaint.findMany({
       orderBy: {
         createdAt: "desc",
       },
       include: {
         employee: {
-          // STEP 1: Select the correct fields from the database
           select: {
             firstName: true,
             lastName: true,
+            department: { // Include the main department relation
+              select: {
+                name: true
+              }
+            },
+            subDepartmentId: true, // Also get the sub-department ID
           },
         },
       },
     });
 
-    // STEP 2: Transform the data to create a 'name' field for the frontend
+    // Step 3: Transform and enrich the data for the frontend
     const formattedComplaints = complaints.map(complaint => {
+      // Use the map to find the sub-department name from its ID
+      const subDepartmentName = departmentMap.get(complaint.employee?.subDepartmentId) || null;
+      
       return {
-        ...complaint, // Copy all existing complaint properties (id, subject, etc.)
+        ...complaint, // Copy all existing complaint properties
         employee: {
-          // Overwrite the employee object with a new one that has the combined name
-          name: `${complaint.employee.firstName} ${complaint.employee.lastName}`
+          // Overwrite the employee object with a new one that has all the needed info
+          name: `${complaint.employee.firstName} ${complaint.employee.lastName}`,
+          departmentName: complaint.employee.department?.name || 'N/A',
+          subDepartmentName: subDepartmentName || 'N/A'
         }
       };
     });
 
-    // STEP 3: Send the newly formatted data to the frontend
     res.status(200).json(formattedComplaints);
 
   } catch (error) {
@@ -234,7 +248,6 @@ router.get("/complaints", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch complaints." });
   }
 });
-
 // PATCH /api/hr/complaints/:id - Update a complaint's status and add a response
 router.patch("/complaints/:id", async (req, res) => {
   try {
@@ -696,11 +709,6 @@ router.get("/terminations/:id", async (req, res) => {
 });
 
 // PATCH /api/hr/terminations/:id - Update a termination record
-// In backend routes/hr.routes.js
-
-// In your backend file: routes/hr.routes.js
-
-// PATCH /api/hr/terminations/:id - Update a termination record
 router.patch("/terminations/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -908,10 +916,9 @@ const processDepartmentData = (department) => {
 
 // In your backend file: routes/hr.routes.js
 
-// GET /api/hr/departments - FINAL, ROBUST VERSION
+// GET /departments - CORRECTED to include heads in counts
 router.get("/departments", async (req, res) => {
   try {
-    // Step 1: Fetch the department structure (top-level and their direct children)
     const departments = await prisma.department.findMany({
       where: { parentId: null },
       orderBy: { name: 'asc' },
@@ -922,66 +929,62 @@ router.get("/departments", async (req, res) => {
       },
     });
 
-    // Step 2: Iterate through each department and calculate the counts with separate, targeted queries
     const departmentsWithCounts = await Promise.all(
       departments.map(async (dept) => {
-        // Get a list of all relevant department IDs (the parent + all its children)
         const allDeptIds = [dept.id, ...dept.subDepartments.map(sub => sub.id)];
 
-        // Count staff in this department family
+        // ✅ FIX: We count ALL employees in the department family, including heads.
+        const allMembersCount = await prisma.employee.count({
+          where: {
+            OR: [
+              { departmentId: { in: allDeptIds } },
+              { subDepartmentId: { in: allDeptIds } },
+            ],
+          },
+        });
+        
+        // We still need separate staff/intern counts for the card display.
         const staffCount = await prisma.employee.count({
           where: {
             OR: [
               { departmentId: { in: allDeptIds } },
               { subDepartmentId: { in: allDeptIds } },
             ],
-            user: {
-              roles: { some: { role: { name: 'Staff' } } },
-            },
+            user: { roles: { some: { role: { name: 'Staff' } } } },
           },
         });
 
-        // Count interns in this department family
         const internCount = await prisma.employee.count({
           where: {
             OR: [
               { departmentId: { in: allDeptIds } },
               { subDepartmentId: { in: allDeptIds } },
             ],
-            user: {
-              roles: { some: { role: { name: 'Intern' } } },
-            },
+            user: { roles: { some: { role: { name: 'Intern' } } } },
           },
         });
         
-        // Construct the final object for the frontend
         return {
           ...dept,
           staffCount,
           internCount,
-          totalMembers: staffCount + internCount,
+          totalMembers: allMembersCount, // Use the new all-inclusive count
         };
       })
     );
-
     res.status(200).json(departmentsWithCounts);
-
   } catch (error) {
-    // This will now catch any errors from the count queries as well
     console.error("Error fetching department counts:", error);
     res.status(500).json({ error: "Failed to fetch departments." });
   }
 });
 
-// GET /api/hr/departments/:id - Fetch a single department
-// In your backend file: routes/hr.routes.js
 
-// GET /api/hr/departments/:id - FINAL, ROBUST VERSION
+// GET /departments/:id - CORRECTED to separate heads from staff/interns
 router.get("/departments/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Step 1: Fetch the department and its sub-department structure (lean query)
     const department = await prisma.department.findUnique({
       where: { id: parseInt(id) },
       include: {
@@ -995,13 +998,12 @@ router.get("/departments/:id", async (req, res) => {
       return res.status(404).json({ error: "Department not found." });
     }
 
-    // A helper function to get categorized members for a list of department IDs
+    // ✅ FIX: This helper function now categorizes heads, staff, and interns.
     const getMembersForDepts = async (deptIds) => {
       if (!deptIds || deptIds.length === 0) {
-          return { staff: [], interns: [] };
+          return { heads: [], staff: [], interns: [] };
       }
       
-      // Lean query: only select the fields we absolutely need. This avoids bad date errors.
       const employees = await prisma.employee.findMany({
         where: {
           OR: [
@@ -1022,6 +1024,7 @@ router.get("/departments/:id", async (req, res) => {
         },
       });
 
+      const heads = [];
       const staff = [];
       const interns = [];
       employees.forEach(emp => {
@@ -1029,16 +1032,14 @@ router.get("/departments/:id", async (req, res) => {
         const role = emp.user?.roles[0]?.role.name;
         const memberData = { id: emp.id, name: fullName, photo: emp.photo };
 
-        if (role === 'Staff') staff.push(memberData);
+        if (role === 'Department Head') heads.push(memberData);
+        else if (role === 'Staff') staff.push(memberData);
         else if (role === 'Intern') interns.push(memberData);
       });
-      return { staff, interns };
+      return { heads, staff, interns };
     };
 
-    // Step 2: Get members for the main department
     const mainDeptMembers = await getMembersForDepts([department.id]);
-
-    // Step 3: Get members for each sub-department individually
     const subDepartmentsWithMembers = await Promise.all(
       (department.subDepartments || []).map(async (sub) => {
         const subDeptMembers = await getMembersForDepts([sub.id]);
@@ -1046,6 +1047,7 @@ router.get("/departments/:id", async (req, res) => {
           id: sub.id,
           name: sub.name,
           description: sub.description,
+          heads: subDeptMembers.heads,
           staff: subDeptMembers.staff,
           interns: subDeptMembers.interns,
         };
@@ -1056,6 +1058,7 @@ router.get("/departments/:id", async (req, res) => {
       id: department.id,
       name: department.name,
       description: department.description,
+      heads: mainDeptMembers.heads,
       staff: mainDeptMembers.staff,
       interns: mainDeptMembers.interns,
       subDepartments: subDepartmentsWithMembers,
@@ -1067,7 +1070,6 @@ router.get("/departments/:id", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch department details." });
   }
 });
-
 // POST /api/hr/departments - Create a new department or sub-department
 router.post("/departments", async (req, res) => {
   try {
@@ -1133,6 +1135,11 @@ router.delete("/departments/:id", async (req, res) => {
 // GET /api/hr/leaves - Fetch all leave requests
 router.get("/leaves",  async (req, res) => {
   try {
+    // Step 1: Fetch all departments into a Map for efficient lookups (ID -> Name)
+    const allDepartments = await prisma.department.findMany({ select: { id: true, name: true } });
+    const departmentMap = new Map(allDepartments.map(dept => [dept.id, dept.name]));
+
+    // Step 2: Fetch leave requests with rich employee data
     const leaveRequests = await prisma.leave.findMany({
       orderBy: { requestedAt: 'desc' }, // Show the newest requests first
       include: {
@@ -1140,16 +1147,37 @@ router.get("/leaves",  async (req, res) => {
           select: { // Include employee info needed for display
             firstName: true,
             lastName: true,
+            department: { // Include the main department relation
+              select: {
+                name: true
+              }
+            },
+            subDepartmentId: true, // Also get the sub-department ID
           }
         }
       }
     });
-    res.status(200).json(leaveRequests);
+    
+    // Step 3: Enrich the data with the sub-department name before sending
+    const enrichedLeaveRequests = leaveRequests.map(leave => {
+      // Use the map to find the sub-department name from its ID
+      const subDepartmentName = departmentMap.get(leave.employee?.subDepartmentId) || null;
+      return {
+        ...leave,
+        employee: {
+          ...leave.employee,
+          subDepartmentName: subDepartmentName,
+        }
+      };
+    });
+
+    res.status(200).json(enrichedLeaveRequests);
   } catch (error) {
     console.error("Error fetching leave requests:", error);
     res.status(500).json({ error: "Failed to fetch leave requests." });
   }
 });
+
 
 // PATCH /api/hr/leaves/:id/status - Update the status of a leave request
 router.patch("/leaves/:id/status", async (req, res) => {
@@ -1186,34 +1214,56 @@ router.patch("/leaves/:id/status", async (req, res) => {
 });
 
 // GET /api/hr/overtime - Fetch all overtime requests
-// GET /api/hr/overtime - Fetch all overtime requests
-router.get("/overtime", async (req, res) => { // Add auth middleware back later
+
+// in your backend routes file
+
+// GET /api/hr/overtime - CORRECTED to include department info
+router.get("/overtime", async (req, res) => {
   try {
+    // Step 1: Fetch all departments into a Map for efficient lookups (ID -> Name)
+    const allDepartments = await prisma.department.findMany({ select: { id: true, name: true } });
+    const departmentMap = new Map(allDepartments.map(dept => [dept.id, dept.name]));
+
+    // Step 2: Fetch overtime requests with rich employee data
     const overtimeRequests = await prisma.overtimeLog.findMany({
       orderBy: { date: 'desc' },
-      // ✅ Use a 'select' statement for a lean and specific payload
-      select: {
-        id: true,
-        date: true,
-        startTime: true, // Select the start time
-        endTime: true,   // Select the end time
-        hours: true,     // Also select the pre-calculated hours
-        reason: true,
-        approvalStatus: true,
-        compensationMethod: true,
-        employee: { select: { id: true, firstName: true, lastName: true } },
+      include: {
+        employee: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            department: {
+              select: { name: true }
+            },
+            subDepartmentId: true,
+          }
+        },
         approver: { select: { id: true, username: true } }
       }
     });
-    res.status(200).json(overtimeRequests);
+
+    // Step 3: Enrich the data with the sub-department name before sending
+    const enrichedRequests = overtimeRequests.map(request => {
+      // Use the map to find the sub-department name from its ID
+      const subDepartmentName = departmentMap.get(request.employee?.subDepartmentId) || null;
+      return {
+        ...request,
+        employee: {
+          ...request.employee,
+          departmentName: request.employee.department?.name || 'N/A',
+          subDepartmentName: subDepartmentName || 'N/A'
+        }
+      };
+    });
+
+    res.status(200).json(enrichedRequests);
   } catch (error) {
     console.error("Error fetching overtime requests:", error);
     res.status(500).json({ error: "Failed to fetch overtime requests." });
   }
 });
 
-// PATCH /api/hr/overtime/:id - Approve or reject an overtime request
-// In your backend file: routes/hr.routes.js
 
 // PATCH /api/hr/overtime/:id - Approve or reject an overtime request
 router.patch("/overtime/:id", async (req, res) => { // Auth middleware can be added back later

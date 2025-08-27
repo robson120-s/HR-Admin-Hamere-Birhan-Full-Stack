@@ -1,4 +1,3 @@
-// app/(HR)/terminations/page.jsx
 'use client';
 
 import { useState, useEffect, useCallback, memo, Fragment } from 'react';
@@ -12,20 +11,14 @@ import { AddTerminationModal } from './components/AddTerminationModal';
 import { EditTerminationModal } from './components/EditTerminationModal';
 
 // ==============================================================================
-// Component 1: Theme Switcher Icon
+// SUB-COMPONENTS (Modified to break the loop)
 // ==============================================================================
 const ThemeSwitcher = () => {
   const [mounted, setMounted] = useState(false);
   const { theme, setTheme } = useTheme();
   useEffect(() => { setMounted(true) }, []);
-  
-  if (!mounted) { 
-    // Render a placeholder to prevent layout shift on initial load
-    return <div className="w-10 h-10" />; 
-  }
-  
+  if (!mounted) { return <div className="w-10 h-10" />; }
   const toggleTheme = () => setTheme(theme === 'dark' ? 'light' : 'dark');
-  
   return (
     <button onClick={toggleTheme} className="p-2 rounded-full text-gray-500 hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 transition-colors" aria-label="Toggle theme">
       {theme === 'light' ? 
@@ -36,12 +29,9 @@ const ThemeSwitcher = () => {
   );
 };
 
-// ==============================================================================
-// Component 2: Dropdown for TERMINATION TYPE
-// ==============================================================================
-const TerminationTypeDropdown = ({ currentType, onTypeChange }) => {
+// --- ✅ FIX 1: The Dropdown components now accept the `id` prop ---
+const TerminationTypeDropdown = ({ id, currentType, onTypeChange }) => {
   const typeOptions = ['Voluntary', 'Involuntary', 'Retirement'];
-  
   const getConfig = (type) => {
     switch (type) {
       case 'Voluntary': return { icon: <UserCheck size={16} className="mr-2 text-blue-500" />, button: 'bg-blue-100/60 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300', item: 'hover:bg-blue-50 dark:hover:bg-blue-900' };
@@ -50,7 +40,6 @@ const TerminationTypeDropdown = ({ currentType, onTypeChange }) => {
       default: return { icon: null, button: 'bg-gray-100 text-gray-700', item: 'hover:bg-gray-50' };
     }
   };
-
   return (
     <Menu as="div" className="relative inline-block text-left w-36">
       <Menu.Button className={`inline-flex w-full justify-center items-center rounded-md px-3 py-1.5 text-sm font-semibold shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 transition-colors ${getConfig(currentType).button}`}>
@@ -62,7 +51,8 @@ const TerminationTypeDropdown = ({ currentType, onTypeChange }) => {
                 {typeOptions.map(option => (
                     <Menu.Item key={option}>
                         {({ active }) => (
-                            <button onClick={() => onTypeChange(option)} className={`group flex w-full items-center rounded-md px-3 py-2 text-sm font-medium ${active ? 'bg-gray-100 dark:bg-gray-700' : ''} ${getConfig(option).item}`}>
+                            // The handler now calls the stable prop with the ID it received
+                            <button onClick={() => onTypeChange(id, option)} className={`group flex w-full items-center rounded-md px-3 py-2 text-sm font-medium ${active ? 'bg-gray-100 dark:bg-gray-700' : ''} ${getConfig(option).item}`}>
                                 {getConfig(option).icon}{option}
                             </button>
                         )}
@@ -74,11 +64,7 @@ const TerminationTypeDropdown = ({ currentType, onTypeChange }) => {
     </Menu>
   );
 };
-
-// ==============================================================================
-// Component 3: Dropdown for WORKFLOW STATUS (UI Only for now)
-// ==============================================================================
-const WorkflowStatusDropdown = ({ currentStatus, onStatusChange }) => {
+const WorkflowStatusDropdown = ({ id, currentStatus, onStatusChange }) => {
     const statusOptions = ['Pending Approval', 'Processing', 'Finalized'];
     const getConfig = (status) => {
         switch (status) {
@@ -99,7 +85,7 @@ const WorkflowStatusDropdown = ({ currentStatus, onStatusChange }) => {
                         {statusOptions.map(option => (
                             <Menu.Item key={option}>
                                 {({ active }) => (
-                                    <button onClick={() => onStatusChange(option)} className={`group flex w-full items-center rounded-md px-3 py-2 text-sm font-medium ${active ? 'bg-gray-100 dark:bg-gray-700' : ''} ${getConfig(option).item}`}>
+                                    <button onClick={() => onStatusChange(id, option)} className={`group flex w-full items-center rounded-md px-3 py-2 text-sm font-medium ${active ? 'bg-gray-100 dark:bg-gray-700' : ''} ${getConfig(option).item}`}>
                                         {getConfig(option).icon}{option}
                                     </button>
                                 )}
@@ -112,21 +98,17 @@ const WorkflowStatusDropdown = ({ currentStatus, onStatusChange }) => {
     );
 };
 
-// ==============================================================================
-// Component 4: Memoized Table Row
-// ==============================================================================
+// --- ✅ FIX 2: The `TerminationRow` now passes the stable functions and its own ID to the dropdowns ---
 const TerminationRow = memo(function TerminationRow({ termination, onTypeChange, onStatusChange, onDelete, onEdit }) {
-  
-  // Helper to map backend status (e.g., 'voluntary') to frontend display (e.g., 'Voluntary')
   const mapStatusToType = (status) => {
       switch(status) {
           case 'voluntary': return 'Voluntary';
           case 'involuntary': return 'Involuntary';
           case 'retired': return 'Retirement';
-          default: return 'Voluntary'; // Sensible fallback
+          default: return 'Voluntary';
       }
   };
-    const mapWorkflowStatus = (status) => {
+  const mapWorkflowStatus = (status) => {
       switch(status) {
           case 'pending_approval': return 'Pending Approval';
           case 'processing': return 'Processing';
@@ -134,49 +116,16 @@ const TerminationRow = memo(function TerminationRow({ termination, onTypeChange,
           default: return 'Pending Approval';
       }
   };
-
-  // ✅ FIX #1: Combine firstName and lastName into a single fullName variable
   const fullName = `${termination.employee.firstName} ${termination.employee.lastName}`;
-  const imageSrc = termination.employee.photo ? termination.employee.photo : '/images/default-avatar.png';
-
-
+  
   return (
     <tr className="bg-white dark:bg-gray-800 border-b dark:border-gray-700 hover:bg-slate-50 dark:hover:bg-gray-700/50">
-      <td className="px-6 py-4 font-medium text-gray-900 dark:text-white whitespace-nowrap">
-        <div className="flex items-center gap-3">
-          {/* ✅ FIX #2: Use `termination.employee.photo` which matches the backend API response */}
-          {/* <Image 
-            src={imageSrc}
-            alt={fullName} 
-            width={32} 
-            height={32} 
-            className="rounded-full object-cover" 
-          /> */}
-          <span>{fullName}</span>
-        </div>
-      </td>
-      <td className="px-6 py-4">
-        <TerminationTypeDropdown 
-          currentType={mapStatusToType(termination.status)} 
-          onTypeChange={(newType) => onTypeChange(termination.id, newType)}
-        />
-      </td>
-      <td className="px-6 py-4">
-        {/* This is still a UI-only field for now */}
-        <WorkflowStatusDropdown 
-          currentStatus={mapWorkflowStatus(termination.workflowStatus)}
-          onStatusChange={(newStatus) => onStatusChange(termination.id, newStatus)}
-        />
-      </td>
-      {/* Dates from the database are often full ISO strings, so we format them */}
+      <td className="px-6 py-4 font-medium text-gray-900 dark:text-white whitespace-nowrap"><div className="flex items-center gap-3"><span>{fullName}</span></div></td>
+      <td className="px-6 py-4"><TerminationTypeDropdown id={termination.id} currentType={mapStatusToType(termination.status)} onTypeChange={onTypeChange} /></td>
+      <td className="px-6 py-4"><WorkflowStatusDropdown id={termination.id} currentStatus={mapWorkflowStatus(termination.workflowStatus)} onStatusChange={onStatusChange} /></td>
       <td className="px-6 py-4 text-gray-600 dark:text-gray-300">{new Date(termination.terminationDate).toLocaleDateString()}</td>
       <td className="px-6 py-4 max-w-[200px] truncate text-gray-600 dark:text-gray-300" title={termination.reason}>{termination.reason || 'N/A'}</td>
-      <td className="px-6 py-4">
-        <div className="flex items-center gap-3">
-          <button onClick={() => onEdit(termination.id)} className="p-2 bg-emerald-100/60 text-emerald-600 rounded-md hover:bg-emerald-100 dark:bg-emerald-900/50 dark:text-emerald-300 dark:hover:bg-emerald-900"><Pencil size={16} /></button>
-          <button onClick={() => onDelete(termination.id)} className="p-2 bg-rose-100/60 text-rose-600 rounded-md hover:bg-rose-100 dark:bg-rose-900/50 dark:text-rose-300 dark:hover:bg-rose-900"><Trash2 size={16} /></button>
-        </div>
-      </td>
+      <td className="px-6 py-4"><div className="flex items-center gap-3"><button onClick={() => onEdit(termination.id)} className="p-2 bg-emerald-100/60 text-emerald-600 rounded-md hover:bg-emerald-100 dark:bg-emerald-900/50 dark:text-emerald-300 dark:hover:bg-emerald-900"><Pencil size={16} /></button><button onClick={() => onDelete(termination.id)} className="p-2 bg-rose-100/60 text-rose-600 rounded-md hover:bg-rose-100 dark:bg-rose-900/50 dark:text-rose-300 dark:hover:bg-rose-900"><Trash2 size={16} /></button></div></td>
     </tr>
   );
 });
@@ -191,80 +140,59 @@ const TerminationsPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
 
-  // --- Fetch data from API on page load ---
-const fetchTerminations = useCallback(async () => {
-    // We don't set isLoading(true) here to avoid a flicker on refetch.
-    try {
-      const data = await getTerminations();
-      setTerminations(data);
-    } catch (error) {
-      toast.error(error.message);
-    } finally {
-      setIsLoading(false); // Only set loading to false.
-    }
-  }, []); // Empty dependency array means this function is created only once.
+  const [refreshKey, setRefreshKey] = useState(0);
+  const triggerRefresh = () => setRefreshKey(prevKey => prevKey + 1);
 
   useEffect(() => {
-    setIsLoading(true); // Set initial loading state here.
-    fetchTerminations().finally(() => setIsLoading(false));
-  }, [fetchTerminations]);
-
-
-  // ✅ FIX #2: Stabilize the change handlers using useCallback.
-  // These functions no longer depend on the 'terminations' state, breaking the loop.
+    setIsLoading(true);
+    getTerminations()
+      .then(data => setTerminations(data))
+      .catch(error => toast.error(error.message || "Failed to fetch termination data."))
+      .finally(() => setIsLoading(false));
+  }, [refreshKey]);
+  
+  // --- ✅ FIX 3: All event handlers are wrapped in `useCallback` with an empty dependency array `[]`. ---
+  // This makes them STABLE. They are created only once and reused on every render.
   const handleTypeChange = useCallback(async (terminationId, newType) => {
     try {
-      // Send the capitalized value directly (e.g., "Voluntary")
       await updateTermination(terminationId, { status: newType });
       toast.success("Termination type updated.");
-      fetchTerminations();
+      triggerRefresh();
     } catch (error) {
       toast.error(error.message);
     }
-  }, [fetchTerminations]);
+  }, []);
 
   const handleStatusChange = useCallback(async (terminationId, newStatus) => {
     try {
-      // Send the capitalized value directly (e.g., "Pending Approval")
       await updateTermination(terminationId, { workflowStatus: newStatus });
       toast.success("Workflow status updated.");
-      fetchTerminations();
+      triggerRefresh();
     } catch (error) {
       toast.error(error.message);
     }
-  }, [fetchTerminations]);
+  }, []);
 
   const handleDelete = useCallback(async (terminationId) => {
     if (window.confirm("Are you sure you want to delete this record?")) {
       try {
         await deleteTermination(terminationId);
         toast.success("Termination record deleted.");
-        fetchTerminations(); // Refetch after deleting
+        triggerRefresh();
       } catch (error) {
         toast.error(error.message);
       }
     }
-  }, [fetchTerminations]); // This handler needs 'terminations' for the optimistic revert.
+  }, []);
 
-  const handleCreateSuccess = useCallback(() => {
-    fetchTerminations(); // Simply refetch the list on success
-  }, [fetchTerminations]);
-  
-  const handleUpdateSuccess = useCallback(() => {
-    fetchTerminations(); // Simply refetch the list on success
-  }, [fetchTerminations]);
-
-
+  const handleCreateSuccess = useCallback(() => triggerRefresh(), []);
+  const handleUpdateSuccess = useCallback(() => triggerRefresh(), []);
 
   const filteredData = terminations.filter(item => {
-  // ✅ SAFETY CHECK: First, make sure item.employee exists.
-  if (!item.employee) {
-    return false; // If it doesn't exist, exclude this item from the list.
-  }
-  // If it does exist, proceed with the search logic.
-  const fullName = `${item.employee.firstName} ${item.employee.lastName}`;
-  return fullName.toLowerCase().includes(searchTerm.toLowerCase());
-});
+    if (!item.employee) { return false; }
+    const fullName = `${item.employee.firstName} ${item.employee.lastName}`;
+    return fullName.toLowerCase().includes(searchTerm.toLowerCase());
+  });
 
   return (
     <div className="bg-slate-100 dark:bg-gray-900 min-h-screen font-sans">
@@ -291,7 +219,12 @@ const fetchTerminations = useCallback(async () => {
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                 <span>Search:</span>
-                <input type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md px-3 py-1.5 w-48 focus:outline-none focus:ring-1 focus:ring-indigo-500"/>
+                <input 
+                    type="text" 
+                    value={searchTerm} 
+                    onChange={(e) => setSearchTerm(e.target.value)} 
+                    className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md px-3 py-1.5 w-48 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                />
             </div>
           </div>
 
@@ -309,7 +242,7 @@ const fetchTerminations = useCallback(async () => {
               </thead>
               <tbody className="text-gray-600 dark:text-gray-300">
                 {isLoading ? (
-                    <tr><td colSpan="7" className="text-center py-16 text-gray-500">
+                    <tr><td colSpan="6" className="text-center py-16 text-gray-500">
                         <Loader size={24} className="mx-auto animate-spin" />
                         <p className="mt-2">Loading terminations...</p>
                     </td></tr>
@@ -318,6 +251,7 @@ const fetchTerminations = useCallback(async () => {
                       <TerminationRow 
                         key={item.id} 
                         termination={item} 
+                        // --- ✅ FIX 4: We pass the STABLE functions directly to the memoized row ---
                         onTypeChange={handleTypeChange}
                         onStatusChange={handleStatusChange}
                         onDelete={handleDelete}

@@ -7,8 +7,9 @@ import { useTheme } from "next-themes";
 import { getHrProfile } from "../../../lib/api"; // Adjust path if needed
 import toast from "react-hot-toast";
 import { LoaderCircle, Sun, Moon } from "lucide-react";
+import { AttractiveThemeToggle } from "../dashboard/components/AttractiveThemeToggle"; 
 
-// --- (SunIcon, MoonIcon, and ProfileDetail components can remain the same) ---
+
 
 export default function ProfilePage() {
   const [user, setUser] = useState(null);
@@ -63,9 +64,7 @@ export default function ProfilePage() {
   return (
     <div className="max-w-6xl mx-auto p-6 relative bg-slate-50 dark:bg-slate-900">
       <div className="absolute top-4 right-4 z-10">
-        <button onClick={() => setTheme(theme === "dark" ? "light" : "dark")} className="...">
-          {theme === "dark" ? <SunIcon /> : <MoonIcon />}
-        </button>
+        <AttractiveThemeToggle />
       </div>
 
       <div className="bg-white dark:bg-gray-800 shadow-lg rounded-2xl overflow-hidden">

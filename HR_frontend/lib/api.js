@@ -14,6 +14,11 @@ export const apiClientDepHead = axios.create({
   withCredentials: true,
 });
 
+const apiClient = axios.create({
+  baseURL: "http://localhost:5555/api", // Note the shorter baseURL
+  withCredentials: true,
+});
+
 const addAuthToken = (config) => {
     const token = localStorage.getItem("authToken");
     if (token) {
@@ -24,7 +29,7 @@ const addAuthToken = (config) => {
 
 apiClientHr.interceptors.request.use(addAuthToken);
 apiClientDepHead.interceptors.request.use(addAuthToken);
-
+apiClient.interceptors.request.use(addAuthToken);
 
 export const login = async (credentials) => {
   try {
@@ -347,16 +352,12 @@ export const getAttendanceReport = async (timeframe = 'weekly') => {
 }
 
 
-export const changePassword = async (passwordData) => {
-  try {
-    // We use the new /api/auth endpoint
-    const response = await apiClientHr.patch("/auth/change-password", passwordData);
-    return response.data;
-  } catch (error) {
-    // Re-throw the error with the specific message from the backend
-    throw new Error(error.response?.data?.error || "An unknown error occurred.");
-  }
+export const changePassword = async (data) => {
+  // ✅ Use the general `apiClient` which points to /api
+  const response = await apiClient.patch('/auth/change-password', data);
+  return response.data;
 };
+
 
 // profile
 
