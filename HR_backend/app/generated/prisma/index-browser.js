@@ -150,7 +150,8 @@ exports.Prisma.DepartmentScalarFieldEnum = {
   description: 'description',
   parentId: 'parentId',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  payrollPolicyId: 'payrollPolicyId'
 };
 
 exports.Prisma.PositionScalarFieldEnum = {
@@ -304,6 +305,7 @@ exports.Prisma.OvertimeLogScalarFieldEnum = {
   hours: 'hours',
   startTime: 'startTime',
   endTime: 'endTime',
+  overtimeType: 'overtimeType',
   reason: 'reason',
   approvedBy: 'approvedBy',
   approvalStatus: 'approvalStatus',
@@ -315,10 +317,25 @@ exports.Prisma.SalaryScalarFieldEnum = {
   employeeId: 'employeeId',
   salaryMonth: 'salaryMonth',
   amount: 'amount',
+  baseSalary: 'baseSalary',
+  deductions: 'deductions',
   status: 'status',
   overtimeHours: 'overtimeHours',
   overtimePay: 'overtimePay',
   paidAt: 'paidAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.PayrollPolicyScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  isDefault: 'isDefault',
+  otMultiplierWeekday1: 'otMultiplierWeekday1',
+  otMultiplierWeekday2: 'otMultiplierWeekday2',
+  otMultiplierSleepover: 'otMultiplierSleepover',
+  otMultiplierSunday: 'otMultiplierSunday',
+  otMultiplierHoliday: 'otMultiplierHoliday',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -463,6 +480,10 @@ exports.Prisma.OvertimeLogOrderByRelevanceFieldEnum = {
   reason: 'reason'
 };
 
+exports.Prisma.PayrollPolicyOrderByRelevanceFieldEnum = {
+  name: 'name'
+};
+
 exports.Prisma.ComplaintOrderByRelevanceFieldEnum = {
   subject: 'subject',
   description: 'description',
@@ -501,6 +522,7 @@ exports.SummaryStatus = exports.$Enums.SummaryStatus = {
   absent: 'absent',
   half_day: 'half_day',
   on_leave: 'on_leave',
+  permission: 'permission',
   holiday: 'holiday',
   weekend: 'weekend'
 };
@@ -517,6 +539,12 @@ exports.LeaveStatus = exports.$Enums.LeaveStatus = {
   pending: 'pending',
   approved: 'approved',
   rejected: 'rejected'
+};
+
+exports.OvertimeType = exports.$Enums.OvertimeType = {
+  WEEKDAY: 'WEEKDAY',
+  SUNDAY: 'SUNDAY',
+  HOLIDAY: 'HOLIDAY'
 };
 
 exports.OvertimeApprovalStatus = exports.$Enums.OvertimeApprovalStatus = {
@@ -582,6 +610,7 @@ exports.Prisma.ModelName = {
   Holiday: 'Holiday',
   OvertimeLog: 'OvertimeLog',
   Salary: 'Salary',
+  PayrollPolicy: 'PayrollPolicy',
   Complaint: 'Complaint',
   Interview: 'Interview',
   PerformanceReview: 'PerformanceReview',

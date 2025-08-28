@@ -36,6 +36,12 @@ enum LeaveStatus {
   rejected
 }
 
+enum OvertimeType {
+  WEEKDAY
+  SUNDAY
+  HOLIDAY
+}
+
 enum AttendanceStatus {
   present
   late
@@ -48,6 +54,7 @@ enum SummaryStatus {
   absent
   half_day
   on_leave
+  permission
   holiday
   weekend
 }
@@ -147,6 +154,8 @@ model Department {
   updatedAt   DateTime   @updatedAt
   employees   Employee[]
   attendanceSummaries AttendanceSummary[]
+  payrollPolicyId     Int? // This department can have a custom policy
+  payrollPolicy       PayrollPolicy? @relation(fields: [payrollPolicyId], references: [id])
 }
 
 model Position {
@@ -367,8 +376,10 @@ model OvertimeLog {
   date               DateTime
   hours              Decimal?
 
-  startTime          DateTime
-  endTime            DateTime
+  startTime          DateTime?
+  endTime            DateTime?
+
+   overtimeType       OvertimeType           @default(WEEKDAY)
 
   reason             String?
   approvedBy         Int?
@@ -384,6 +395,10 @@ model Salary {
   employeeId    Int
   salaryMonth   DateTime
   amount        Decimal
+
+ baseSalary    Decimal      @default(0.00) // The employee's base salary for that month
+  deductions    Decimal      @default(0.00) 
+
   status        SalaryStatus @default(pending)
   overtimeHours Decimal      @default(0.00)
   overtimePay   Decimal      @default(0.00)
@@ -394,6 +409,27 @@ model Salary {
   employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
   @@unique([employeeId, salaryMonth])
+}
+
+model PayrollPolicy {
+  id                 Int      @id @default(autoincrement())
+  name               String   @unique // e.g., "Default Company Policy", "Engineering Department Policy"
+  isDefault          Boolean  @default(false) // Only one policy should be the default
+
+  // Overtime Multipliers
+  otMultiplierWeekday1   Decimal  @default(1.5)  // For 11:00 - 16:00
+  otMultiplierWeekday2   Decimal  @default(1.75) // For 16:00 - 02:00
+  otMultiplierSleepover  Decimal  @default(2.2)
+  otMultiplierSunday     Decimal  @default(2.0)
+  otMultiplierHoliday    Decimal  @default(2.5)
+
+  // You can add more rules here later, e.g., for deductions
+  
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  
+  // Link to departments that use this policy
+  departments        Department[]
 }
 
 // ----------------------

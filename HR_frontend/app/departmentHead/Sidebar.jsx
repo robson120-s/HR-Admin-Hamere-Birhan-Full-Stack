@@ -74,11 +74,12 @@ export default function Sidebar() {
         {/* Navigation Links */}
         <nav className="flex-1 flex flex-col space-y-1 mt-6 overflow-y-auto">
           <SidebarLink href="/departmentHead" icon={<Home size={18} />} label="Dashboard" />
-          <SidebarLink href="/departmentHead/editAttendance" icon={<Calendar size={18} />} label="Mark Attendance" />
+          <SidebarLink href="/departmentHead/markAttendance" icon={<Calendar size={18} />} label="Mark Attendance" />
+          <SidebarLink href="/departmentHead/attendace_overview" icon={<CheckCircle2 size={20} />} label="Attendance Overview" />
           <SidebarLink href="/departmentHead/performance" icon={<LineChart size={18} />} label="Performance" />
-          {/* <SidebarLink href="/departmentHead/evaluation" icon={<CheckCircle2 size={20} />} label="Evaluation" /> */}
           <SidebarLink href="/departmentHead/designation" icon={<CheckCircle2 size={20} />} label="Designation" />
           <SidebarLink href="/departmentHead/complain" icon={<AlertCircle size={20} />} label="Complain Request" />
+          <SidebarLink href="/departmentHead/overtime_request" icon={<AlertCircle size={20} />} label="OverTime_Request" />
           <SidebarLink href="/departmentHead/payment-status" icon={<FiDollarSign size={18} />} label="Payment Status" />
           <SidebarLink href="/departmentHead/leave_request" icon={<CalendarOff size={18} />} label="Leave Request" />
         </nav>

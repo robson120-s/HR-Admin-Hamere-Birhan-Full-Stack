@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE `overtimelog` ADD COLUMN `overtimeType` ENUM('WEEKDAY', 'SUNDAY', 'HOLIDAY') NOT NULL DEFAULT 'WEEKDAY',
+    MODIFY `endTime` DATETIME(3) NULL,
+    MODIFY `startTime` DATETIME(3) NULL;

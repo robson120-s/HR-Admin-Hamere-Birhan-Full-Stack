@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE `salary` ADD COLUMN `baseSalary` DECIMAL(65, 30) NOT NULL DEFAULT 0.00,
+    ADD COLUMN `deductions` DECIMAL(65, 30) NOT NULL DEFAULT 0.00;

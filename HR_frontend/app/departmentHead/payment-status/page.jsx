@@ -1,7 +1,9 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { FiDollarSign, FiCheckCircle, FiXCircle, FiUsers, FiTrendingUp, FiTrendingDown } from "react-icons/fi";
 import { useTheme } from "next-themes";
+import toast from 'react-hot-toast';
+import { getDepHeadPaymentStatus } from "../../../lib/api"; // Adjust path if needed
 
 function SunIcon({ className = "" }) {
   return (
@@ -22,52 +24,38 @@ function MoonIcon({ className = "" }) {
 
 export default function PaymentStatusPage() {
   const [employees, setEmployees] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
   const { theme, setTheme } = useTheme();
 
-  useEffect(() => {
-    setMounted(true);
-    // Mock data for Engineering Department
-    const mockEmployees = [
-      { id: 1, name: "Ethan Mitchell", status: "paid" },
-      { id: 2, name: "Sarah Johnson", status: "unpaid" },
-      { id: 3, name: "Michael Brown", status: "paid" },
-      { id: 4, name: "Emily Davis", status: "paid" },
-      { id: 5, name: "David Wilson", status: "unpaid" },
-      { id: 6, name: "Jessica Lee", status: "paid" },
-      { id: 7, name: "Robert Taylor", status: "paid" },
-      { id: 8, name: "Amanda Garcia", status: "paid" },
-      { id: 9, name: "Christopher Martinez", status: "unpaid" },
-      { id: 10, name: "Lisa Anderson", status: "paid" },
-      { id: 11, name: "James Thompson", status: "paid" },
-      { id: 12, name: "Maria Rodriguez", status: "paid" },
-      { id: 13, name: "Daniel Lewis", status: "paid" },
-      { id: 14, name: "Jennifer White", status: "paid" },
-      { id: 15, name: "Kevin Hall", status: "unpaid" },
-    ];
-
-    setTimeout(() => setEmployees(mockEmployees), 500);
+  // ✅ Replaced mock data with a real API call
+  const fetchData = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const data = await getDepHeadPaymentStatus();
+      setEmployees(data);
+    } catch (error) {
+      toast.error(error.message || "Failed to load payment status.");
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
-  if (!mounted) return <div className="p-6">Loading...</div>;
+  useEffect(() => {
+    setMounted(true);
+    fetchData();
+  }, [fetchData]);
 
+  if (!mounted) {
+    return <div className="p-6 text-center">Loading page...</div>;
+  }
+  
   const totalEmployees = employees.length;
   const paidEmployees = employees.filter(emp => emp.status === "paid").length;
-  const unpaidEmployees = employees.filter(emp => emp.status === "unpaid").length;
-
-  const handleStatusToggle = (employeeId) => {
-    setEmployees(prevEmployees =>
-      prevEmployees.map(emp =>
-        emp.id === employeeId
-          ? { ...emp, status: emp.status === "paid" ? "unpaid" : "paid" }
-          : emp
-      )
-    );
-  };
+  const unpaidEmployees = employees.filter(emp => emp.status !== "paid").length; // unpaid or pending
 
   return (
     <div className="max-w-6xl mx-auto p-6 relative">
-      {/* Theme Toggle */}
       <div className="absolute top-4 right-4 z-10">
         <button
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
@@ -77,48 +65,44 @@ export default function PaymentStatusPage() {
         </button>
       </div>
 
-      {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2 flex items-center">
           <FiDollarSign className="mr-3 text-purple-600" />
-          Employee Payment Status – Engineering Department
+          Employee Payment Status
         </h1>
         <p className="text-gray-600 dark:text-gray-400">
-          Monitor and manage payment status for all employees in your department
+          View the payment status for your team for the current month.
         </p>
       </div>
 
-      {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Employees</p>
-              <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">{totalEmployees}</p>
+              <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">{isLoading ? "-" : totalEmployees}</p>
             </div>
             <div className="p-3 bg-blue-100 dark:bg-blue-900 rounded-full">
               <FiUsers className="w-6 h-6 text-blue-600 dark:text-blue-400" />
             </div>
           </div>
         </div>
-
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Paid</p>
-              <p className="text-3xl font-bold text-green-600 dark:text-green-400">{paidEmployees}</p>
+              <p className="text-3xl font-bold text-green-600 dark:text-green-400">{isLoading ? "-" : paidEmployees}</p>
             </div>
             <div className="p-3 bg-green-100 dark:bg-green-900 rounded-full">
               <FiTrendingUp className="w-6 h-6 text-green-600 dark:text-green-400" />
             </div>
           </div>
         </div>
-
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Unpaid</p>
-              <p className="text-3xl font-bold text-red-600 dark:text-red-400">{unpaidEmployees}</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Unpaid / Pending</p>
+              <p className="text-3xl font-bold text-red-600 dark:text-red-400">{isLoading ? "-" : unpaidEmployees}</p>
             </div>
             <div className="p-3 bg-red-100 dark:bg-red-900 rounded-full">
               <FiTrendingDown className="w-6 h-6 text-red-600 dark:text-red-400" />
@@ -127,89 +111,48 @@ export default function PaymentStatusPage() {
         </div>
       </div>
 
-      {/* Employee List */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700">
         <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Employee Payment Status</h2>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Payment Status Details</h2>
         </div>
         
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Employee Name
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Payment Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Actions
-                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Employee Name</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Payment Status</th>
               </tr>
             </thead>
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-              {employees.map((employee, index) => (
-                <tr key={employee.id} className={index % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-700'}>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                      {employee.name}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      employee.status === 'paid' 
-                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
-                        : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                    }`}>
-                      {employee.status === 'paid' ? (
-                        <>
-                          <FiCheckCircle className="w-3 h-3 mr-1" />
-                          Paid
-                        </>
-                      ) : (
-                        <>
-                          <FiXCircle className="w-3 h-3 mr-1" />
-                          Unpaid
-                        </>
-                      )}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <button
-                      onClick={() => handleStatusToggle(employee.id)}
-                      className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
-                        employee.status === 'paid'
-                          ? 'bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900 dark:text-red-200 dark:hover:bg-red-800'
-                          : 'bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900 dark:text-green-200 dark:hover:bg-green-800'
-                      }`}
-                    >
-                      {employee.status === 'paid' ? 'Mark Unpaid' : 'Mark Paid'}
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {isLoading ? (
+                <tr><td colSpan="2" className="text-center py-10 text-gray-500">Loading data...</td></tr>
+              ) : employees.length === 0 ? (
+                <tr><td colSpan="2" className="text-center py-10 text-gray-500">No employees found in your department.</td></tr>
+              ) : (
+                employees.map((employee, index) => (
+                  <tr key={employee.id} className={index % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-700'}>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{employee.name}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        employee.status === 'paid' 
+                          ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
+                          : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                      }`}>
+                        {employee.status === 'paid' ? (
+                          <><FiCheckCircle className="w-3 h-3 mr-1" />Paid</>
+                        ) : (
+                          <><FiXCircle className="w-3 h-3 mr-1" />{employee.status.charAt(0).toUpperCase() + employee.status.slice(1)}</>
+                        )}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
-        </div>
-      </div>
-
-      {/* Summary Footer */}
-      <div className="mt-6 bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-        <div className="flex flex-col sm:flex-row justify-between items-center">
-          <div className="text-sm text-gray-600 dark:text-gray-400 mb-2 sm:mb-0">
-            <span className="font-medium">Summary:</span> {paidEmployees} paid, {unpaidEmployees} unpaid out of {totalEmployees} total employees
-          </div>
-          <div className="flex space-x-2">
-            <span className="inline-flex items-center text-sm text-green-600 dark:text-green-400">
-              <FiCheckCircle className="w-4 h-4 mr-1" />
-              {Math.round((paidEmployees / totalEmployees) * 100)}% Paid
-            </span>
-            <span className="inline-flex items-center text-sm text-red-600 dark:text-red-400">
-              <FiXCircle className="w-4 h-4 mr-1" />
-              {Math.round((unpaidEmployees / totalEmployees) * 100)}% Unpaid
-            </span>
-          </div>
         </div>
       </div>
     </div>

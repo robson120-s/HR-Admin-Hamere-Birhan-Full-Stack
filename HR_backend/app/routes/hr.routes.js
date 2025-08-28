@@ -931,44 +931,19 @@ router.get("/departments", async (req, res) => {
 
     const departmentsWithCounts = await Promise.all(
       departments.map(async (dept) => {
+        // ... (all your existing counting logic is correct and stays here)
         const allDeptIds = [dept.id, ...dept.subDepartments.map(sub => sub.id)];
-
-        // ✅ FIX: We count ALL employees in the department family, including heads.
-        const allMembersCount = await prisma.employee.count({
-          where: {
-            OR: [
-              { departmentId: { in: allDeptIds } },
-              { subDepartmentId: { in: allDeptIds } },
-            ],
-          },
-        });
-        
-        // We still need separate staff/intern counts for the card display.
-        const staffCount = await prisma.employee.count({
-          where: {
-            OR: [
-              { departmentId: { in: allDeptIds } },
-              { subDepartmentId: { in: allDeptIds } },
-            ],
-            user: { roles: { some: { role: { name: 'Staff' } } } },
-          },
-        });
-
-        const internCount = await prisma.employee.count({
-          where: {
-            OR: [
-              { departmentId: { in: allDeptIds } },
-              { subDepartmentId: { in: allDeptIds } },
-            ],
-            user: { roles: { some: { role: { name: 'Intern' } } } },
-          },
-        });
+        const allMembersCount = await prisma.employee.count({ where: { OR: [{ departmentId: { in: allDeptIds } }, { subDepartmentId: { in: allDeptIds } }] } });
+        const staffCount = await prisma.employee.count({ where: { OR: [{ departmentId: { in: allDeptIds } }, { subDepartmentId: { in: allDeptIds } }], user: { roles: { some: { role: { name: 'Staff' } } } } } });
+        const internCount = await prisma.employee.count({ where: { OR: [{ departmentId: { in: allDeptIds } }, { subDepartmentId: { in: allDeptIds } }], user: { roles: { some: { role: { name: 'Intern' } } } } } });
         
         return {
           ...dept,
           staffCount,
           internCount,
-          totalMembers: allMembersCount, // Use the new all-inclusive count
+          totalMembers: allMembersCount,
+          // ✅ ADDITION: Include the assigned payroll policy ID
+          payrollPolicyId: dept.payrollPolicyId, 
         };
       })
     );

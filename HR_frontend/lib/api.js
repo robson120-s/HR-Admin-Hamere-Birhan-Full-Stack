@@ -14,10 +14,20 @@ export const apiClientDepHead = axios.create({
   withCredentials: true,
 });
 
+const apiClientSalary = axios.create({
+  baseURL: "http://localhost:5555/api/salary", // Base path for all salary endpoints
+  withCredentials: true,
+});
+
 const apiClient = axios.create({
   baseURL: "http://localhost:5555/api", // Note the shorter baseURL
   withCredentials: true,
 });
+const apiClientPolicies = axios.create({
+  baseURL: "http://localhost:5555/api/policies",
+  withCredentials: true,
+});
+
 
 const addAuthToken = (config) => {
     const token = localStorage.getItem("authToken");
@@ -30,6 +40,10 @@ const addAuthToken = (config) => {
 apiClientHr.interceptors.request.use(addAuthToken);
 apiClientDepHead.interceptors.request.use(addAuthToken);
 apiClient.interceptors.request.use(addAuthToken);
+apiClientSalary.interceptors.request.use(addAuthToken);
+apiClientSalary.interceptors.request.use(addAuthToken);
+apiClientPolicies.interceptors.request.use(addAuthToken);
+
 
 export const login = async (credentials) => {
   try {
@@ -351,7 +365,65 @@ export const getAttendanceReport = async (timeframe = 'weekly') => {
   }
 }
 
+//Salary
+// 1. Function to get the summary card data
+export const getSalaryDashboard = async () => {
+    const response = await apiClientSalary.get('/dashboard');
+    return response.data;
+};
 
+// 2. Function to get the main salary table data
+export const getSalaryTable = async () => {
+    const response = await apiClientSalary.get('/'); // GETs from /api/salary/
+    return response.data;
+};
+
+// 3. Function to trigger the salary generation process
+export const generateSalaries = async () => {
+    const response = await apiClientSalary.post('/generate');
+    return response.data;
+};
+
+// 4. Function to mark a salary as paid
+export const paySalary = async (salaryId) => {
+    const response = await apiClientSalary.post(`/pay/${salaryId}`);
+    return response.data;
+};
+
+// 5. Function to update a salary record (for editing)
+export const updateSalary = async (salaryId, data) => {
+    const response = await apiClientSalary.patch(`/${salaryId}`, data);
+    return response.data;
+};
+
+//payroll policy
+// 1. Function to get all payroll policies
+export const getPayrollPolicies = async () => {
+    const response = await apiClientPolicies.get('/');
+    return response.data;
+};
+
+// 2. Function to create a new payroll policy
+export const createPayrollPolicy = async (policyData) => {
+    const response = await apiClientPolicies.post('/', policyData);
+    return response.data;
+};
+
+// 3. Function to update an existing payroll policy
+export const updatePayrollPolicy = async (policyId, policyData) => {
+    const response = await apiClientPolicies.patch(`/${policyId}`, policyData);
+    return response.data;
+};
+
+// 4. Function to assign a policy to a department
+export const assignPolicyToDepartment = async (departmentId, policyId) => {
+    // Note: The policyId can be null to reset a department to the default policy
+    const response = await apiClientHr.patch(`/departments/${departmentId}/assign-policy`, { policyId });
+    return response.data;
+};
+
+
+////////////setting
 export const changePassword = async (data) => {
   // ✅ Use the general `apiClient` which points to /api
   const response = await apiClient.patch('/auth/change-password', data);
@@ -469,6 +541,39 @@ export const saveAttendance = async (data) => {
     return response.data;
 };
 
+export const exportDepHeadAttendance = async (startDate, endDate) => {
+    const response = await apiClientDepHead.get(`/export-attendance?startDate=${startDate}&endDate=${endDate}`);
+    return response.data;
+};
+
+//////////////Attendance-Overview
+export const getDepHeadAttendanceOverview = async (year, month) => {
+    // We pass the year and month as query parameters
+    const response = await apiClientDepHead.get(`/attendance-overview?year=${year}&month=${month}`);
+    return response.data;
+};
+
+///////////Overtime
+export const getDepHeadOvertimeRequests = async () => {
+    const response = await apiClientDepHead.get('/overtime-requests');
+    return response.data;
+};
+
+export const getDepHeadTeamMembers = async () => {
+    const response = await apiClientDepHead.get('/team-members');
+    return response.data;
+};
+
+export const createOvertimeRequest = async (requestData) => {
+    const response = await apiClientDepHead.post('/overtime-requests', requestData);
+    return response.data;
+};
+
+//Payment Status
+export const getDepHeadPaymentStatus = async () => {
+    const response = await apiClientDepHead.get('/payment-status');
+    return response.data;
+};
 
 
 

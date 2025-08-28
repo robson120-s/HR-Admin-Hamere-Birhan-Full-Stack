@@ -38,6 +38,13 @@ app.use("/api/attendance-logs", attendanceLogRoutes);
 app.use("/api/attendance-summaries", attendanceSummaryRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/hr", hrRoutes);
+//salary routes
+const salaryRoutes= require('./app/routes/salary.routes');
+app.use("/api/salary", salaryRoutes);
+//policy routes
+const policyRoutes= require('./app/routes/policy.routes');
+app.use("/api/policies", policyRoutes);
+//Department head routes
 app.use("/api/dep-head", depHeadRoutes);
 app.use("/api/staff", staffRoutes);
 

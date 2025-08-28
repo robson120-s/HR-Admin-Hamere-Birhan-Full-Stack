@@ -114,6 +114,11 @@ export type OvertimeLog = $Result.DefaultSelection<Prisma.$OvertimeLogPayload>
  */
 export type Salary = $Result.DefaultSelection<Prisma.$SalaryPayload>
 /**
+ * Model PayrollPolicy
+ * 
+ */
+export type PayrollPolicy = $Result.DefaultSelection<Prisma.$PayrollPolicyPayload>
+/**
  * Model Complaint
  * 
  */
@@ -166,6 +171,15 @@ export const LeaveStatus: {
 export type LeaveStatus = (typeof LeaveStatus)[keyof typeof LeaveStatus]
 
 
+export const OvertimeType: {
+  WEEKDAY: 'WEEKDAY',
+  SUNDAY: 'SUNDAY',
+  HOLIDAY: 'HOLIDAY'
+};
+
+export type OvertimeType = (typeof OvertimeType)[keyof typeof OvertimeType]
+
+
 export const AttendanceStatus: {
   present: 'present',
   late: 'late',
@@ -181,6 +195,7 @@ export const SummaryStatus: {
   absent: 'absent',
   half_day: 'half_day',
   on_leave: 'on_leave',
+  permission: 'permission',
   holiday: 'holiday',
   weekend: 'weekend'
 };
@@ -263,6 +278,10 @@ export const LeaveType: typeof $Enums.LeaveType
 export type LeaveStatus = $Enums.LeaveStatus
 
 export const LeaveStatus: typeof $Enums.LeaveStatus
+
+export type OvertimeType = $Enums.OvertimeType
+
+export const OvertimeType: typeof $Enums.OvertimeType
 
 export type AttendanceStatus = $Enums.AttendanceStatus
 
@@ -617,6 +636,16 @@ export class PrismaClient<
     * ```
     */
   get salary(): Prisma.SalaryDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.payrollPolicy`: Exposes CRUD operations for the **PayrollPolicy** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more PayrollPolicies
+    * const payrollPolicies = await prisma.payrollPolicy.findMany()
+    * ```
+    */
+  get payrollPolicy(): Prisma.PayrollPolicyDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.complaint`: Exposes CRUD operations for the **Complaint** model.
@@ -1117,6 +1146,7 @@ export namespace Prisma {
     Holiday: 'Holiday',
     OvertimeLog: 'OvertimeLog',
     Salary: 'Salary',
+    PayrollPolicy: 'PayrollPolicy',
     Complaint: 'Complaint',
     Interview: 'Interview',
     PerformanceReview: 'PerformanceReview',
@@ -1139,7 +1169,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "role" | "user" | "userRole" | "department" | "position" | "maritalStatus" | "employmentType" | "jobStatus" | "agreementStatus" | "meeting" | "employee" | "shift" | "employeeShift" | "sessionDefinition" | "attendanceLog" | "attendanceSummary" | "leave" | "holiday" | "overtimeLog" | "salary" | "complaint" | "interview" | "performanceReview" | "termination"
+      modelProps: "role" | "user" | "userRole" | "department" | "position" | "maritalStatus" | "employmentType" | "jobStatus" | "agreementStatus" | "meeting" | "employee" | "shift" | "employeeShift" | "sessionDefinition" | "attendanceLog" | "attendanceSummary" | "leave" | "holiday" | "overtimeLog" | "salary" | "payrollPolicy" | "complaint" | "interview" | "performanceReview" | "termination"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2463,6 +2493,72 @@ export namespace Prisma {
           }
         }
       }
+      PayrollPolicy: {
+        payload: Prisma.$PayrollPolicyPayload<ExtArgs>
+        fields: Prisma.PayrollPolicyFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.PayrollPolicyFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PayrollPolicyPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.PayrollPolicyFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PayrollPolicyPayload>
+          }
+          findFirst: {
+            args: Prisma.PayrollPolicyFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PayrollPolicyPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.PayrollPolicyFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PayrollPolicyPayload>
+          }
+          findMany: {
+            args: Prisma.PayrollPolicyFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PayrollPolicyPayload>[]
+          }
+          create: {
+            args: Prisma.PayrollPolicyCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PayrollPolicyPayload>
+          }
+          createMany: {
+            args: Prisma.PayrollPolicyCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          delete: {
+            args: Prisma.PayrollPolicyDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PayrollPolicyPayload>
+          }
+          update: {
+            args: Prisma.PayrollPolicyUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PayrollPolicyPayload>
+          }
+          deleteMany: {
+            args: Prisma.PayrollPolicyDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.PayrollPolicyUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.PayrollPolicyUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PayrollPolicyPayload>
+          }
+          aggregate: {
+            args: Prisma.PayrollPolicyAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregatePayrollPolicy>
+          }
+          groupBy: {
+            args: Prisma.PayrollPolicyGroupByArgs<ExtArgs>
+            result: $Utils.Optional<PayrollPolicyGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.PayrollPolicyCountArgs<ExtArgs>
+            result: $Utils.Optional<PayrollPolicyCountAggregateOutputType> | number
+          }
+        }
+      }
       Complaint: {
         payload: Prisma.$ComplaintPayload<ExtArgs>
         fields: Prisma.ComplaintFieldRefs
@@ -2839,6 +2935,7 @@ export namespace Prisma {
     holiday?: HolidayOmit
     overtimeLog?: OvertimeLogOmit
     salary?: SalaryOmit
+    payrollPolicy?: PayrollPolicyOmit
     complaint?: ComplaintOmit
     interview?: InterviewOmit
     performanceReview?: PerformanceReviewOmit
@@ -3382,6 +3479,37 @@ export namespace Prisma {
    */
   export type SessionDefinitionCountOutputTypeCountLogsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: AttendanceLogWhereInput
+  }
+
+
+  /**
+   * Count Type PayrollPolicyCountOutputType
+   */
+
+  export type PayrollPolicyCountOutputType = {
+    departments: number
+  }
+
+  export type PayrollPolicyCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    departments?: boolean | PayrollPolicyCountOutputTypeCountDepartmentsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * PayrollPolicyCountOutputType without action
+   */
+  export type PayrollPolicyCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PayrollPolicyCountOutputType
+     */
+    select?: PayrollPolicyCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * PayrollPolicyCountOutputType without action
+   */
+  export type PayrollPolicyCountOutputTypeCountDepartmentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: DepartmentWhereInput
   }
 
 
@@ -6437,11 +6565,13 @@ export namespace Prisma {
   export type DepartmentAvgAggregateOutputType = {
     id: number | null
     parentId: number | null
+    payrollPolicyId: number | null
   }
 
   export type DepartmentSumAggregateOutputType = {
     id: number | null
     parentId: number | null
+    payrollPolicyId: number | null
   }
 
   export type DepartmentMinAggregateOutputType = {
@@ -6451,6 +6581,7 @@ export namespace Prisma {
     parentId: number | null
     createdAt: Date | null
     updatedAt: Date | null
+    payrollPolicyId: number | null
   }
 
   export type DepartmentMaxAggregateOutputType = {
@@ -6460,6 +6591,7 @@ export namespace Prisma {
     parentId: number | null
     createdAt: Date | null
     updatedAt: Date | null
+    payrollPolicyId: number | null
   }
 
   export type DepartmentCountAggregateOutputType = {
@@ -6469,6 +6601,7 @@ export namespace Prisma {
     parentId: number
     createdAt: number
     updatedAt: number
+    payrollPolicyId: number
     _all: number
   }
 
@@ -6476,11 +6609,13 @@ export namespace Prisma {
   export type DepartmentAvgAggregateInputType = {
     id?: true
     parentId?: true
+    payrollPolicyId?: true
   }
 
   export type DepartmentSumAggregateInputType = {
     id?: true
     parentId?: true
+    payrollPolicyId?: true
   }
 
   export type DepartmentMinAggregateInputType = {
@@ -6490,6 +6625,7 @@ export namespace Prisma {
     parentId?: true
     createdAt?: true
     updatedAt?: true
+    payrollPolicyId?: true
   }
 
   export type DepartmentMaxAggregateInputType = {
@@ -6499,6 +6635,7 @@ export namespace Prisma {
     parentId?: true
     createdAt?: true
     updatedAt?: true
+    payrollPolicyId?: true
   }
 
   export type DepartmentCountAggregateInputType = {
@@ -6508,6 +6645,7 @@ export namespace Prisma {
     parentId?: true
     createdAt?: true
     updatedAt?: true
+    payrollPolicyId?: true
     _all?: true
   }
 
@@ -6604,6 +6742,7 @@ export namespace Prisma {
     parentId: number | null
     createdAt: Date
     updatedAt: Date
+    payrollPolicyId: number | null
     _count: DepartmentCountAggregateOutputType | null
     _avg: DepartmentAvgAggregateOutputType | null
     _sum: DepartmentSumAggregateOutputType | null
@@ -6632,10 +6771,12 @@ export namespace Prisma {
     parentId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    payrollPolicyId?: boolean
     parent?: boolean | Department$parentArgs<ExtArgs>
     subDepartments?: boolean | Department$subDepartmentsArgs<ExtArgs>
     employees?: boolean | Department$employeesArgs<ExtArgs>
     attendanceSummaries?: boolean | Department$attendanceSummariesArgs<ExtArgs>
+    payrollPolicy?: boolean | Department$payrollPolicyArgs<ExtArgs>
     _count?: boolean | DepartmentCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["department"]>
 
@@ -6648,14 +6789,16 @@ export namespace Prisma {
     parentId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    payrollPolicyId?: boolean
   }
 
-  export type DepartmentOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "description" | "parentId" | "createdAt" | "updatedAt", ExtArgs["result"]["department"]>
+  export type DepartmentOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "description" | "parentId" | "createdAt" | "updatedAt" | "payrollPolicyId", ExtArgs["result"]["department"]>
   export type DepartmentInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     parent?: boolean | Department$parentArgs<ExtArgs>
     subDepartments?: boolean | Department$subDepartmentsArgs<ExtArgs>
     employees?: boolean | Department$employeesArgs<ExtArgs>
     attendanceSummaries?: boolean | Department$attendanceSummariesArgs<ExtArgs>
+    payrollPolicy?: boolean | Department$payrollPolicyArgs<ExtArgs>
     _count?: boolean | DepartmentCountOutputTypeDefaultArgs<ExtArgs>
   }
 
@@ -6666,6 +6809,7 @@ export namespace Prisma {
       subDepartments: Prisma.$DepartmentPayload<ExtArgs>[]
       employees: Prisma.$EmployeePayload<ExtArgs>[]
       attendanceSummaries: Prisma.$AttendanceSummaryPayload<ExtArgs>[]
+      payrollPolicy: Prisma.$PayrollPolicyPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: number
@@ -6674,6 +6818,7 @@ export namespace Prisma {
       parentId: number | null
       createdAt: Date
       updatedAt: Date
+      payrollPolicyId: number | null
     }, ExtArgs["result"]["department"]>
     composites: {}
   }
@@ -7018,6 +7163,7 @@ export namespace Prisma {
     subDepartments<T extends Department$subDepartmentsArgs<ExtArgs> = {}>(args?: Subset<T, Department$subDepartmentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DepartmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     employees<T extends Department$employeesArgs<ExtArgs> = {}>(args?: Subset<T, Department$employeesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$EmployeePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     attendanceSummaries<T extends Department$attendanceSummariesArgs<ExtArgs> = {}>(args?: Subset<T, Department$attendanceSummariesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AttendanceSummaryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    payrollPolicy<T extends Department$payrollPolicyArgs<ExtArgs> = {}>(args?: Subset<T, Department$payrollPolicyArgs<ExtArgs>>): Prisma__PayrollPolicyClient<$Result.GetResult<Prisma.$PayrollPolicyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -7053,6 +7199,7 @@ export namespace Prisma {
     readonly parentId: FieldRef<"Department", 'Int'>
     readonly createdAt: FieldRef<"Department", 'DateTime'>
     readonly updatedAt: FieldRef<"Department", 'DateTime'>
+    readonly payrollPolicyId: FieldRef<"Department", 'Int'>
   }
     
 
@@ -7484,6 +7631,25 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: AttendanceSummaryScalarFieldEnum | AttendanceSummaryScalarFieldEnum[]
+  }
+
+  /**
+   * Department.payrollPolicy
+   */
+  export type Department$payrollPolicyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PayrollPolicy
+     */
+    select?: PayrollPolicySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PayrollPolicy
+     */
+    omit?: PayrollPolicyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PayrollPolicyInclude<ExtArgs> | null
+    where?: PayrollPolicyWhereInput
   }
 
   /**
@@ -22103,6 +22269,7 @@ export namespace Prisma {
     hours: Decimal | null
     startTime: Date | null
     endTime: Date | null
+    overtimeType: $Enums.OvertimeType | null
     reason: string | null
     approvedBy: number | null
     approvalStatus: $Enums.OvertimeApprovalStatus | null
@@ -22116,6 +22283,7 @@ export namespace Prisma {
     hours: Decimal | null
     startTime: Date | null
     endTime: Date | null
+    overtimeType: $Enums.OvertimeType | null
     reason: string | null
     approvedBy: number | null
     approvalStatus: $Enums.OvertimeApprovalStatus | null
@@ -22129,6 +22297,7 @@ export namespace Prisma {
     hours: number
     startTime: number
     endTime: number
+    overtimeType: number
     reason: number
     approvedBy: number
     approvalStatus: number
@@ -22158,6 +22327,7 @@ export namespace Prisma {
     hours?: true
     startTime?: true
     endTime?: true
+    overtimeType?: true
     reason?: true
     approvedBy?: true
     approvalStatus?: true
@@ -22171,6 +22341,7 @@ export namespace Prisma {
     hours?: true
     startTime?: true
     endTime?: true
+    overtimeType?: true
     reason?: true
     approvedBy?: true
     approvalStatus?: true
@@ -22184,6 +22355,7 @@ export namespace Prisma {
     hours?: true
     startTime?: true
     endTime?: true
+    overtimeType?: true
     reason?: true
     approvedBy?: true
     approvalStatus?: true
@@ -22282,8 +22454,9 @@ export namespace Prisma {
     employeeId: number
     date: Date
     hours: Decimal | null
-    startTime: Date
-    endTime: Date
+    startTime: Date | null
+    endTime: Date | null
+    overtimeType: $Enums.OvertimeType
     reason: string | null
     approvedBy: number | null
     approvalStatus: $Enums.OvertimeApprovalStatus
@@ -22316,6 +22489,7 @@ export namespace Prisma {
     hours?: boolean
     startTime?: boolean
     endTime?: boolean
+    overtimeType?: boolean
     reason?: boolean
     approvedBy?: boolean
     approvalStatus?: boolean
@@ -22333,13 +22507,14 @@ export namespace Prisma {
     hours?: boolean
     startTime?: boolean
     endTime?: boolean
+    overtimeType?: boolean
     reason?: boolean
     approvedBy?: boolean
     approvalStatus?: boolean
     compensationMethod?: boolean
   }
 
-  export type OvertimeLogOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "employeeId" | "date" | "hours" | "startTime" | "endTime" | "reason" | "approvedBy" | "approvalStatus" | "compensationMethod", ExtArgs["result"]["overtimeLog"]>
+  export type OvertimeLogOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "employeeId" | "date" | "hours" | "startTime" | "endTime" | "overtimeType" | "reason" | "approvedBy" | "approvalStatus" | "compensationMethod", ExtArgs["result"]["overtimeLog"]>
   export type OvertimeLogInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     employee?: boolean | EmployeeDefaultArgs<ExtArgs>
     approver?: boolean | OvertimeLog$approverArgs<ExtArgs>
@@ -22356,8 +22531,9 @@ export namespace Prisma {
       employeeId: number
       date: Date
       hours: Prisma.Decimal | null
-      startTime: Date
-      endTime: Date
+      startTime: Date | null
+      endTime: Date | null
+      overtimeType: $Enums.OvertimeType
       reason: string | null
       approvedBy: number | null
       approvalStatus: $Enums.OvertimeApprovalStatus
@@ -22739,6 +22915,7 @@ export namespace Prisma {
     readonly hours: FieldRef<"OvertimeLog", 'Decimal'>
     readonly startTime: FieldRef<"OvertimeLog", 'DateTime'>
     readonly endTime: FieldRef<"OvertimeLog", 'DateTime'>
+    readonly overtimeType: FieldRef<"OvertimeLog", 'OvertimeType'>
     readonly reason: FieldRef<"OvertimeLog", 'String'>
     readonly approvedBy: FieldRef<"OvertimeLog", 'Int'>
     readonly approvalStatus: FieldRef<"OvertimeLog", 'OvertimeApprovalStatus'>
@@ -23139,6 +23316,8 @@ export namespace Prisma {
     id: number | null
     employeeId: number | null
     amount: Decimal | null
+    baseSalary: Decimal | null
+    deductions: Decimal | null
     overtimeHours: Decimal | null
     overtimePay: Decimal | null
   }
@@ -23147,6 +23326,8 @@ export namespace Prisma {
     id: number | null
     employeeId: number | null
     amount: Decimal | null
+    baseSalary: Decimal | null
+    deductions: Decimal | null
     overtimeHours: Decimal | null
     overtimePay: Decimal | null
   }
@@ -23156,6 +23337,8 @@ export namespace Prisma {
     employeeId: number | null
     salaryMonth: Date | null
     amount: Decimal | null
+    baseSalary: Decimal | null
+    deductions: Decimal | null
     status: $Enums.SalaryStatus | null
     overtimeHours: Decimal | null
     overtimePay: Decimal | null
@@ -23169,6 +23352,8 @@ export namespace Prisma {
     employeeId: number | null
     salaryMonth: Date | null
     amount: Decimal | null
+    baseSalary: Decimal | null
+    deductions: Decimal | null
     status: $Enums.SalaryStatus | null
     overtimeHours: Decimal | null
     overtimePay: Decimal | null
@@ -23182,6 +23367,8 @@ export namespace Prisma {
     employeeId: number
     salaryMonth: number
     amount: number
+    baseSalary: number
+    deductions: number
     status: number
     overtimeHours: number
     overtimePay: number
@@ -23196,6 +23383,8 @@ export namespace Prisma {
     id?: true
     employeeId?: true
     amount?: true
+    baseSalary?: true
+    deductions?: true
     overtimeHours?: true
     overtimePay?: true
   }
@@ -23204,6 +23393,8 @@ export namespace Prisma {
     id?: true
     employeeId?: true
     amount?: true
+    baseSalary?: true
+    deductions?: true
     overtimeHours?: true
     overtimePay?: true
   }
@@ -23213,6 +23404,8 @@ export namespace Prisma {
     employeeId?: true
     salaryMonth?: true
     amount?: true
+    baseSalary?: true
+    deductions?: true
     status?: true
     overtimeHours?: true
     overtimePay?: true
@@ -23226,6 +23419,8 @@ export namespace Prisma {
     employeeId?: true
     salaryMonth?: true
     amount?: true
+    baseSalary?: true
+    deductions?: true
     status?: true
     overtimeHours?: true
     overtimePay?: true
@@ -23239,6 +23434,8 @@ export namespace Prisma {
     employeeId?: true
     salaryMonth?: true
     amount?: true
+    baseSalary?: true
+    deductions?: true
     status?: true
     overtimeHours?: true
     overtimePay?: true
@@ -23339,6 +23536,8 @@ export namespace Prisma {
     employeeId: number
     salaryMonth: Date
     amount: Decimal
+    baseSalary: Decimal
+    deductions: Decimal
     status: $Enums.SalaryStatus
     overtimeHours: Decimal
     overtimePay: Decimal
@@ -23371,6 +23570,8 @@ export namespace Prisma {
     employeeId?: boolean
     salaryMonth?: boolean
     amount?: boolean
+    baseSalary?: boolean
+    deductions?: boolean
     status?: boolean
     overtimeHours?: boolean
     overtimePay?: boolean
@@ -23387,6 +23588,8 @@ export namespace Prisma {
     employeeId?: boolean
     salaryMonth?: boolean
     amount?: boolean
+    baseSalary?: boolean
+    deductions?: boolean
     status?: boolean
     overtimeHours?: boolean
     overtimePay?: boolean
@@ -23395,7 +23598,7 @@ export namespace Prisma {
     updatedAt?: boolean
   }
 
-  export type SalaryOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "employeeId" | "salaryMonth" | "amount" | "status" | "overtimeHours" | "overtimePay" | "paidAt" | "createdAt" | "updatedAt", ExtArgs["result"]["salary"]>
+  export type SalaryOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "employeeId" | "salaryMonth" | "amount" | "baseSalary" | "deductions" | "status" | "overtimeHours" | "overtimePay" | "paidAt" | "createdAt" | "updatedAt", ExtArgs["result"]["salary"]>
   export type SalaryInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     employee?: boolean | EmployeeDefaultArgs<ExtArgs>
   }
@@ -23410,6 +23613,8 @@ export namespace Prisma {
       employeeId: number
       salaryMonth: Date
       amount: Prisma.Decimal
+      baseSalary: Prisma.Decimal
+      deductions: Prisma.Decimal
       status: $Enums.SalaryStatus
       overtimeHours: Prisma.Decimal
       overtimePay: Prisma.Decimal
@@ -23790,6 +23995,8 @@ export namespace Prisma {
     readonly employeeId: FieldRef<"Salary", 'Int'>
     readonly salaryMonth: FieldRef<"Salary", 'DateTime'>
     readonly amount: FieldRef<"Salary", 'Decimal'>
+    readonly baseSalary: FieldRef<"Salary", 'Decimal'>
+    readonly deductions: FieldRef<"Salary", 'Decimal'>
     readonly status: FieldRef<"Salary", 'SalaryStatus'>
     readonly overtimeHours: FieldRef<"Salary", 'Decimal'>
     readonly overtimePay: FieldRef<"Salary", 'Decimal'>
@@ -24154,6 +24361,1070 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: SalaryInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model PayrollPolicy
+   */
+
+  export type AggregatePayrollPolicy = {
+    _count: PayrollPolicyCountAggregateOutputType | null
+    _avg: PayrollPolicyAvgAggregateOutputType | null
+    _sum: PayrollPolicySumAggregateOutputType | null
+    _min: PayrollPolicyMinAggregateOutputType | null
+    _max: PayrollPolicyMaxAggregateOutputType | null
+  }
+
+  export type PayrollPolicyAvgAggregateOutputType = {
+    id: number | null
+    otMultiplierWeekday1: Decimal | null
+    otMultiplierWeekday2: Decimal | null
+    otMultiplierSleepover: Decimal | null
+    otMultiplierSunday: Decimal | null
+    otMultiplierHoliday: Decimal | null
+  }
+
+  export type PayrollPolicySumAggregateOutputType = {
+    id: number | null
+    otMultiplierWeekday1: Decimal | null
+    otMultiplierWeekday2: Decimal | null
+    otMultiplierSleepover: Decimal | null
+    otMultiplierSunday: Decimal | null
+    otMultiplierHoliday: Decimal | null
+  }
+
+  export type PayrollPolicyMinAggregateOutputType = {
+    id: number | null
+    name: string | null
+    isDefault: boolean | null
+    otMultiplierWeekday1: Decimal | null
+    otMultiplierWeekday2: Decimal | null
+    otMultiplierSleepover: Decimal | null
+    otMultiplierSunday: Decimal | null
+    otMultiplierHoliday: Decimal | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type PayrollPolicyMaxAggregateOutputType = {
+    id: number | null
+    name: string | null
+    isDefault: boolean | null
+    otMultiplierWeekday1: Decimal | null
+    otMultiplierWeekday2: Decimal | null
+    otMultiplierSleepover: Decimal | null
+    otMultiplierSunday: Decimal | null
+    otMultiplierHoliday: Decimal | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type PayrollPolicyCountAggregateOutputType = {
+    id: number
+    name: number
+    isDefault: number
+    otMultiplierWeekday1: number
+    otMultiplierWeekday2: number
+    otMultiplierSleepover: number
+    otMultiplierSunday: number
+    otMultiplierHoliday: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type PayrollPolicyAvgAggregateInputType = {
+    id?: true
+    otMultiplierWeekday1?: true
+    otMultiplierWeekday2?: true
+    otMultiplierSleepover?: true
+    otMultiplierSunday?: true
+    otMultiplierHoliday?: true
+  }
+
+  export type PayrollPolicySumAggregateInputType = {
+    id?: true
+    otMultiplierWeekday1?: true
+    otMultiplierWeekday2?: true
+    otMultiplierSleepover?: true
+    otMultiplierSunday?: true
+    otMultiplierHoliday?: true
+  }
+
+  export type PayrollPolicyMinAggregateInputType = {
+    id?: true
+    name?: true
+    isDefault?: true
+    otMultiplierWeekday1?: true
+    otMultiplierWeekday2?: true
+    otMultiplierSleepover?: true
+    otMultiplierSunday?: true
+    otMultiplierHoliday?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type PayrollPolicyMaxAggregateInputType = {
+    id?: true
+    name?: true
+    isDefault?: true
+    otMultiplierWeekday1?: true
+    otMultiplierWeekday2?: true
+    otMultiplierSleepover?: true
+    otMultiplierSunday?: true
+    otMultiplierHoliday?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type PayrollPolicyCountAggregateInputType = {
+    id?: true
+    name?: true
+    isDefault?: true
+    otMultiplierWeekday1?: true
+    otMultiplierWeekday2?: true
+    otMultiplierSleepover?: true
+    otMultiplierSunday?: true
+    otMultiplierHoliday?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type PayrollPolicyAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PayrollPolicy to aggregate.
+     */
+    where?: PayrollPolicyWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PayrollPolicies to fetch.
+     */
+    orderBy?: PayrollPolicyOrderByWithRelationInput | PayrollPolicyOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: PayrollPolicyWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PayrollPolicies from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PayrollPolicies.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned PayrollPolicies
+    **/
+    _count?: true | PayrollPolicyCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: PayrollPolicyAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: PayrollPolicySumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: PayrollPolicyMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: PayrollPolicyMaxAggregateInputType
+  }
+
+  export type GetPayrollPolicyAggregateType<T extends PayrollPolicyAggregateArgs> = {
+        [P in keyof T & keyof AggregatePayrollPolicy]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregatePayrollPolicy[P]>
+      : GetScalarType<T[P], AggregatePayrollPolicy[P]>
+  }
+
+
+
+
+  export type PayrollPolicyGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PayrollPolicyWhereInput
+    orderBy?: PayrollPolicyOrderByWithAggregationInput | PayrollPolicyOrderByWithAggregationInput[]
+    by: PayrollPolicyScalarFieldEnum[] | PayrollPolicyScalarFieldEnum
+    having?: PayrollPolicyScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: PayrollPolicyCountAggregateInputType | true
+    _avg?: PayrollPolicyAvgAggregateInputType
+    _sum?: PayrollPolicySumAggregateInputType
+    _min?: PayrollPolicyMinAggregateInputType
+    _max?: PayrollPolicyMaxAggregateInputType
+  }
+
+  export type PayrollPolicyGroupByOutputType = {
+    id: number
+    name: string
+    isDefault: boolean
+    otMultiplierWeekday1: Decimal
+    otMultiplierWeekday2: Decimal
+    otMultiplierSleepover: Decimal
+    otMultiplierSunday: Decimal
+    otMultiplierHoliday: Decimal
+    createdAt: Date
+    updatedAt: Date
+    _count: PayrollPolicyCountAggregateOutputType | null
+    _avg: PayrollPolicyAvgAggregateOutputType | null
+    _sum: PayrollPolicySumAggregateOutputType | null
+    _min: PayrollPolicyMinAggregateOutputType | null
+    _max: PayrollPolicyMaxAggregateOutputType | null
+  }
+
+  type GetPayrollPolicyGroupByPayload<T extends PayrollPolicyGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<PayrollPolicyGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof PayrollPolicyGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], PayrollPolicyGroupByOutputType[P]>
+            : GetScalarType<T[P], PayrollPolicyGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type PayrollPolicySelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    isDefault?: boolean
+    otMultiplierWeekday1?: boolean
+    otMultiplierWeekday2?: boolean
+    otMultiplierSleepover?: boolean
+    otMultiplierSunday?: boolean
+    otMultiplierHoliday?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    departments?: boolean | PayrollPolicy$departmentsArgs<ExtArgs>
+    _count?: boolean | PayrollPolicyCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["payrollPolicy"]>
+
+
+
+  export type PayrollPolicySelectScalar = {
+    id?: boolean
+    name?: boolean
+    isDefault?: boolean
+    otMultiplierWeekday1?: boolean
+    otMultiplierWeekday2?: boolean
+    otMultiplierSleepover?: boolean
+    otMultiplierSunday?: boolean
+    otMultiplierHoliday?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type PayrollPolicyOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "isDefault" | "otMultiplierWeekday1" | "otMultiplierWeekday2" | "otMultiplierSleepover" | "otMultiplierSunday" | "otMultiplierHoliday" | "createdAt" | "updatedAt", ExtArgs["result"]["payrollPolicy"]>
+  export type PayrollPolicyInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    departments?: boolean | PayrollPolicy$departmentsArgs<ExtArgs>
+    _count?: boolean | PayrollPolicyCountOutputTypeDefaultArgs<ExtArgs>
+  }
+
+  export type $PayrollPolicyPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "PayrollPolicy"
+    objects: {
+      departments: Prisma.$DepartmentPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      name: string
+      isDefault: boolean
+      otMultiplierWeekday1: Prisma.Decimal
+      otMultiplierWeekday2: Prisma.Decimal
+      otMultiplierSleepover: Prisma.Decimal
+      otMultiplierSunday: Prisma.Decimal
+      otMultiplierHoliday: Prisma.Decimal
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["payrollPolicy"]>
+    composites: {}
+  }
+
+  type PayrollPolicyGetPayload<S extends boolean | null | undefined | PayrollPolicyDefaultArgs> = $Result.GetResult<Prisma.$PayrollPolicyPayload, S>
+
+  type PayrollPolicyCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<PayrollPolicyFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: PayrollPolicyCountAggregateInputType | true
+    }
+
+  export interface PayrollPolicyDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['PayrollPolicy'], meta: { name: 'PayrollPolicy' } }
+    /**
+     * Find zero or one PayrollPolicy that matches the filter.
+     * @param {PayrollPolicyFindUniqueArgs} args - Arguments to find a PayrollPolicy
+     * @example
+     * // Get one PayrollPolicy
+     * const payrollPolicy = await prisma.payrollPolicy.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends PayrollPolicyFindUniqueArgs>(args: SelectSubset<T, PayrollPolicyFindUniqueArgs<ExtArgs>>): Prisma__PayrollPolicyClient<$Result.GetResult<Prisma.$PayrollPolicyPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one PayrollPolicy that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {PayrollPolicyFindUniqueOrThrowArgs} args - Arguments to find a PayrollPolicy
+     * @example
+     * // Get one PayrollPolicy
+     * const payrollPolicy = await prisma.payrollPolicy.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends PayrollPolicyFindUniqueOrThrowArgs>(args: SelectSubset<T, PayrollPolicyFindUniqueOrThrowArgs<ExtArgs>>): Prisma__PayrollPolicyClient<$Result.GetResult<Prisma.$PayrollPolicyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first PayrollPolicy that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PayrollPolicyFindFirstArgs} args - Arguments to find a PayrollPolicy
+     * @example
+     * // Get one PayrollPolicy
+     * const payrollPolicy = await prisma.payrollPolicy.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends PayrollPolicyFindFirstArgs>(args?: SelectSubset<T, PayrollPolicyFindFirstArgs<ExtArgs>>): Prisma__PayrollPolicyClient<$Result.GetResult<Prisma.$PayrollPolicyPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first PayrollPolicy that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PayrollPolicyFindFirstOrThrowArgs} args - Arguments to find a PayrollPolicy
+     * @example
+     * // Get one PayrollPolicy
+     * const payrollPolicy = await prisma.payrollPolicy.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends PayrollPolicyFindFirstOrThrowArgs>(args?: SelectSubset<T, PayrollPolicyFindFirstOrThrowArgs<ExtArgs>>): Prisma__PayrollPolicyClient<$Result.GetResult<Prisma.$PayrollPolicyPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more PayrollPolicies that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PayrollPolicyFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all PayrollPolicies
+     * const payrollPolicies = await prisma.payrollPolicy.findMany()
+     * 
+     * // Get first 10 PayrollPolicies
+     * const payrollPolicies = await prisma.payrollPolicy.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const payrollPolicyWithIdOnly = await prisma.payrollPolicy.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends PayrollPolicyFindManyArgs>(args?: SelectSubset<T, PayrollPolicyFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PayrollPolicyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a PayrollPolicy.
+     * @param {PayrollPolicyCreateArgs} args - Arguments to create a PayrollPolicy.
+     * @example
+     * // Create one PayrollPolicy
+     * const PayrollPolicy = await prisma.payrollPolicy.create({
+     *   data: {
+     *     // ... data to create a PayrollPolicy
+     *   }
+     * })
+     * 
+     */
+    create<T extends PayrollPolicyCreateArgs>(args: SelectSubset<T, PayrollPolicyCreateArgs<ExtArgs>>): Prisma__PayrollPolicyClient<$Result.GetResult<Prisma.$PayrollPolicyPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many PayrollPolicies.
+     * @param {PayrollPolicyCreateManyArgs} args - Arguments to create many PayrollPolicies.
+     * @example
+     * // Create many PayrollPolicies
+     * const payrollPolicy = await prisma.payrollPolicy.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends PayrollPolicyCreateManyArgs>(args?: SelectSubset<T, PayrollPolicyCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Delete a PayrollPolicy.
+     * @param {PayrollPolicyDeleteArgs} args - Arguments to delete one PayrollPolicy.
+     * @example
+     * // Delete one PayrollPolicy
+     * const PayrollPolicy = await prisma.payrollPolicy.delete({
+     *   where: {
+     *     // ... filter to delete one PayrollPolicy
+     *   }
+     * })
+     * 
+     */
+    delete<T extends PayrollPolicyDeleteArgs>(args: SelectSubset<T, PayrollPolicyDeleteArgs<ExtArgs>>): Prisma__PayrollPolicyClient<$Result.GetResult<Prisma.$PayrollPolicyPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one PayrollPolicy.
+     * @param {PayrollPolicyUpdateArgs} args - Arguments to update one PayrollPolicy.
+     * @example
+     * // Update one PayrollPolicy
+     * const payrollPolicy = await prisma.payrollPolicy.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends PayrollPolicyUpdateArgs>(args: SelectSubset<T, PayrollPolicyUpdateArgs<ExtArgs>>): Prisma__PayrollPolicyClient<$Result.GetResult<Prisma.$PayrollPolicyPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more PayrollPolicies.
+     * @param {PayrollPolicyDeleteManyArgs} args - Arguments to filter PayrollPolicies to delete.
+     * @example
+     * // Delete a few PayrollPolicies
+     * const { count } = await prisma.payrollPolicy.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends PayrollPolicyDeleteManyArgs>(args?: SelectSubset<T, PayrollPolicyDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more PayrollPolicies.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PayrollPolicyUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many PayrollPolicies
+     * const payrollPolicy = await prisma.payrollPolicy.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends PayrollPolicyUpdateManyArgs>(args: SelectSubset<T, PayrollPolicyUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one PayrollPolicy.
+     * @param {PayrollPolicyUpsertArgs} args - Arguments to update or create a PayrollPolicy.
+     * @example
+     * // Update or create a PayrollPolicy
+     * const payrollPolicy = await prisma.payrollPolicy.upsert({
+     *   create: {
+     *     // ... data to create a PayrollPolicy
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the PayrollPolicy we want to update
+     *   }
+     * })
+     */
+    upsert<T extends PayrollPolicyUpsertArgs>(args: SelectSubset<T, PayrollPolicyUpsertArgs<ExtArgs>>): Prisma__PayrollPolicyClient<$Result.GetResult<Prisma.$PayrollPolicyPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of PayrollPolicies.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PayrollPolicyCountArgs} args - Arguments to filter PayrollPolicies to count.
+     * @example
+     * // Count the number of PayrollPolicies
+     * const count = await prisma.payrollPolicy.count({
+     *   where: {
+     *     // ... the filter for the PayrollPolicies we want to count
+     *   }
+     * })
+    **/
+    count<T extends PayrollPolicyCountArgs>(
+      args?: Subset<T, PayrollPolicyCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], PayrollPolicyCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a PayrollPolicy.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PayrollPolicyAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends PayrollPolicyAggregateArgs>(args: Subset<T, PayrollPolicyAggregateArgs>): Prisma.PrismaPromise<GetPayrollPolicyAggregateType<T>>
+
+    /**
+     * Group by PayrollPolicy.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PayrollPolicyGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends PayrollPolicyGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: PayrollPolicyGroupByArgs['orderBy'] }
+        : { orderBy?: PayrollPolicyGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, PayrollPolicyGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetPayrollPolicyGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the PayrollPolicy model
+   */
+  readonly fields: PayrollPolicyFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for PayrollPolicy.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__PayrollPolicyClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    departments<T extends PayrollPolicy$departmentsArgs<ExtArgs> = {}>(args?: Subset<T, PayrollPolicy$departmentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DepartmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the PayrollPolicy model
+   */
+  interface PayrollPolicyFieldRefs {
+    readonly id: FieldRef<"PayrollPolicy", 'Int'>
+    readonly name: FieldRef<"PayrollPolicy", 'String'>
+    readonly isDefault: FieldRef<"PayrollPolicy", 'Boolean'>
+    readonly otMultiplierWeekday1: FieldRef<"PayrollPolicy", 'Decimal'>
+    readonly otMultiplierWeekday2: FieldRef<"PayrollPolicy", 'Decimal'>
+    readonly otMultiplierSleepover: FieldRef<"PayrollPolicy", 'Decimal'>
+    readonly otMultiplierSunday: FieldRef<"PayrollPolicy", 'Decimal'>
+    readonly otMultiplierHoliday: FieldRef<"PayrollPolicy", 'Decimal'>
+    readonly createdAt: FieldRef<"PayrollPolicy", 'DateTime'>
+    readonly updatedAt: FieldRef<"PayrollPolicy", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * PayrollPolicy findUnique
+   */
+  export type PayrollPolicyFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PayrollPolicy
+     */
+    select?: PayrollPolicySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PayrollPolicy
+     */
+    omit?: PayrollPolicyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PayrollPolicyInclude<ExtArgs> | null
+    /**
+     * Filter, which PayrollPolicy to fetch.
+     */
+    where: PayrollPolicyWhereUniqueInput
+  }
+
+  /**
+   * PayrollPolicy findUniqueOrThrow
+   */
+  export type PayrollPolicyFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PayrollPolicy
+     */
+    select?: PayrollPolicySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PayrollPolicy
+     */
+    omit?: PayrollPolicyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PayrollPolicyInclude<ExtArgs> | null
+    /**
+     * Filter, which PayrollPolicy to fetch.
+     */
+    where: PayrollPolicyWhereUniqueInput
+  }
+
+  /**
+   * PayrollPolicy findFirst
+   */
+  export type PayrollPolicyFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PayrollPolicy
+     */
+    select?: PayrollPolicySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PayrollPolicy
+     */
+    omit?: PayrollPolicyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PayrollPolicyInclude<ExtArgs> | null
+    /**
+     * Filter, which PayrollPolicy to fetch.
+     */
+    where?: PayrollPolicyWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PayrollPolicies to fetch.
+     */
+    orderBy?: PayrollPolicyOrderByWithRelationInput | PayrollPolicyOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PayrollPolicies.
+     */
+    cursor?: PayrollPolicyWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PayrollPolicies from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PayrollPolicies.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PayrollPolicies.
+     */
+    distinct?: PayrollPolicyScalarFieldEnum | PayrollPolicyScalarFieldEnum[]
+  }
+
+  /**
+   * PayrollPolicy findFirstOrThrow
+   */
+  export type PayrollPolicyFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PayrollPolicy
+     */
+    select?: PayrollPolicySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PayrollPolicy
+     */
+    omit?: PayrollPolicyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PayrollPolicyInclude<ExtArgs> | null
+    /**
+     * Filter, which PayrollPolicy to fetch.
+     */
+    where?: PayrollPolicyWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PayrollPolicies to fetch.
+     */
+    orderBy?: PayrollPolicyOrderByWithRelationInput | PayrollPolicyOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PayrollPolicies.
+     */
+    cursor?: PayrollPolicyWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PayrollPolicies from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PayrollPolicies.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PayrollPolicies.
+     */
+    distinct?: PayrollPolicyScalarFieldEnum | PayrollPolicyScalarFieldEnum[]
+  }
+
+  /**
+   * PayrollPolicy findMany
+   */
+  export type PayrollPolicyFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PayrollPolicy
+     */
+    select?: PayrollPolicySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PayrollPolicy
+     */
+    omit?: PayrollPolicyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PayrollPolicyInclude<ExtArgs> | null
+    /**
+     * Filter, which PayrollPolicies to fetch.
+     */
+    where?: PayrollPolicyWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PayrollPolicies to fetch.
+     */
+    orderBy?: PayrollPolicyOrderByWithRelationInput | PayrollPolicyOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing PayrollPolicies.
+     */
+    cursor?: PayrollPolicyWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PayrollPolicies from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PayrollPolicies.
+     */
+    skip?: number
+    distinct?: PayrollPolicyScalarFieldEnum | PayrollPolicyScalarFieldEnum[]
+  }
+
+  /**
+   * PayrollPolicy create
+   */
+  export type PayrollPolicyCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PayrollPolicy
+     */
+    select?: PayrollPolicySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PayrollPolicy
+     */
+    omit?: PayrollPolicyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PayrollPolicyInclude<ExtArgs> | null
+    /**
+     * The data needed to create a PayrollPolicy.
+     */
+    data: XOR<PayrollPolicyCreateInput, PayrollPolicyUncheckedCreateInput>
+  }
+
+  /**
+   * PayrollPolicy createMany
+   */
+  export type PayrollPolicyCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many PayrollPolicies.
+     */
+    data: PayrollPolicyCreateManyInput | PayrollPolicyCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * PayrollPolicy update
+   */
+  export type PayrollPolicyUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PayrollPolicy
+     */
+    select?: PayrollPolicySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PayrollPolicy
+     */
+    omit?: PayrollPolicyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PayrollPolicyInclude<ExtArgs> | null
+    /**
+     * The data needed to update a PayrollPolicy.
+     */
+    data: XOR<PayrollPolicyUpdateInput, PayrollPolicyUncheckedUpdateInput>
+    /**
+     * Choose, which PayrollPolicy to update.
+     */
+    where: PayrollPolicyWhereUniqueInput
+  }
+
+  /**
+   * PayrollPolicy updateMany
+   */
+  export type PayrollPolicyUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update PayrollPolicies.
+     */
+    data: XOR<PayrollPolicyUpdateManyMutationInput, PayrollPolicyUncheckedUpdateManyInput>
+    /**
+     * Filter which PayrollPolicies to update
+     */
+    where?: PayrollPolicyWhereInput
+    /**
+     * Limit how many PayrollPolicies to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * PayrollPolicy upsert
+   */
+  export type PayrollPolicyUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PayrollPolicy
+     */
+    select?: PayrollPolicySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PayrollPolicy
+     */
+    omit?: PayrollPolicyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PayrollPolicyInclude<ExtArgs> | null
+    /**
+     * The filter to search for the PayrollPolicy to update in case it exists.
+     */
+    where: PayrollPolicyWhereUniqueInput
+    /**
+     * In case the PayrollPolicy found by the `where` argument doesn't exist, create a new PayrollPolicy with this data.
+     */
+    create: XOR<PayrollPolicyCreateInput, PayrollPolicyUncheckedCreateInput>
+    /**
+     * In case the PayrollPolicy was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<PayrollPolicyUpdateInput, PayrollPolicyUncheckedUpdateInput>
+  }
+
+  /**
+   * PayrollPolicy delete
+   */
+  export type PayrollPolicyDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PayrollPolicy
+     */
+    select?: PayrollPolicySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PayrollPolicy
+     */
+    omit?: PayrollPolicyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PayrollPolicyInclude<ExtArgs> | null
+    /**
+     * Filter which PayrollPolicy to delete.
+     */
+    where: PayrollPolicyWhereUniqueInput
+  }
+
+  /**
+   * PayrollPolicy deleteMany
+   */
+  export type PayrollPolicyDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PayrollPolicies to delete
+     */
+    where?: PayrollPolicyWhereInput
+    /**
+     * Limit how many PayrollPolicies to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * PayrollPolicy.departments
+   */
+  export type PayrollPolicy$departmentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Department
+     */
+    select?: DepartmentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Department
+     */
+    omit?: DepartmentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DepartmentInclude<ExtArgs> | null
+    where?: DepartmentWhereInput
+    orderBy?: DepartmentOrderByWithRelationInput | DepartmentOrderByWithRelationInput[]
+    cursor?: DepartmentWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: DepartmentScalarFieldEnum | DepartmentScalarFieldEnum[]
+  }
+
+  /**
+   * PayrollPolicy without action
+   */
+  export type PayrollPolicyDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PayrollPolicy
+     */
+    select?: PayrollPolicySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PayrollPolicy
+     */
+    omit?: PayrollPolicyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PayrollPolicyInclude<ExtArgs> | null
   }
 
 
@@ -28174,7 +29445,8 @@ export namespace Prisma {
     description: 'description',
     parentId: 'parentId',
     createdAt: 'createdAt',
-    updatedAt: 'updatedAt'
+    updatedAt: 'updatedAt',
+    payrollPolicyId: 'payrollPolicyId'
   };
 
   export type DepartmentScalarFieldEnum = (typeof DepartmentScalarFieldEnum)[keyof typeof DepartmentScalarFieldEnum]
@@ -28373,6 +29645,7 @@ export namespace Prisma {
     hours: 'hours',
     startTime: 'startTime',
     endTime: 'endTime',
+    overtimeType: 'overtimeType',
     reason: 'reason',
     approvedBy: 'approvedBy',
     approvalStatus: 'approvalStatus',
@@ -28387,6 +29660,8 @@ export namespace Prisma {
     employeeId: 'employeeId',
     salaryMonth: 'salaryMonth',
     amount: 'amount',
+    baseSalary: 'baseSalary',
+    deductions: 'deductions',
     status: 'status',
     overtimeHours: 'overtimeHours',
     overtimePay: 'overtimePay',
@@ -28396,6 +29671,22 @@ export namespace Prisma {
   };
 
   export type SalaryScalarFieldEnum = (typeof SalaryScalarFieldEnum)[keyof typeof SalaryScalarFieldEnum]
+
+
+  export const PayrollPolicyScalarFieldEnum: {
+    id: 'id',
+    name: 'name',
+    isDefault: 'isDefault',
+    otMultiplierWeekday1: 'otMultiplierWeekday1',
+    otMultiplierWeekday2: 'otMultiplierWeekday2',
+    otMultiplierSleepover: 'otMultiplierSleepover',
+    otMultiplierSunday: 'otMultiplierSunday',
+    otMultiplierHoliday: 'otMultiplierHoliday',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type PayrollPolicyScalarFieldEnum = (typeof PayrollPolicyScalarFieldEnum)[keyof typeof PayrollPolicyScalarFieldEnum]
 
 
   export const ComplaintScalarFieldEnum: {
@@ -28601,6 +29892,13 @@ export namespace Prisma {
   export type OvertimeLogOrderByRelevanceFieldEnum = (typeof OvertimeLogOrderByRelevanceFieldEnum)[keyof typeof OvertimeLogOrderByRelevanceFieldEnum]
 
 
+  export const PayrollPolicyOrderByRelevanceFieldEnum: {
+    name: 'name'
+  };
+
+  export type PayrollPolicyOrderByRelevanceFieldEnum = (typeof PayrollPolicyOrderByRelevanceFieldEnum)[keyof typeof PayrollPolicyOrderByRelevanceFieldEnum]
+
+
   export const ComplaintOrderByRelevanceFieldEnum: {
     subject: 'subject',
     description: 'description',
@@ -28707,6 +30005,13 @@ export namespace Prisma {
    * Reference to a field of type 'LeaveStatus'
    */
   export type EnumLeaveStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'LeaveStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'OvertimeType'
+   */
+  export type EnumOvertimeTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OvertimeType'>
     
 
 
@@ -28965,10 +30270,12 @@ export namespace Prisma {
     parentId?: IntNullableFilter<"Department"> | number | null
     createdAt?: DateTimeFilter<"Department"> | Date | string
     updatedAt?: DateTimeFilter<"Department"> | Date | string
+    payrollPolicyId?: IntNullableFilter<"Department"> | number | null
     parent?: XOR<DepartmentNullableScalarRelationFilter, DepartmentWhereInput> | null
     subDepartments?: DepartmentListRelationFilter
     employees?: EmployeeListRelationFilter
     attendanceSummaries?: AttendanceSummaryListRelationFilter
+    payrollPolicy?: XOR<PayrollPolicyNullableScalarRelationFilter, PayrollPolicyWhereInput> | null
   }
 
   export type DepartmentOrderByWithRelationInput = {
@@ -28978,10 +30285,12 @@ export namespace Prisma {
     parentId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    payrollPolicyId?: SortOrderInput | SortOrder
     parent?: DepartmentOrderByWithRelationInput
     subDepartments?: DepartmentOrderByRelationAggregateInput
     employees?: EmployeeOrderByRelationAggregateInput
     attendanceSummaries?: AttendanceSummaryOrderByRelationAggregateInput
+    payrollPolicy?: PayrollPolicyOrderByWithRelationInput
     _relevance?: DepartmentOrderByRelevanceInput
   }
 
@@ -28995,10 +30304,12 @@ export namespace Prisma {
     parentId?: IntNullableFilter<"Department"> | number | null
     createdAt?: DateTimeFilter<"Department"> | Date | string
     updatedAt?: DateTimeFilter<"Department"> | Date | string
+    payrollPolicyId?: IntNullableFilter<"Department"> | number | null
     parent?: XOR<DepartmentNullableScalarRelationFilter, DepartmentWhereInput> | null
     subDepartments?: DepartmentListRelationFilter
     employees?: EmployeeListRelationFilter
     attendanceSummaries?: AttendanceSummaryListRelationFilter
+    payrollPolicy?: XOR<PayrollPolicyNullableScalarRelationFilter, PayrollPolicyWhereInput> | null
   }, "id" | "name">
 
   export type DepartmentOrderByWithAggregationInput = {
@@ -29008,6 +30319,7 @@ export namespace Prisma {
     parentId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    payrollPolicyId?: SortOrderInput | SortOrder
     _count?: DepartmentCountOrderByAggregateInput
     _avg?: DepartmentAvgOrderByAggregateInput
     _max?: DepartmentMaxOrderByAggregateInput
@@ -29025,6 +30337,7 @@ export namespace Prisma {
     parentId?: IntNullableWithAggregatesFilter<"Department"> | number | null
     createdAt?: DateTimeWithAggregatesFilter<"Department"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Department"> | Date | string
+    payrollPolicyId?: IntNullableWithAggregatesFilter<"Department"> | number | null
   }
 
   export type PositionWhereInput = {
@@ -30063,8 +31376,9 @@ export namespace Prisma {
     employeeId?: IntFilter<"OvertimeLog"> | number
     date?: DateTimeFilter<"OvertimeLog"> | Date | string
     hours?: DecimalNullableFilter<"OvertimeLog"> | Decimal | DecimalJsLike | number | string | null
-    startTime?: DateTimeFilter<"OvertimeLog"> | Date | string
-    endTime?: DateTimeFilter<"OvertimeLog"> | Date | string
+    startTime?: DateTimeNullableFilter<"OvertimeLog"> | Date | string | null
+    endTime?: DateTimeNullableFilter<"OvertimeLog"> | Date | string | null
+    overtimeType?: EnumOvertimeTypeFilter<"OvertimeLog"> | $Enums.OvertimeType
     reason?: StringNullableFilter<"OvertimeLog"> | string | null
     approvedBy?: IntNullableFilter<"OvertimeLog"> | number | null
     approvalStatus?: EnumOvertimeApprovalStatusFilter<"OvertimeLog"> | $Enums.OvertimeApprovalStatus
@@ -30078,8 +31392,9 @@ export namespace Prisma {
     employeeId?: SortOrder
     date?: SortOrder
     hours?: SortOrderInput | SortOrder
-    startTime?: SortOrder
-    endTime?: SortOrder
+    startTime?: SortOrderInput | SortOrder
+    endTime?: SortOrderInput | SortOrder
+    overtimeType?: SortOrder
     reason?: SortOrderInput | SortOrder
     approvedBy?: SortOrderInput | SortOrder
     approvalStatus?: SortOrder
@@ -30097,8 +31412,9 @@ export namespace Prisma {
     employeeId?: IntFilter<"OvertimeLog"> | number
     date?: DateTimeFilter<"OvertimeLog"> | Date | string
     hours?: DecimalNullableFilter<"OvertimeLog"> | Decimal | DecimalJsLike | number | string | null
-    startTime?: DateTimeFilter<"OvertimeLog"> | Date | string
-    endTime?: DateTimeFilter<"OvertimeLog"> | Date | string
+    startTime?: DateTimeNullableFilter<"OvertimeLog"> | Date | string | null
+    endTime?: DateTimeNullableFilter<"OvertimeLog"> | Date | string | null
+    overtimeType?: EnumOvertimeTypeFilter<"OvertimeLog"> | $Enums.OvertimeType
     reason?: StringNullableFilter<"OvertimeLog"> | string | null
     approvedBy?: IntNullableFilter<"OvertimeLog"> | number | null
     approvalStatus?: EnumOvertimeApprovalStatusFilter<"OvertimeLog"> | $Enums.OvertimeApprovalStatus
@@ -30112,8 +31428,9 @@ export namespace Prisma {
     employeeId?: SortOrder
     date?: SortOrder
     hours?: SortOrderInput | SortOrder
-    startTime?: SortOrder
-    endTime?: SortOrder
+    startTime?: SortOrderInput | SortOrder
+    endTime?: SortOrderInput | SortOrder
+    overtimeType?: SortOrder
     reason?: SortOrderInput | SortOrder
     approvedBy?: SortOrderInput | SortOrder
     approvalStatus?: SortOrder
@@ -30133,8 +31450,9 @@ export namespace Prisma {
     employeeId?: IntWithAggregatesFilter<"OvertimeLog"> | number
     date?: DateTimeWithAggregatesFilter<"OvertimeLog"> | Date | string
     hours?: DecimalNullableWithAggregatesFilter<"OvertimeLog"> | Decimal | DecimalJsLike | number | string | null
-    startTime?: DateTimeWithAggregatesFilter<"OvertimeLog"> | Date | string
-    endTime?: DateTimeWithAggregatesFilter<"OvertimeLog"> | Date | string
+    startTime?: DateTimeNullableWithAggregatesFilter<"OvertimeLog"> | Date | string | null
+    endTime?: DateTimeNullableWithAggregatesFilter<"OvertimeLog"> | Date | string | null
+    overtimeType?: EnumOvertimeTypeWithAggregatesFilter<"OvertimeLog"> | $Enums.OvertimeType
     reason?: StringNullableWithAggregatesFilter<"OvertimeLog"> | string | null
     approvedBy?: IntNullableWithAggregatesFilter<"OvertimeLog"> | number | null
     approvalStatus?: EnumOvertimeApprovalStatusWithAggregatesFilter<"OvertimeLog"> | $Enums.OvertimeApprovalStatus
@@ -30149,6 +31467,8 @@ export namespace Prisma {
     employeeId?: IntFilter<"Salary"> | number
     salaryMonth?: DateTimeFilter<"Salary"> | Date | string
     amount?: DecimalFilter<"Salary"> | Decimal | DecimalJsLike | number | string
+    baseSalary?: DecimalFilter<"Salary"> | Decimal | DecimalJsLike | number | string
+    deductions?: DecimalFilter<"Salary"> | Decimal | DecimalJsLike | number | string
     status?: EnumSalaryStatusFilter<"Salary"> | $Enums.SalaryStatus
     overtimeHours?: DecimalFilter<"Salary"> | Decimal | DecimalJsLike | number | string
     overtimePay?: DecimalFilter<"Salary"> | Decimal | DecimalJsLike | number | string
@@ -30163,6 +31483,8 @@ export namespace Prisma {
     employeeId?: SortOrder
     salaryMonth?: SortOrder
     amount?: SortOrder
+    baseSalary?: SortOrder
+    deductions?: SortOrder
     status?: SortOrder
     overtimeHours?: SortOrder
     overtimePay?: SortOrder
@@ -30181,6 +31503,8 @@ export namespace Prisma {
     employeeId?: IntFilter<"Salary"> | number
     salaryMonth?: DateTimeFilter<"Salary"> | Date | string
     amount?: DecimalFilter<"Salary"> | Decimal | DecimalJsLike | number | string
+    baseSalary?: DecimalFilter<"Salary"> | Decimal | DecimalJsLike | number | string
+    deductions?: DecimalFilter<"Salary"> | Decimal | DecimalJsLike | number | string
     status?: EnumSalaryStatusFilter<"Salary"> | $Enums.SalaryStatus
     overtimeHours?: DecimalFilter<"Salary"> | Decimal | DecimalJsLike | number | string
     overtimePay?: DecimalFilter<"Salary"> | Decimal | DecimalJsLike | number | string
@@ -30195,6 +31519,8 @@ export namespace Prisma {
     employeeId?: SortOrder
     salaryMonth?: SortOrder
     amount?: SortOrder
+    baseSalary?: SortOrder
+    deductions?: SortOrder
     status?: SortOrder
     overtimeHours?: SortOrder
     overtimePay?: SortOrder
@@ -30216,12 +31542,97 @@ export namespace Prisma {
     employeeId?: IntWithAggregatesFilter<"Salary"> | number
     salaryMonth?: DateTimeWithAggregatesFilter<"Salary"> | Date | string
     amount?: DecimalWithAggregatesFilter<"Salary"> | Decimal | DecimalJsLike | number | string
+    baseSalary?: DecimalWithAggregatesFilter<"Salary"> | Decimal | DecimalJsLike | number | string
+    deductions?: DecimalWithAggregatesFilter<"Salary"> | Decimal | DecimalJsLike | number | string
     status?: EnumSalaryStatusWithAggregatesFilter<"Salary"> | $Enums.SalaryStatus
     overtimeHours?: DecimalWithAggregatesFilter<"Salary"> | Decimal | DecimalJsLike | number | string
     overtimePay?: DecimalWithAggregatesFilter<"Salary"> | Decimal | DecimalJsLike | number | string
     paidAt?: DateTimeNullableWithAggregatesFilter<"Salary"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Salary"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Salary"> | Date | string
+  }
+
+  export type PayrollPolicyWhereInput = {
+    AND?: PayrollPolicyWhereInput | PayrollPolicyWhereInput[]
+    OR?: PayrollPolicyWhereInput[]
+    NOT?: PayrollPolicyWhereInput | PayrollPolicyWhereInput[]
+    id?: IntFilter<"PayrollPolicy"> | number
+    name?: StringFilter<"PayrollPolicy"> | string
+    isDefault?: BoolFilter<"PayrollPolicy"> | boolean
+    otMultiplierWeekday1?: DecimalFilter<"PayrollPolicy"> | Decimal | DecimalJsLike | number | string
+    otMultiplierWeekday2?: DecimalFilter<"PayrollPolicy"> | Decimal | DecimalJsLike | number | string
+    otMultiplierSleepover?: DecimalFilter<"PayrollPolicy"> | Decimal | DecimalJsLike | number | string
+    otMultiplierSunday?: DecimalFilter<"PayrollPolicy"> | Decimal | DecimalJsLike | number | string
+    otMultiplierHoliday?: DecimalFilter<"PayrollPolicy"> | Decimal | DecimalJsLike | number | string
+    createdAt?: DateTimeFilter<"PayrollPolicy"> | Date | string
+    updatedAt?: DateTimeFilter<"PayrollPolicy"> | Date | string
+    departments?: DepartmentListRelationFilter
+  }
+
+  export type PayrollPolicyOrderByWithRelationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    isDefault?: SortOrder
+    otMultiplierWeekday1?: SortOrder
+    otMultiplierWeekday2?: SortOrder
+    otMultiplierSleepover?: SortOrder
+    otMultiplierSunday?: SortOrder
+    otMultiplierHoliday?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    departments?: DepartmentOrderByRelationAggregateInput
+    _relevance?: PayrollPolicyOrderByRelevanceInput
+  }
+
+  export type PayrollPolicyWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    name?: string
+    AND?: PayrollPolicyWhereInput | PayrollPolicyWhereInput[]
+    OR?: PayrollPolicyWhereInput[]
+    NOT?: PayrollPolicyWhereInput | PayrollPolicyWhereInput[]
+    isDefault?: BoolFilter<"PayrollPolicy"> | boolean
+    otMultiplierWeekday1?: DecimalFilter<"PayrollPolicy"> | Decimal | DecimalJsLike | number | string
+    otMultiplierWeekday2?: DecimalFilter<"PayrollPolicy"> | Decimal | DecimalJsLike | number | string
+    otMultiplierSleepover?: DecimalFilter<"PayrollPolicy"> | Decimal | DecimalJsLike | number | string
+    otMultiplierSunday?: DecimalFilter<"PayrollPolicy"> | Decimal | DecimalJsLike | number | string
+    otMultiplierHoliday?: DecimalFilter<"PayrollPolicy"> | Decimal | DecimalJsLike | number | string
+    createdAt?: DateTimeFilter<"PayrollPolicy"> | Date | string
+    updatedAt?: DateTimeFilter<"PayrollPolicy"> | Date | string
+    departments?: DepartmentListRelationFilter
+  }, "id" | "name">
+
+  export type PayrollPolicyOrderByWithAggregationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    isDefault?: SortOrder
+    otMultiplierWeekday1?: SortOrder
+    otMultiplierWeekday2?: SortOrder
+    otMultiplierSleepover?: SortOrder
+    otMultiplierSunday?: SortOrder
+    otMultiplierHoliday?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: PayrollPolicyCountOrderByAggregateInput
+    _avg?: PayrollPolicyAvgOrderByAggregateInput
+    _max?: PayrollPolicyMaxOrderByAggregateInput
+    _min?: PayrollPolicyMinOrderByAggregateInput
+    _sum?: PayrollPolicySumOrderByAggregateInput
+  }
+
+  export type PayrollPolicyScalarWhereWithAggregatesInput = {
+    AND?: PayrollPolicyScalarWhereWithAggregatesInput | PayrollPolicyScalarWhereWithAggregatesInput[]
+    OR?: PayrollPolicyScalarWhereWithAggregatesInput[]
+    NOT?: PayrollPolicyScalarWhereWithAggregatesInput | PayrollPolicyScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"PayrollPolicy"> | number
+    name?: StringWithAggregatesFilter<"PayrollPolicy"> | string
+    isDefault?: BoolWithAggregatesFilter<"PayrollPolicy"> | boolean
+    otMultiplierWeekday1?: DecimalWithAggregatesFilter<"PayrollPolicy"> | Decimal | DecimalJsLike | number | string
+    otMultiplierWeekday2?: DecimalWithAggregatesFilter<"PayrollPolicy"> | Decimal | DecimalJsLike | number | string
+    otMultiplierSleepover?: DecimalWithAggregatesFilter<"PayrollPolicy"> | Decimal | DecimalJsLike | number | string
+    otMultiplierSunday?: DecimalWithAggregatesFilter<"PayrollPolicy"> | Decimal | DecimalJsLike | number | string
+    otMultiplierHoliday?: DecimalWithAggregatesFilter<"PayrollPolicy"> | Decimal | DecimalJsLike | number | string
+    createdAt?: DateTimeWithAggregatesFilter<"PayrollPolicy"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"PayrollPolicy"> | Date | string
   }
 
   export type ComplaintWhereInput = {
@@ -30708,6 +32119,7 @@ export namespace Prisma {
     subDepartments?: DepartmentCreateNestedManyWithoutParentInput
     employees?: EmployeeCreateNestedManyWithoutDepartmentInput
     attendanceSummaries?: AttendanceSummaryCreateNestedManyWithoutDepartmentInput
+    payrollPolicy?: PayrollPolicyCreateNestedOneWithoutDepartmentsInput
   }
 
   export type DepartmentUncheckedCreateInput = {
@@ -30717,6 +32129,7 @@ export namespace Prisma {
     parentId?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    payrollPolicyId?: number | null
     subDepartments?: DepartmentUncheckedCreateNestedManyWithoutParentInput
     employees?: EmployeeUncheckedCreateNestedManyWithoutDepartmentInput
     attendanceSummaries?: AttendanceSummaryUncheckedCreateNestedManyWithoutDepartmentInput
@@ -30731,6 +32144,7 @@ export namespace Prisma {
     subDepartments?: DepartmentUpdateManyWithoutParentNestedInput
     employees?: EmployeeUpdateManyWithoutDepartmentNestedInput
     attendanceSummaries?: AttendanceSummaryUpdateManyWithoutDepartmentNestedInput
+    payrollPolicy?: PayrollPolicyUpdateOneWithoutDepartmentsNestedInput
   }
 
   export type DepartmentUncheckedUpdateInput = {
@@ -30740,6 +32154,7 @@ export namespace Prisma {
     parentId?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    payrollPolicyId?: NullableIntFieldUpdateOperationsInput | number | null
     subDepartments?: DepartmentUncheckedUpdateManyWithoutParentNestedInput
     employees?: EmployeeUncheckedUpdateManyWithoutDepartmentNestedInput
     attendanceSummaries?: AttendanceSummaryUncheckedUpdateManyWithoutDepartmentNestedInput
@@ -30752,6 +32167,7 @@ export namespace Prisma {
     parentId?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    payrollPolicyId?: number | null
   }
 
   export type DepartmentUpdateManyMutationInput = {
@@ -30768,6 +32184,7 @@ export namespace Prisma {
     parentId?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    payrollPolicyId?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type PositionCreateInput = {
@@ -31791,8 +33208,9 @@ export namespace Prisma {
   export type OvertimeLogCreateInput = {
     date: Date | string
     hours?: Decimal | DecimalJsLike | number | string | null
-    startTime: Date | string
-    endTime: Date | string
+    startTime?: Date | string | null
+    endTime?: Date | string | null
+    overtimeType?: $Enums.OvertimeType
     reason?: string | null
     approvalStatus?: $Enums.OvertimeApprovalStatus
     compensationMethod?: $Enums.CompensationMethod
@@ -31805,8 +33223,9 @@ export namespace Prisma {
     employeeId: number
     date: Date | string
     hours?: Decimal | DecimalJsLike | number | string | null
-    startTime: Date | string
-    endTime: Date | string
+    startTime?: Date | string | null
+    endTime?: Date | string | null
+    overtimeType?: $Enums.OvertimeType
     reason?: string | null
     approvedBy?: number | null
     approvalStatus?: $Enums.OvertimeApprovalStatus
@@ -31816,8 +33235,9 @@ export namespace Prisma {
   export type OvertimeLogUpdateInput = {
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     hours?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
-    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
-    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    startTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    endTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    overtimeType?: EnumOvertimeTypeFieldUpdateOperationsInput | $Enums.OvertimeType
     reason?: NullableStringFieldUpdateOperationsInput | string | null
     approvalStatus?: EnumOvertimeApprovalStatusFieldUpdateOperationsInput | $Enums.OvertimeApprovalStatus
     compensationMethod?: EnumCompensationMethodFieldUpdateOperationsInput | $Enums.CompensationMethod
@@ -31830,8 +33250,9 @@ export namespace Prisma {
     employeeId?: IntFieldUpdateOperationsInput | number
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     hours?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
-    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
-    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    startTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    endTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    overtimeType?: EnumOvertimeTypeFieldUpdateOperationsInput | $Enums.OvertimeType
     reason?: NullableStringFieldUpdateOperationsInput | string | null
     approvedBy?: NullableIntFieldUpdateOperationsInput | number | null
     approvalStatus?: EnumOvertimeApprovalStatusFieldUpdateOperationsInput | $Enums.OvertimeApprovalStatus
@@ -31843,8 +33264,9 @@ export namespace Prisma {
     employeeId: number
     date: Date | string
     hours?: Decimal | DecimalJsLike | number | string | null
-    startTime: Date | string
-    endTime: Date | string
+    startTime?: Date | string | null
+    endTime?: Date | string | null
+    overtimeType?: $Enums.OvertimeType
     reason?: string | null
     approvedBy?: number | null
     approvalStatus?: $Enums.OvertimeApprovalStatus
@@ -31854,8 +33276,9 @@ export namespace Prisma {
   export type OvertimeLogUpdateManyMutationInput = {
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     hours?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
-    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
-    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    startTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    endTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    overtimeType?: EnumOvertimeTypeFieldUpdateOperationsInput | $Enums.OvertimeType
     reason?: NullableStringFieldUpdateOperationsInput | string | null
     approvalStatus?: EnumOvertimeApprovalStatusFieldUpdateOperationsInput | $Enums.OvertimeApprovalStatus
     compensationMethod?: EnumCompensationMethodFieldUpdateOperationsInput | $Enums.CompensationMethod
@@ -31866,8 +33289,9 @@ export namespace Prisma {
     employeeId?: IntFieldUpdateOperationsInput | number
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     hours?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
-    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
-    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    startTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    endTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    overtimeType?: EnumOvertimeTypeFieldUpdateOperationsInput | $Enums.OvertimeType
     reason?: NullableStringFieldUpdateOperationsInput | string | null
     approvedBy?: NullableIntFieldUpdateOperationsInput | number | null
     approvalStatus?: EnumOvertimeApprovalStatusFieldUpdateOperationsInput | $Enums.OvertimeApprovalStatus
@@ -31877,6 +33301,8 @@ export namespace Prisma {
   export type SalaryCreateInput = {
     salaryMonth: Date | string
     amount: Decimal | DecimalJsLike | number | string
+    baseSalary?: Decimal | DecimalJsLike | number | string
+    deductions?: Decimal | DecimalJsLike | number | string
     status?: $Enums.SalaryStatus
     overtimeHours?: Decimal | DecimalJsLike | number | string
     overtimePay?: Decimal | DecimalJsLike | number | string
@@ -31891,6 +33317,8 @@ export namespace Prisma {
     employeeId: number
     salaryMonth: Date | string
     amount: Decimal | DecimalJsLike | number | string
+    baseSalary?: Decimal | DecimalJsLike | number | string
+    deductions?: Decimal | DecimalJsLike | number | string
     status?: $Enums.SalaryStatus
     overtimeHours?: Decimal | DecimalJsLike | number | string
     overtimePay?: Decimal | DecimalJsLike | number | string
@@ -31902,6 +33330,8 @@ export namespace Prisma {
   export type SalaryUpdateInput = {
     salaryMonth?: DateTimeFieldUpdateOperationsInput | Date | string
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    baseSalary?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    deductions?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     status?: EnumSalaryStatusFieldUpdateOperationsInput | $Enums.SalaryStatus
     overtimeHours?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     overtimePay?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -31916,6 +33346,8 @@ export namespace Prisma {
     employeeId?: IntFieldUpdateOperationsInput | number
     salaryMonth?: DateTimeFieldUpdateOperationsInput | Date | string
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    baseSalary?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    deductions?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     status?: EnumSalaryStatusFieldUpdateOperationsInput | $Enums.SalaryStatus
     overtimeHours?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     overtimePay?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -31929,6 +33361,8 @@ export namespace Prisma {
     employeeId: number
     salaryMonth: Date | string
     amount: Decimal | DecimalJsLike | number | string
+    baseSalary?: Decimal | DecimalJsLike | number | string
+    deductions?: Decimal | DecimalJsLike | number | string
     status?: $Enums.SalaryStatus
     overtimeHours?: Decimal | DecimalJsLike | number | string
     overtimePay?: Decimal | DecimalJsLike | number | string
@@ -31940,6 +33374,8 @@ export namespace Prisma {
   export type SalaryUpdateManyMutationInput = {
     salaryMonth?: DateTimeFieldUpdateOperationsInput | Date | string
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    baseSalary?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    deductions?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     status?: EnumSalaryStatusFieldUpdateOperationsInput | $Enums.SalaryStatus
     overtimeHours?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     overtimePay?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -31953,10 +33389,104 @@ export namespace Prisma {
     employeeId?: IntFieldUpdateOperationsInput | number
     salaryMonth?: DateTimeFieldUpdateOperationsInput | Date | string
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    baseSalary?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    deductions?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     status?: EnumSalaryStatusFieldUpdateOperationsInput | $Enums.SalaryStatus
     overtimeHours?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     overtimePay?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     paidAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PayrollPolicyCreateInput = {
+    name: string
+    isDefault?: boolean
+    otMultiplierWeekday1?: Decimal | DecimalJsLike | number | string
+    otMultiplierWeekday2?: Decimal | DecimalJsLike | number | string
+    otMultiplierSleepover?: Decimal | DecimalJsLike | number | string
+    otMultiplierSunday?: Decimal | DecimalJsLike | number | string
+    otMultiplierHoliday?: Decimal | DecimalJsLike | number | string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    departments?: DepartmentCreateNestedManyWithoutPayrollPolicyInput
+  }
+
+  export type PayrollPolicyUncheckedCreateInput = {
+    id?: number
+    name: string
+    isDefault?: boolean
+    otMultiplierWeekday1?: Decimal | DecimalJsLike | number | string
+    otMultiplierWeekday2?: Decimal | DecimalJsLike | number | string
+    otMultiplierSleepover?: Decimal | DecimalJsLike | number | string
+    otMultiplierSunday?: Decimal | DecimalJsLike | number | string
+    otMultiplierHoliday?: Decimal | DecimalJsLike | number | string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    departments?: DepartmentUncheckedCreateNestedManyWithoutPayrollPolicyInput
+  }
+
+  export type PayrollPolicyUpdateInput = {
+    name?: StringFieldUpdateOperationsInput | string
+    isDefault?: BoolFieldUpdateOperationsInput | boolean
+    otMultiplierWeekday1?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    otMultiplierWeekday2?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    otMultiplierSleepover?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    otMultiplierSunday?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    otMultiplierHoliday?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    departments?: DepartmentUpdateManyWithoutPayrollPolicyNestedInput
+  }
+
+  export type PayrollPolicyUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    isDefault?: BoolFieldUpdateOperationsInput | boolean
+    otMultiplierWeekday1?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    otMultiplierWeekday2?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    otMultiplierSleepover?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    otMultiplierSunday?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    otMultiplierHoliday?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    departments?: DepartmentUncheckedUpdateManyWithoutPayrollPolicyNestedInput
+  }
+
+  export type PayrollPolicyCreateManyInput = {
+    id?: number
+    name: string
+    isDefault?: boolean
+    otMultiplierWeekday1?: Decimal | DecimalJsLike | number | string
+    otMultiplierWeekday2?: Decimal | DecimalJsLike | number | string
+    otMultiplierSleepover?: Decimal | DecimalJsLike | number | string
+    otMultiplierSunday?: Decimal | DecimalJsLike | number | string
+    otMultiplierHoliday?: Decimal | DecimalJsLike | number | string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PayrollPolicyUpdateManyMutationInput = {
+    name?: StringFieldUpdateOperationsInput | string
+    isDefault?: BoolFieldUpdateOperationsInput | boolean
+    otMultiplierWeekday1?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    otMultiplierWeekday2?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    otMultiplierSleepover?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    otMultiplierSunday?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    otMultiplierHoliday?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PayrollPolicyUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    isDefault?: BoolFieldUpdateOperationsInput | boolean
+    otMultiplierWeekday1?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    otMultiplierWeekday2?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    otMultiplierSleepover?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    otMultiplierSunday?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    otMultiplierHoliday?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -32590,6 +34120,11 @@ export namespace Prisma {
     none?: AttendanceSummaryWhereInput
   }
 
+  export type PayrollPolicyNullableScalarRelationFilter = {
+    is?: PayrollPolicyWhereInput | null
+    isNot?: PayrollPolicyWhereInput | null
+  }
+
   export type DepartmentOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -32611,11 +34146,13 @@ export namespace Prisma {
     parentId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    payrollPolicyId?: SortOrder
   }
 
   export type DepartmentAvgOrderByAggregateInput = {
     id?: SortOrder
     parentId?: SortOrder
+    payrollPolicyId?: SortOrder
   }
 
   export type DepartmentMaxOrderByAggregateInput = {
@@ -32625,6 +34162,7 @@ export namespace Prisma {
     parentId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    payrollPolicyId?: SortOrder
   }
 
   export type DepartmentMinOrderByAggregateInput = {
@@ -32634,11 +34172,13 @@ export namespace Prisma {
     parentId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    payrollPolicyId?: SortOrder
   }
 
   export type DepartmentSumOrderByAggregateInput = {
     id?: SortOrder
     parentId?: SortOrder
+    payrollPolicyId?: SortOrder
   }
 
   export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -33604,6 +35144,13 @@ export namespace Prisma {
     id?: SortOrder
   }
 
+  export type EnumOvertimeTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.OvertimeType | EnumOvertimeTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.OvertimeType[]
+    notIn?: $Enums.OvertimeType[]
+    not?: NestedEnumOvertimeTypeFilter<$PrismaModel> | $Enums.OvertimeType
+  }
+
   export type EnumOvertimeApprovalStatusFilter<$PrismaModel = never> = {
     equals?: $Enums.OvertimeApprovalStatus | EnumOvertimeApprovalStatusFieldRefInput<$PrismaModel>
     in?: $Enums.OvertimeApprovalStatus[]
@@ -33631,6 +35178,7 @@ export namespace Prisma {
     hours?: SortOrder
     startTime?: SortOrder
     endTime?: SortOrder
+    overtimeType?: SortOrder
     reason?: SortOrder
     approvedBy?: SortOrder
     approvalStatus?: SortOrder
@@ -33651,6 +35199,7 @@ export namespace Prisma {
     hours?: SortOrder
     startTime?: SortOrder
     endTime?: SortOrder
+    overtimeType?: SortOrder
     reason?: SortOrder
     approvedBy?: SortOrder
     approvalStatus?: SortOrder
@@ -33664,6 +35213,7 @@ export namespace Prisma {
     hours?: SortOrder
     startTime?: SortOrder
     endTime?: SortOrder
+    overtimeType?: SortOrder
     reason?: SortOrder
     approvedBy?: SortOrder
     approvalStatus?: SortOrder
@@ -33675,6 +35225,16 @@ export namespace Prisma {
     employeeId?: SortOrder
     hours?: SortOrder
     approvedBy?: SortOrder
+  }
+
+  export type EnumOvertimeTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.OvertimeType | EnumOvertimeTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.OvertimeType[]
+    notIn?: $Enums.OvertimeType[]
+    not?: NestedEnumOvertimeTypeWithAggregatesFilter<$PrismaModel> | $Enums.OvertimeType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumOvertimeTypeFilter<$PrismaModel>
+    _max?: NestedEnumOvertimeTypeFilter<$PrismaModel>
   }
 
   export type EnumOvertimeApprovalStatusWithAggregatesFilter<$PrismaModel = never> = {
@@ -33714,6 +35274,8 @@ export namespace Prisma {
     employeeId?: SortOrder
     salaryMonth?: SortOrder
     amount?: SortOrder
+    baseSalary?: SortOrder
+    deductions?: SortOrder
     status?: SortOrder
     overtimeHours?: SortOrder
     overtimePay?: SortOrder
@@ -33726,6 +35288,8 @@ export namespace Prisma {
     id?: SortOrder
     employeeId?: SortOrder
     amount?: SortOrder
+    baseSalary?: SortOrder
+    deductions?: SortOrder
     overtimeHours?: SortOrder
     overtimePay?: SortOrder
   }
@@ -33735,6 +35299,8 @@ export namespace Prisma {
     employeeId?: SortOrder
     salaryMonth?: SortOrder
     amount?: SortOrder
+    baseSalary?: SortOrder
+    deductions?: SortOrder
     status?: SortOrder
     overtimeHours?: SortOrder
     overtimePay?: SortOrder
@@ -33748,6 +35314,8 @@ export namespace Prisma {
     employeeId?: SortOrder
     salaryMonth?: SortOrder
     amount?: SortOrder
+    baseSalary?: SortOrder
+    deductions?: SortOrder
     status?: SortOrder
     overtimeHours?: SortOrder
     overtimePay?: SortOrder
@@ -33760,6 +35328,8 @@ export namespace Prisma {
     id?: SortOrder
     employeeId?: SortOrder
     amount?: SortOrder
+    baseSalary?: SortOrder
+    deductions?: SortOrder
     overtimeHours?: SortOrder
     overtimePay?: SortOrder
   }
@@ -33772,6 +35342,69 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumSalaryStatusFilter<$PrismaModel>
     _max?: NestedEnumSalaryStatusFilter<$PrismaModel>
+  }
+
+  export type PayrollPolicyOrderByRelevanceInput = {
+    fields: PayrollPolicyOrderByRelevanceFieldEnum | PayrollPolicyOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type PayrollPolicyCountOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    isDefault?: SortOrder
+    otMultiplierWeekday1?: SortOrder
+    otMultiplierWeekday2?: SortOrder
+    otMultiplierSleepover?: SortOrder
+    otMultiplierSunday?: SortOrder
+    otMultiplierHoliday?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type PayrollPolicyAvgOrderByAggregateInput = {
+    id?: SortOrder
+    otMultiplierWeekday1?: SortOrder
+    otMultiplierWeekday2?: SortOrder
+    otMultiplierSleepover?: SortOrder
+    otMultiplierSunday?: SortOrder
+    otMultiplierHoliday?: SortOrder
+  }
+
+  export type PayrollPolicyMaxOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    isDefault?: SortOrder
+    otMultiplierWeekday1?: SortOrder
+    otMultiplierWeekday2?: SortOrder
+    otMultiplierSleepover?: SortOrder
+    otMultiplierSunday?: SortOrder
+    otMultiplierHoliday?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type PayrollPolicyMinOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    isDefault?: SortOrder
+    otMultiplierWeekday1?: SortOrder
+    otMultiplierWeekday2?: SortOrder
+    otMultiplierSleepover?: SortOrder
+    otMultiplierSunday?: SortOrder
+    otMultiplierHoliday?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type PayrollPolicySumOrderByAggregateInput = {
+    id?: SortOrder
+    otMultiplierWeekday1?: SortOrder
+    otMultiplierWeekday2?: SortOrder
+    otMultiplierSleepover?: SortOrder
+    otMultiplierSunday?: SortOrder
+    otMultiplierHoliday?: SortOrder
   }
 
   export type EnumComplaintStatusFilter<$PrismaModel = never> = {
@@ -34330,6 +35963,12 @@ export namespace Prisma {
     connect?: AttendanceSummaryWhereUniqueInput | AttendanceSummaryWhereUniqueInput[]
   }
 
+  export type PayrollPolicyCreateNestedOneWithoutDepartmentsInput = {
+    create?: XOR<PayrollPolicyCreateWithoutDepartmentsInput, PayrollPolicyUncheckedCreateWithoutDepartmentsInput>
+    connectOrCreate?: PayrollPolicyCreateOrConnectWithoutDepartmentsInput
+    connect?: PayrollPolicyWhereUniqueInput
+  }
+
   export type DepartmentUncheckedCreateNestedManyWithoutParentInput = {
     create?: XOR<DepartmentCreateWithoutParentInput, DepartmentUncheckedCreateWithoutParentInput> | DepartmentCreateWithoutParentInput[] | DepartmentUncheckedCreateWithoutParentInput[]
     connectOrCreate?: DepartmentCreateOrConnectWithoutParentInput | DepartmentCreateOrConnectWithoutParentInput[]
@@ -34401,6 +36040,16 @@ export namespace Prisma {
     update?: AttendanceSummaryUpdateWithWhereUniqueWithoutDepartmentInput | AttendanceSummaryUpdateWithWhereUniqueWithoutDepartmentInput[]
     updateMany?: AttendanceSummaryUpdateManyWithWhereWithoutDepartmentInput | AttendanceSummaryUpdateManyWithWhereWithoutDepartmentInput[]
     deleteMany?: AttendanceSummaryScalarWhereInput | AttendanceSummaryScalarWhereInput[]
+  }
+
+  export type PayrollPolicyUpdateOneWithoutDepartmentsNestedInput = {
+    create?: XOR<PayrollPolicyCreateWithoutDepartmentsInput, PayrollPolicyUncheckedCreateWithoutDepartmentsInput>
+    connectOrCreate?: PayrollPolicyCreateOrConnectWithoutDepartmentsInput
+    upsert?: PayrollPolicyUpsertWithoutDepartmentsInput
+    disconnect?: PayrollPolicyWhereInput | boolean
+    delete?: PayrollPolicyWhereInput | boolean
+    connect?: PayrollPolicyWhereUniqueInput
+    update?: XOR<XOR<PayrollPolicyUpdateToOneWithWhereWithoutDepartmentsInput, PayrollPolicyUpdateWithoutDepartmentsInput>, PayrollPolicyUncheckedUpdateWithoutDepartmentsInput>
   }
 
   export type NullableIntFieldUpdateOperationsInput = {
@@ -35463,6 +37112,10 @@ export namespace Prisma {
     connect?: UserWhereUniqueInput
   }
 
+  export type EnumOvertimeTypeFieldUpdateOperationsInput = {
+    set?: $Enums.OvertimeType
+  }
+
   export type EnumOvertimeApprovalStatusFieldUpdateOperationsInput = {
     set?: $Enums.OvertimeApprovalStatus
   }
@@ -35505,6 +37158,48 @@ export namespace Prisma {
     upsert?: EmployeeUpsertWithoutSalariesInput
     connect?: EmployeeWhereUniqueInput
     update?: XOR<XOR<EmployeeUpdateToOneWithWhereWithoutSalariesInput, EmployeeUpdateWithoutSalariesInput>, EmployeeUncheckedUpdateWithoutSalariesInput>
+  }
+
+  export type DepartmentCreateNestedManyWithoutPayrollPolicyInput = {
+    create?: XOR<DepartmentCreateWithoutPayrollPolicyInput, DepartmentUncheckedCreateWithoutPayrollPolicyInput> | DepartmentCreateWithoutPayrollPolicyInput[] | DepartmentUncheckedCreateWithoutPayrollPolicyInput[]
+    connectOrCreate?: DepartmentCreateOrConnectWithoutPayrollPolicyInput | DepartmentCreateOrConnectWithoutPayrollPolicyInput[]
+    createMany?: DepartmentCreateManyPayrollPolicyInputEnvelope
+    connect?: DepartmentWhereUniqueInput | DepartmentWhereUniqueInput[]
+  }
+
+  export type DepartmentUncheckedCreateNestedManyWithoutPayrollPolicyInput = {
+    create?: XOR<DepartmentCreateWithoutPayrollPolicyInput, DepartmentUncheckedCreateWithoutPayrollPolicyInput> | DepartmentCreateWithoutPayrollPolicyInput[] | DepartmentUncheckedCreateWithoutPayrollPolicyInput[]
+    connectOrCreate?: DepartmentCreateOrConnectWithoutPayrollPolicyInput | DepartmentCreateOrConnectWithoutPayrollPolicyInput[]
+    createMany?: DepartmentCreateManyPayrollPolicyInputEnvelope
+    connect?: DepartmentWhereUniqueInput | DepartmentWhereUniqueInput[]
+  }
+
+  export type DepartmentUpdateManyWithoutPayrollPolicyNestedInput = {
+    create?: XOR<DepartmentCreateWithoutPayrollPolicyInput, DepartmentUncheckedCreateWithoutPayrollPolicyInput> | DepartmentCreateWithoutPayrollPolicyInput[] | DepartmentUncheckedCreateWithoutPayrollPolicyInput[]
+    connectOrCreate?: DepartmentCreateOrConnectWithoutPayrollPolicyInput | DepartmentCreateOrConnectWithoutPayrollPolicyInput[]
+    upsert?: DepartmentUpsertWithWhereUniqueWithoutPayrollPolicyInput | DepartmentUpsertWithWhereUniqueWithoutPayrollPolicyInput[]
+    createMany?: DepartmentCreateManyPayrollPolicyInputEnvelope
+    set?: DepartmentWhereUniqueInput | DepartmentWhereUniqueInput[]
+    disconnect?: DepartmentWhereUniqueInput | DepartmentWhereUniqueInput[]
+    delete?: DepartmentWhereUniqueInput | DepartmentWhereUniqueInput[]
+    connect?: DepartmentWhereUniqueInput | DepartmentWhereUniqueInput[]
+    update?: DepartmentUpdateWithWhereUniqueWithoutPayrollPolicyInput | DepartmentUpdateWithWhereUniqueWithoutPayrollPolicyInput[]
+    updateMany?: DepartmentUpdateManyWithWhereWithoutPayrollPolicyInput | DepartmentUpdateManyWithWhereWithoutPayrollPolicyInput[]
+    deleteMany?: DepartmentScalarWhereInput | DepartmentScalarWhereInput[]
+  }
+
+  export type DepartmentUncheckedUpdateManyWithoutPayrollPolicyNestedInput = {
+    create?: XOR<DepartmentCreateWithoutPayrollPolicyInput, DepartmentUncheckedCreateWithoutPayrollPolicyInput> | DepartmentCreateWithoutPayrollPolicyInput[] | DepartmentUncheckedCreateWithoutPayrollPolicyInput[]
+    connectOrCreate?: DepartmentCreateOrConnectWithoutPayrollPolicyInput | DepartmentCreateOrConnectWithoutPayrollPolicyInput[]
+    upsert?: DepartmentUpsertWithWhereUniqueWithoutPayrollPolicyInput | DepartmentUpsertWithWhereUniqueWithoutPayrollPolicyInput[]
+    createMany?: DepartmentCreateManyPayrollPolicyInputEnvelope
+    set?: DepartmentWhereUniqueInput | DepartmentWhereUniqueInput[]
+    disconnect?: DepartmentWhereUniqueInput | DepartmentWhereUniqueInput[]
+    delete?: DepartmentWhereUniqueInput | DepartmentWhereUniqueInput[]
+    connect?: DepartmentWhereUniqueInput | DepartmentWhereUniqueInput[]
+    update?: DepartmentUpdateWithWhereUniqueWithoutPayrollPolicyInput | DepartmentUpdateWithWhereUniqueWithoutPayrollPolicyInput[]
+    updateMany?: DepartmentUpdateManyWithWhereWithoutPayrollPolicyInput | DepartmentUpdateManyWithWhereWithoutPayrollPolicyInput[]
+    deleteMany?: DepartmentScalarWhereInput | DepartmentScalarWhereInput[]
   }
 
   export type EmployeeCreateNestedOneWithoutComplaintsInput = {
@@ -35909,6 +37604,13 @@ export namespace Prisma {
     _max?: NestedEnumLeaveStatusFilter<$PrismaModel>
   }
 
+  export type NestedEnumOvertimeTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.OvertimeType | EnumOvertimeTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.OvertimeType[]
+    notIn?: $Enums.OvertimeType[]
+    not?: NestedEnumOvertimeTypeFilter<$PrismaModel> | $Enums.OvertimeType
+  }
+
   export type NestedEnumOvertimeApprovalStatusFilter<$PrismaModel = never> = {
     equals?: $Enums.OvertimeApprovalStatus | EnumOvertimeApprovalStatusFieldRefInput<$PrismaModel>
     in?: $Enums.OvertimeApprovalStatus[]
@@ -35921,6 +37623,16 @@ export namespace Prisma {
     in?: $Enums.CompensationMethod[]
     notIn?: $Enums.CompensationMethod[]
     not?: NestedEnumCompensationMethodFilter<$PrismaModel> | $Enums.CompensationMethod
+  }
+
+  export type NestedEnumOvertimeTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.OvertimeType | EnumOvertimeTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.OvertimeType[]
+    notIn?: $Enums.OvertimeType[]
+    not?: NestedEnumOvertimeTypeWithAggregatesFilter<$PrismaModel> | $Enums.OvertimeType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumOvertimeTypeFilter<$PrismaModel>
+    _max?: NestedEnumOvertimeTypeFilter<$PrismaModel>
   }
 
   export type NestedEnumOvertimeApprovalStatusWithAggregatesFilter<$PrismaModel = never> = {
@@ -36223,8 +37935,9 @@ export namespace Prisma {
   export type OvertimeLogCreateWithoutApproverInput = {
     date: Date | string
     hours?: Decimal | DecimalJsLike | number | string | null
-    startTime: Date | string
-    endTime: Date | string
+    startTime?: Date | string | null
+    endTime?: Date | string | null
+    overtimeType?: $Enums.OvertimeType
     reason?: string | null
     approvalStatus?: $Enums.OvertimeApprovalStatus
     compensationMethod?: $Enums.CompensationMethod
@@ -36236,8 +37949,9 @@ export namespace Prisma {
     employeeId: number
     date: Date | string
     hours?: Decimal | DecimalJsLike | number | string | null
-    startTime: Date | string
-    endTime: Date | string
+    startTime?: Date | string | null
+    endTime?: Date | string | null
+    overtimeType?: $Enums.OvertimeType
     reason?: string | null
     approvalStatus?: $Enums.OvertimeApprovalStatus
     compensationMethod?: $Enums.CompensationMethod
@@ -36380,8 +38094,9 @@ export namespace Prisma {
     employeeId?: IntFilter<"OvertimeLog"> | number
     date?: DateTimeFilter<"OvertimeLog"> | Date | string
     hours?: DecimalNullableFilter<"OvertimeLog"> | Decimal | DecimalJsLike | number | string | null
-    startTime?: DateTimeFilter<"OvertimeLog"> | Date | string
-    endTime?: DateTimeFilter<"OvertimeLog"> | Date | string
+    startTime?: DateTimeNullableFilter<"OvertimeLog"> | Date | string | null
+    endTime?: DateTimeNullableFilter<"OvertimeLog"> | Date | string | null
+    overtimeType?: EnumOvertimeTypeFilter<"OvertimeLog"> | $Enums.OvertimeType
     reason?: StringNullableFilter<"OvertimeLog"> | string | null
     approvedBy?: IntNullableFilter<"OvertimeLog"> | number | null
     approvalStatus?: EnumOvertimeApprovalStatusFilter<"OvertimeLog"> | $Enums.OvertimeApprovalStatus
@@ -36512,6 +38227,7 @@ export namespace Prisma {
     parent?: DepartmentCreateNestedOneWithoutSubDepartmentsInput
     employees?: EmployeeCreateNestedManyWithoutDepartmentInput
     attendanceSummaries?: AttendanceSummaryCreateNestedManyWithoutDepartmentInput
+    payrollPolicy?: PayrollPolicyCreateNestedOneWithoutDepartmentsInput
   }
 
   export type DepartmentUncheckedCreateWithoutSubDepartmentsInput = {
@@ -36521,6 +38237,7 @@ export namespace Prisma {
     parentId?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    payrollPolicyId?: number | null
     employees?: EmployeeUncheckedCreateNestedManyWithoutDepartmentInput
     attendanceSummaries?: AttendanceSummaryUncheckedCreateNestedManyWithoutDepartmentInput
   }
@@ -36538,6 +38255,7 @@ export namespace Prisma {
     subDepartments?: DepartmentCreateNestedManyWithoutParentInput
     employees?: EmployeeCreateNestedManyWithoutDepartmentInput
     attendanceSummaries?: AttendanceSummaryCreateNestedManyWithoutDepartmentInput
+    payrollPolicy?: PayrollPolicyCreateNestedOneWithoutDepartmentsInput
   }
 
   export type DepartmentUncheckedCreateWithoutParentInput = {
@@ -36546,6 +38264,7 @@ export namespace Prisma {
     description?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    payrollPolicyId?: number | null
     subDepartments?: DepartmentUncheckedCreateNestedManyWithoutParentInput
     employees?: EmployeeUncheckedCreateNestedManyWithoutDepartmentInput
     attendanceSummaries?: AttendanceSummaryUncheckedCreateNestedManyWithoutDepartmentInput
@@ -36693,6 +38412,36 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type PayrollPolicyCreateWithoutDepartmentsInput = {
+    name: string
+    isDefault?: boolean
+    otMultiplierWeekday1?: Decimal | DecimalJsLike | number | string
+    otMultiplierWeekday2?: Decimal | DecimalJsLike | number | string
+    otMultiplierSleepover?: Decimal | DecimalJsLike | number | string
+    otMultiplierSunday?: Decimal | DecimalJsLike | number | string
+    otMultiplierHoliday?: Decimal | DecimalJsLike | number | string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PayrollPolicyUncheckedCreateWithoutDepartmentsInput = {
+    id?: number
+    name: string
+    isDefault?: boolean
+    otMultiplierWeekday1?: Decimal | DecimalJsLike | number | string
+    otMultiplierWeekday2?: Decimal | DecimalJsLike | number | string
+    otMultiplierSleepover?: Decimal | DecimalJsLike | number | string
+    otMultiplierSunday?: Decimal | DecimalJsLike | number | string
+    otMultiplierHoliday?: Decimal | DecimalJsLike | number | string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PayrollPolicyCreateOrConnectWithoutDepartmentsInput = {
+    where: PayrollPolicyWhereUniqueInput
+    create: XOR<PayrollPolicyCreateWithoutDepartmentsInput, PayrollPolicyUncheckedCreateWithoutDepartmentsInput>
+  }
+
   export type DepartmentUpsertWithoutSubDepartmentsInput = {
     update: XOR<DepartmentUpdateWithoutSubDepartmentsInput, DepartmentUncheckedUpdateWithoutSubDepartmentsInput>
     create: XOR<DepartmentCreateWithoutSubDepartmentsInput, DepartmentUncheckedCreateWithoutSubDepartmentsInput>
@@ -36712,6 +38461,7 @@ export namespace Prisma {
     parent?: DepartmentUpdateOneWithoutSubDepartmentsNestedInput
     employees?: EmployeeUpdateManyWithoutDepartmentNestedInput
     attendanceSummaries?: AttendanceSummaryUpdateManyWithoutDepartmentNestedInput
+    payrollPolicy?: PayrollPolicyUpdateOneWithoutDepartmentsNestedInput
   }
 
   export type DepartmentUncheckedUpdateWithoutSubDepartmentsInput = {
@@ -36721,6 +38471,7 @@ export namespace Prisma {
     parentId?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    payrollPolicyId?: NullableIntFieldUpdateOperationsInput | number | null
     employees?: EmployeeUncheckedUpdateManyWithoutDepartmentNestedInput
     attendanceSummaries?: AttendanceSummaryUncheckedUpdateManyWithoutDepartmentNestedInput
   }
@@ -36751,6 +38502,7 @@ export namespace Prisma {
     parentId?: IntNullableFilter<"Department"> | number | null
     createdAt?: DateTimeFilter<"Department"> | Date | string
     updatedAt?: DateTimeFilter<"Department"> | Date | string
+    payrollPolicyId?: IntNullableFilter<"Department"> | number | null
   }
 
   export type EmployeeUpsertWithWhereUniqueWithoutDepartmentInput = {
@@ -36799,6 +38551,42 @@ export namespace Prisma {
     totalWorkHours?: DecimalNullableFilter<"AttendanceSummary"> | Decimal | DecimalJsLike | number | string | null
     remarks?: StringNullableFilter<"AttendanceSummary"> | string | null
     departmentId?: IntNullableFilter<"AttendanceSummary"> | number | null
+  }
+
+  export type PayrollPolicyUpsertWithoutDepartmentsInput = {
+    update: XOR<PayrollPolicyUpdateWithoutDepartmentsInput, PayrollPolicyUncheckedUpdateWithoutDepartmentsInput>
+    create: XOR<PayrollPolicyCreateWithoutDepartmentsInput, PayrollPolicyUncheckedCreateWithoutDepartmentsInput>
+    where?: PayrollPolicyWhereInput
+  }
+
+  export type PayrollPolicyUpdateToOneWithWhereWithoutDepartmentsInput = {
+    where?: PayrollPolicyWhereInput
+    data: XOR<PayrollPolicyUpdateWithoutDepartmentsInput, PayrollPolicyUncheckedUpdateWithoutDepartmentsInput>
+  }
+
+  export type PayrollPolicyUpdateWithoutDepartmentsInput = {
+    name?: StringFieldUpdateOperationsInput | string
+    isDefault?: BoolFieldUpdateOperationsInput | boolean
+    otMultiplierWeekday1?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    otMultiplierWeekday2?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    otMultiplierSleepover?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    otMultiplierSunday?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    otMultiplierHoliday?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PayrollPolicyUncheckedUpdateWithoutDepartmentsInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    isDefault?: BoolFieldUpdateOperationsInput | boolean
+    otMultiplierWeekday1?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    otMultiplierWeekday2?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    otMultiplierSleepover?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    otMultiplierSunday?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    otMultiplierHoliday?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type EmployeeCreateWithoutPositionInput = {
@@ -37610,6 +39398,7 @@ export namespace Prisma {
     parent?: DepartmentCreateNestedOneWithoutSubDepartmentsInput
     subDepartments?: DepartmentCreateNestedManyWithoutParentInput
     attendanceSummaries?: AttendanceSummaryCreateNestedManyWithoutDepartmentInput
+    payrollPolicy?: PayrollPolicyCreateNestedOneWithoutDepartmentsInput
   }
 
   export type DepartmentUncheckedCreateWithoutEmployeesInput = {
@@ -37619,6 +39408,7 @@ export namespace Prisma {
     parentId?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    payrollPolicyId?: number | null
     subDepartments?: DepartmentUncheckedCreateNestedManyWithoutParentInput
     attendanceSummaries?: AttendanceSummaryUncheckedCreateNestedManyWithoutDepartmentInput
   }
@@ -37943,6 +39733,8 @@ export namespace Prisma {
   export type SalaryCreateWithoutEmployeeInput = {
     salaryMonth: Date | string
     amount: Decimal | DecimalJsLike | number | string
+    baseSalary?: Decimal | DecimalJsLike | number | string
+    deductions?: Decimal | DecimalJsLike | number | string
     status?: $Enums.SalaryStatus
     overtimeHours?: Decimal | DecimalJsLike | number | string
     overtimePay?: Decimal | DecimalJsLike | number | string
@@ -37955,6 +39747,8 @@ export namespace Prisma {
     id?: number
     salaryMonth: Date | string
     amount: Decimal | DecimalJsLike | number | string
+    baseSalary?: Decimal | DecimalJsLike | number | string
+    deductions?: Decimal | DecimalJsLike | number | string
     status?: $Enums.SalaryStatus
     overtimeHours?: Decimal | DecimalJsLike | number | string
     overtimePay?: Decimal | DecimalJsLike | number | string
@@ -37976,8 +39770,9 @@ export namespace Prisma {
   export type OvertimeLogCreateWithoutEmployeeInput = {
     date: Date | string
     hours?: Decimal | DecimalJsLike | number | string | null
-    startTime: Date | string
-    endTime: Date | string
+    startTime?: Date | string | null
+    endTime?: Date | string | null
+    overtimeType?: $Enums.OvertimeType
     reason?: string | null
     approvalStatus?: $Enums.OvertimeApprovalStatus
     compensationMethod?: $Enums.CompensationMethod
@@ -37988,8 +39783,9 @@ export namespace Prisma {
     id?: number
     date: Date | string
     hours?: Decimal | DecimalJsLike | number | string | null
-    startTime: Date | string
-    endTime: Date | string
+    startTime?: Date | string | null
+    endTime?: Date | string | null
+    overtimeType?: $Enums.OvertimeType
     reason?: string | null
     approvedBy?: number | null
     approvalStatus?: $Enums.OvertimeApprovalStatus
@@ -38063,6 +39859,7 @@ export namespace Prisma {
     parent?: DepartmentUpdateOneWithoutSubDepartmentsNestedInput
     subDepartments?: DepartmentUpdateManyWithoutParentNestedInput
     attendanceSummaries?: AttendanceSummaryUpdateManyWithoutDepartmentNestedInput
+    payrollPolicy?: PayrollPolicyUpdateOneWithoutDepartmentsNestedInput
   }
 
   export type DepartmentUncheckedUpdateWithoutEmployeesInput = {
@@ -38072,6 +39869,7 @@ export namespace Prisma {
     parentId?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    payrollPolicyId?: NullableIntFieldUpdateOperationsInput | number | null
     subDepartments?: DepartmentUncheckedUpdateManyWithoutParentNestedInput
     attendanceSummaries?: AttendanceSummaryUncheckedUpdateManyWithoutDepartmentNestedInput
   }
@@ -38416,6 +40214,8 @@ export namespace Prisma {
     employeeId?: IntFilter<"Salary"> | number
     salaryMonth?: DateTimeFilter<"Salary"> | Date | string
     amount?: DecimalFilter<"Salary"> | Decimal | DecimalJsLike | number | string
+    baseSalary?: DecimalFilter<"Salary"> | Decimal | DecimalJsLike | number | string
+    deductions?: DecimalFilter<"Salary"> | Decimal | DecimalJsLike | number | string
     status?: EnumSalaryStatusFilter<"Salary"> | $Enums.SalaryStatus
     overtimeHours?: DecimalFilter<"Salary"> | Decimal | DecimalJsLike | number | string
     overtimePay?: DecimalFilter<"Salary"> | Decimal | DecimalJsLike | number | string
@@ -39106,6 +40906,7 @@ export namespace Prisma {
     parent?: DepartmentCreateNestedOneWithoutSubDepartmentsInput
     subDepartments?: DepartmentCreateNestedManyWithoutParentInput
     employees?: EmployeeCreateNestedManyWithoutDepartmentInput
+    payrollPolicy?: PayrollPolicyCreateNestedOneWithoutDepartmentsInput
   }
 
   export type DepartmentUncheckedCreateWithoutAttendanceSummariesInput = {
@@ -39115,6 +40916,7 @@ export namespace Prisma {
     parentId?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    payrollPolicyId?: number | null
     subDepartments?: DepartmentUncheckedCreateNestedManyWithoutParentInput
     employees?: EmployeeUncheckedCreateNestedManyWithoutDepartmentInput
   }
@@ -39243,6 +41045,7 @@ export namespace Prisma {
     parent?: DepartmentUpdateOneWithoutSubDepartmentsNestedInput
     subDepartments?: DepartmentUpdateManyWithoutParentNestedInput
     employees?: EmployeeUpdateManyWithoutDepartmentNestedInput
+    payrollPolicy?: PayrollPolicyUpdateOneWithoutDepartmentsNestedInput
   }
 
   export type DepartmentUncheckedUpdateWithoutAttendanceSummariesInput = {
@@ -39252,6 +41055,7 @@ export namespace Prisma {
     parentId?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    payrollPolicyId?: NullableIntFieldUpdateOperationsInput | number | null
     subDepartments?: DepartmentUncheckedUpdateManyWithoutParentNestedInput
     employees?: EmployeeUncheckedUpdateManyWithoutDepartmentNestedInput
   }
@@ -39978,6 +41782,55 @@ export namespace Prisma {
     overtimes?: OvertimeLogUncheckedUpdateManyWithoutEmployeeNestedInput
   }
 
+  export type DepartmentCreateWithoutPayrollPolicyInput = {
+    name: string
+    description?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    parent?: DepartmentCreateNestedOneWithoutSubDepartmentsInput
+    subDepartments?: DepartmentCreateNestedManyWithoutParentInput
+    employees?: EmployeeCreateNestedManyWithoutDepartmentInput
+    attendanceSummaries?: AttendanceSummaryCreateNestedManyWithoutDepartmentInput
+  }
+
+  export type DepartmentUncheckedCreateWithoutPayrollPolicyInput = {
+    id?: number
+    name: string
+    description?: string | null
+    parentId?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    subDepartments?: DepartmentUncheckedCreateNestedManyWithoutParentInput
+    employees?: EmployeeUncheckedCreateNestedManyWithoutDepartmentInput
+    attendanceSummaries?: AttendanceSummaryUncheckedCreateNestedManyWithoutDepartmentInput
+  }
+
+  export type DepartmentCreateOrConnectWithoutPayrollPolicyInput = {
+    where: DepartmentWhereUniqueInput
+    create: XOR<DepartmentCreateWithoutPayrollPolicyInput, DepartmentUncheckedCreateWithoutPayrollPolicyInput>
+  }
+
+  export type DepartmentCreateManyPayrollPolicyInputEnvelope = {
+    data: DepartmentCreateManyPayrollPolicyInput | DepartmentCreateManyPayrollPolicyInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type DepartmentUpsertWithWhereUniqueWithoutPayrollPolicyInput = {
+    where: DepartmentWhereUniqueInput
+    update: XOR<DepartmentUpdateWithoutPayrollPolicyInput, DepartmentUncheckedUpdateWithoutPayrollPolicyInput>
+    create: XOR<DepartmentCreateWithoutPayrollPolicyInput, DepartmentUncheckedCreateWithoutPayrollPolicyInput>
+  }
+
+  export type DepartmentUpdateWithWhereUniqueWithoutPayrollPolicyInput = {
+    where: DepartmentWhereUniqueInput
+    data: XOR<DepartmentUpdateWithoutPayrollPolicyInput, DepartmentUncheckedUpdateWithoutPayrollPolicyInput>
+  }
+
+  export type DepartmentUpdateManyWithWhereWithoutPayrollPolicyInput = {
+    where: DepartmentScalarWhereInput
+    data: XOR<DepartmentUpdateManyMutationInput, DepartmentUncheckedUpdateManyWithoutPayrollPolicyInput>
+  }
+
   export type EmployeeCreateWithoutComplaintsInput = {
     firstName: string
     lastName: string
@@ -40632,8 +42485,9 @@ export namespace Prisma {
     employeeId: number
     date: Date | string
     hours?: Decimal | DecimalJsLike | number | string | null
-    startTime: Date | string
-    endTime: Date | string
+    startTime?: Date | string | null
+    endTime?: Date | string | null
+    overtimeType?: $Enums.OvertimeType
     reason?: string | null
     approvalStatus?: $Enums.OvertimeApprovalStatus
     compensationMethod?: $Enums.CompensationMethod
@@ -40813,8 +42667,9 @@ export namespace Prisma {
   export type OvertimeLogUpdateWithoutApproverInput = {
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     hours?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
-    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
-    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    startTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    endTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    overtimeType?: EnumOvertimeTypeFieldUpdateOperationsInput | $Enums.OvertimeType
     reason?: NullableStringFieldUpdateOperationsInput | string | null
     approvalStatus?: EnumOvertimeApprovalStatusFieldUpdateOperationsInput | $Enums.OvertimeApprovalStatus
     compensationMethod?: EnumCompensationMethodFieldUpdateOperationsInput | $Enums.CompensationMethod
@@ -40826,8 +42681,9 @@ export namespace Prisma {
     employeeId?: IntFieldUpdateOperationsInput | number
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     hours?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
-    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
-    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    startTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    endTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    overtimeType?: EnumOvertimeTypeFieldUpdateOperationsInput | $Enums.OvertimeType
     reason?: NullableStringFieldUpdateOperationsInput | string | null
     approvalStatus?: EnumOvertimeApprovalStatusFieldUpdateOperationsInput | $Enums.OvertimeApprovalStatus
     compensationMethod?: EnumCompensationMethodFieldUpdateOperationsInput | $Enums.CompensationMethod
@@ -40838,8 +42694,9 @@ export namespace Prisma {
     employeeId?: IntFieldUpdateOperationsInput | number
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     hours?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
-    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
-    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    startTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    endTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    overtimeType?: EnumOvertimeTypeFieldUpdateOperationsInput | $Enums.OvertimeType
     reason?: NullableStringFieldUpdateOperationsInput | string | null
     approvalStatus?: EnumOvertimeApprovalStatusFieldUpdateOperationsInput | $Enums.OvertimeApprovalStatus
     compensationMethod?: EnumCompensationMethodFieldUpdateOperationsInput | $Enums.CompensationMethod
@@ -40851,6 +42708,7 @@ export namespace Prisma {
     description?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    payrollPolicyId?: number | null
   }
 
   export type EmployeeCreateManyDepartmentInput = {
@@ -40908,6 +42766,7 @@ export namespace Prisma {
     subDepartments?: DepartmentUpdateManyWithoutParentNestedInput
     employees?: EmployeeUpdateManyWithoutDepartmentNestedInput
     attendanceSummaries?: AttendanceSummaryUpdateManyWithoutDepartmentNestedInput
+    payrollPolicy?: PayrollPolicyUpdateOneWithoutDepartmentsNestedInput
   }
 
   export type DepartmentUncheckedUpdateWithoutParentInput = {
@@ -40916,6 +42775,7 @@ export namespace Prisma {
     description?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    payrollPolicyId?: NullableIntFieldUpdateOperationsInput | number | null
     subDepartments?: DepartmentUncheckedUpdateManyWithoutParentNestedInput
     employees?: EmployeeUncheckedUpdateManyWithoutDepartmentNestedInput
     attendanceSummaries?: AttendanceSummaryUncheckedUpdateManyWithoutDepartmentNestedInput
@@ -40927,6 +42787,7 @@ export namespace Prisma {
     description?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    payrollPolicyId?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type EmployeeUpdateWithoutDepartmentInput = {
@@ -41969,6 +43830,8 @@ export namespace Prisma {
     id?: number
     salaryMonth: Date | string
     amount: Decimal | DecimalJsLike | number | string
+    baseSalary?: Decimal | DecimalJsLike | number | string
+    deductions?: Decimal | DecimalJsLike | number | string
     status?: $Enums.SalaryStatus
     overtimeHours?: Decimal | DecimalJsLike | number | string
     overtimePay?: Decimal | DecimalJsLike | number | string
@@ -41981,8 +43844,9 @@ export namespace Prisma {
     id?: number
     date: Date | string
     hours?: Decimal | DecimalJsLike | number | string | null
-    startTime: Date | string
-    endTime: Date | string
+    startTime?: Date | string | null
+    endTime?: Date | string | null
+    overtimeType?: $Enums.OvertimeType
     reason?: string | null
     approvedBy?: number | null
     approvalStatus?: $Enums.OvertimeApprovalStatus
@@ -42230,6 +44094,8 @@ export namespace Prisma {
   export type SalaryUpdateWithoutEmployeeInput = {
     salaryMonth?: DateTimeFieldUpdateOperationsInput | Date | string
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    baseSalary?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    deductions?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     status?: EnumSalaryStatusFieldUpdateOperationsInput | $Enums.SalaryStatus
     overtimeHours?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     overtimePay?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -42242,6 +44108,8 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     salaryMonth?: DateTimeFieldUpdateOperationsInput | Date | string
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    baseSalary?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    deductions?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     status?: EnumSalaryStatusFieldUpdateOperationsInput | $Enums.SalaryStatus
     overtimeHours?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     overtimePay?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -42254,6 +44122,8 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     salaryMonth?: DateTimeFieldUpdateOperationsInput | Date | string
     amount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    baseSalary?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    deductions?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     status?: EnumSalaryStatusFieldUpdateOperationsInput | $Enums.SalaryStatus
     overtimeHours?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     overtimePay?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
@@ -42265,8 +44135,9 @@ export namespace Prisma {
   export type OvertimeLogUpdateWithoutEmployeeInput = {
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     hours?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
-    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
-    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    startTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    endTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    overtimeType?: EnumOvertimeTypeFieldUpdateOperationsInput | $Enums.OvertimeType
     reason?: NullableStringFieldUpdateOperationsInput | string | null
     approvalStatus?: EnumOvertimeApprovalStatusFieldUpdateOperationsInput | $Enums.OvertimeApprovalStatus
     compensationMethod?: EnumCompensationMethodFieldUpdateOperationsInput | $Enums.CompensationMethod
@@ -42277,8 +44148,9 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     hours?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
-    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
-    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    startTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    endTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    overtimeType?: EnumOvertimeTypeFieldUpdateOperationsInput | $Enums.OvertimeType
     reason?: NullableStringFieldUpdateOperationsInput | string | null
     approvedBy?: NullableIntFieldUpdateOperationsInput | number | null
     approvalStatus?: EnumOvertimeApprovalStatusFieldUpdateOperationsInput | $Enums.OvertimeApprovalStatus
@@ -42289,8 +44161,9 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     hours?: NullableDecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string | null
-    startTime?: DateTimeFieldUpdateOperationsInput | Date | string
-    endTime?: DateTimeFieldUpdateOperationsInput | Date | string
+    startTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    endTime?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    overtimeType?: EnumOvertimeTypeFieldUpdateOperationsInput | $Enums.OvertimeType
     reason?: NullableStringFieldUpdateOperationsInput | string | null
     approvedBy?: NullableIntFieldUpdateOperationsInput | number | null
     approvalStatus?: EnumOvertimeApprovalStatusFieldUpdateOperationsInput | $Enums.OvertimeApprovalStatus
@@ -42361,6 +44234,47 @@ export namespace Prisma {
     actualClockOut?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: EnumAttendanceStatusFieldUpdateOperationsInput | $Enums.AttendanceStatus
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DepartmentCreateManyPayrollPolicyInput = {
+    id?: number
+    name: string
+    description?: string | null
+    parentId?: number | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type DepartmentUpdateWithoutPayrollPolicyInput = {
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    parent?: DepartmentUpdateOneWithoutSubDepartmentsNestedInput
+    subDepartments?: DepartmentUpdateManyWithoutParentNestedInput
+    employees?: EmployeeUpdateManyWithoutDepartmentNestedInput
+    attendanceSummaries?: AttendanceSummaryUpdateManyWithoutDepartmentNestedInput
+  }
+
+  export type DepartmentUncheckedUpdateWithoutPayrollPolicyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    parentId?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    subDepartments?: DepartmentUncheckedUpdateManyWithoutParentNestedInput
+    employees?: EmployeeUncheckedUpdateManyWithoutDepartmentNestedInput
+    attendanceSummaries?: AttendanceSummaryUncheckedUpdateManyWithoutDepartmentNestedInput
+  }
+
+  export type DepartmentUncheckedUpdateManyWithoutPayrollPolicyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    parentId?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
 

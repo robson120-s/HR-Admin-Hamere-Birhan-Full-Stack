@@ -5,7 +5,7 @@ const router = express.Router();
 const { PrismaClient } = require('../generated/prisma'); // or your generated path
 const prisma = new PrismaClient();
 const bcrypt = require('bcrypt');
-
+const { processAttendanceForDate } = require('../jobs/attendanceProcessor');
 const { authenticate, authorize } = require('../middlewares/authMiddleware');
 
 // ==============================================================================
@@ -121,95 +121,78 @@ router.get('/dashboard', authenticate, authorize("Department Head"), async (req,
 // In your backend file: routes/depHead.routes.js
 
 // GET /api/dep-head/performance-data - FINAL, ROBUST VERSION
-router.get("/performance-data", authenticate,async (req, res) => { // Auth middleware temporarily removed
-  try {
-    const loggedInUserId = req.user.id;
+// in HR_backend/app/routes/dep-head.routes.js
 
-    const loggedInEmployee = await prisma.employee.findUnique({
-      where: { userId: loggedInUserId },
-      select: { departmentId: true }
-    });
+// This is an example name, use the one in your file
+router.get("/performance-data", authenticate, authorize("Department Head"), async (req, res) => {
+    try {
+        const departmentId = req.user.employee.departmentId;
 
-    if (!loggedInEmployee || !loggedInEmployee.departmentId) {
-      return res.status(403).json({ error: "Test user is not assigned to a department." });
-    }
-    const departmentId = loggedInEmployee.departmentId;
-
-    // Fetch the department info separately
-    const department = await prisma.department.findUnique({
-        where: { id: departmentId },
-        select: { id: true, name: true, description: true }
-    });
-
-    // Fetch all Staff and Interns in that department
-    const employeesInDept = await prisma.employee.findMany({
-      where: {
-        departmentId: departmentId,
-        user: {
-          roles: { some: { role: { name: { in: ['Staff', 'Intern'] } } } }
+        if (!departmentId) {
+            return res.status(403).json({ error: "User is not assigned to a department." });
         }
-      },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        user: { select: { roles: { select: { role: { select: { name: true } } } } } }
-      },
-      orderBy: { firstName: 'asc' }
-    });
 
-    if (employeesInDept.length === 0) {
-        // If no employees, return early with empty data
-        return res.status(200).json({
-            department,
-            employees: [],
-            performanceReviews: []
+        const department = await prisma.department.findUnique({
+            where: { id: departmentId },
+            select: { name: true }
         });
+
+        // Fetch all employees in the department
+        const allEmployees = await prisma.employee.findMany({
+            where: {
+                departmentId: departmentId,
+                jobStatus: { status: 'Active' }
+            },
+            select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                user: {
+                    select: { roles: { select: { role: { select: { name: true } } } } }
+                }
+            }
+        });
+
+        // ✅ NEW: Categorize employees into staff and interns
+        const staff = [];
+        const interns = [];
+        allEmployees.forEach(emp => {
+            const role = emp.user?.roles[0]?.role.name;
+            const employeeData = {
+                id: emp.id,
+                firstName: emp.firstName,
+                lastName: emp.lastName,
+                role: role, // Keep the role for display
+            };
+
+            if (role === 'Staff') {
+                staff.push(employeeData);
+            } else if (role === 'Intern') {
+                interns.push(employeeData);
+            }
+        });
+
+        // Fetch performance reviews for all employees in this department
+        const employeeIds = allEmployees.map(e => e.id);
+        const performanceReviews = await prisma.performanceReview.findMany({
+            where: {
+                employeeId: { in: employeeIds }
+            },
+            orderBy: { reviewDate: 'desc' }
+        });
+
+        res.status(200).json({
+            department,
+            staff, // Send categorized list
+            interns, // Send categorized list
+            performanceReviews,
+        });
+
+    } catch (error) {
+        console.error("Error fetching performance data:", error);
+        res.status(500).json({ error: "Failed to fetch performance data." });
     }
-
-    const employeeIds = employeesInDept.map(e => e.id);
-
-    // ✅ SIMPLIFIED REVIEW QUERY
-    // Use a more standard groupBy query to get the latest review for each employee.
-    // This is often more reliable than 'distinct'.
-    const latestReviews = await prisma.performanceReview.groupBy({
-        by: ['employeeId'],
-        where: { employeeId: { in: employeeIds } },
-        _max: {
-            reviewDate: true, // Find the latest date for each employee
-        }
-    });
-    
-    // Now fetch the full review data for only those latest reviews
-    const reviews = await prisma.performanceReview.findMany({
-        where: {
-            OR: latestReviews.map(r => ({
-                employeeId: r.employeeId,
-                reviewDate: r._max.reviewDate
-            }))
-        }
-    });
-
-    // Final payload
-    const responseData = {
-        department,
-        employees: employeesInDept.map(emp => ({
-            id: emp.id,
-            firstName: emp.firstName,
-            lastName: emp.lastName,
-            role: emp.user?.roles[0]?.role.name || 'N/A'
-        })),
-        performanceReviews: reviews
-    };
-    
-    res.status(200).json(responseData);
-  } catch (error) {
-    // This will now catch any errors from the new queries
-    console.error("Error fetching performance data:", error);
-    res.status(500).json({ error: "Failed to fetch performance data." });
-  }
 });
-
 
 // POST /api/dep-head/performance-review - Submit a new review
 router.post("/performance-review", authenticate, authorize("Department Head"), async (req, res) => {
@@ -267,67 +250,67 @@ const getManagedDepartmentId = async (userId) => {
 
 // GET /api/dep-head/sub-departments - FINAL, EFFICIENT VERSION
 router.get("/sub-departments", authenticate, authorize("Department Head"), async (req, res) => {
-  try {
-    const departmentId = await getManagedDepartmentId(req.user.id);
-    if (!departmentId) {
-      return res.status(403).json({ error: "User is not assigned to a department." });
+    try {
+        const departmentId = req.user.employee.departmentId;
+
+        if (!departmentId) {
+            return res.status(403).json({ error: "User is not assigned to a department." });
+        }
+
+        // Step 1: Fetch all sub-departments
+        const subDepts = await prisma.department.findMany({
+            where: { parentId: departmentId },
+            select: { id: true, name: true, description: true },
+            orderBy: { name: 'asc' }
+        });
+
+        // Step 2: For each sub-department, fetch its members and categorize them
+        const subDeptsWithMembers = await Promise.all(
+            subDepts.map(async (sub) => {
+                const employees = await prisma.employee.findMany({
+                    where: { subDepartmentId: sub.id },
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        photo: true,
+                        user: {
+                            select: { roles: { select: { role: { select: { name: true } } } } }
+                        }
+                    }
+                });
+
+                const staff = [];
+                const interns = [];
+                employees.forEach(emp => {
+                    const memberData = {
+                        id: emp.id,
+                        name: `${emp.firstName} ${emp.lastName}`,
+                        photo: emp.photo,
+                    };
+                    const role = emp.user?.roles[0]?.role.name;
+                    if (role === 'Staff') {
+                        staff.push(memberData);
+                    } else if (role === 'Intern') {
+                        interns.push(memberData);
+                    }
+                });
+
+                return {
+                    ...sub,
+                    staff,
+                    interns,
+                    totalMembers: employees.length, // Add a total count for display
+                };
+            })
+        );
+
+        res.status(200).json(subDeptsWithMembers);
+
+    } catch (error) {
+        console.error("Error fetching sub-departments with members:", error);
+        res.status(500).json({ error: "Failed to fetch sub-departments." });
     }
-    
-    // Step 1: Fetch the basic list of sub-departments for the logged-in head.
-    const subDepartments = await prisma.department.findMany({
-      where: { parentId: departmentId },
-      orderBy: { name: 'asc' },
-      select: { id: true, name: true, description: true } // Select only what we need
-    });
-
-    // Step 2: For each sub-department, run separate, targeted count queries.
-    // We use Promise.all to run all these database calls in parallel for maximum speed.
-    const subDepartmentsWithCounts = await Promise.all(
-      subDepartments.map(async (subDept) => {
-        
-        // Count staff specifically in this sub-department
-        const staffCount = await prisma.employee.count({
-          where: {
-            // Check both departmentId and subDepartmentId fields
-            OR: [
-                { departmentId: subDept.id },
-                { subDepartmentId: subDept.id }
-            ],
-            user: {
-              roles: { some: { role: { name: 'Staff' } } },
-            },
-          },
-        });
-
-        // Count interns specifically in this sub-department
-        const internCount = await prisma.employee.count({
-          where: {
-            OR: [
-                { departmentId: subDept.id },
-                { subDepartmentId: subDept.id }
-            ],
-            user: {
-              roles: { some: { role: { name: 'Intern' } } },
-            },
-          },
-        });
-        
-        // Construct the final object for this sub-department
-        return {
-          ...subDept,
-          staffCount: staffCount,
-          internCount: internCount,
-          totalMembers: staffCount + internCount,
-        };
-      })
-    );
-
-    res.status(200).json(subDepartmentsWithCounts);
-
-  } catch (error) {
-    console.error("Error fetching sub-departments:", error);
-    res.status(500).json({ error: "Failed to fetch sub-departments." });
-  }
 });
 
 // POST /api/dep-head/sub-departments - Create a new sub-department under the user's dept
@@ -383,10 +366,119 @@ router.delete("/sub-departments/:id", authenticate, authorize("Department Head")
 
 
 
+// GET /api/dep-head/attendance-overview - Fetch monthly attendance for the Dep Head's team
+// in HR_backend/app/routes/depHead.routes.js
 
+router.post("/attendance", authenticate, authorize("Department Head"), async (req, res) => {
+  try {
+    const { date, attendance } = req.body;
+    const targetDate = new Date(date);
+    targetDate.setUTCHours(0, 0, 0, 0);
 
+    const logOperations = [];
+    const employeeIdsToProcess = new Set();
 
+    for (const employeeId in attendance) {
+      employeeIdsToProcess.add(parseInt(employeeId));
+      for (const session in attendance[employeeId]) {
+        const sessionId = { morning: 1, afternoon: 2, evening: 3 }[session];
+        const status = attendance[employeeId][session];
+        
+        if (sessionId && status) {
+            logOperations.push(
+                prisma.attendanceLog.upsert({
+                    where: { employeeId_date_sessionId: { employeeId: parseInt(employeeId), date: targetDate, sessionId } },
+                    update: { status: status },
+                    create: { employeeId: parseInt(employeeId), date: targetDate, sessionId, status }
+                })
+            );
+        }
+      }
+    }
 
+    const summaryOperations = await processAttendanceForDate(targetDate, Array.from(employeeIdsToProcess));
+    
+    await prisma.$transaction([...logOperations, ...summaryOperations]);
+
+    res.status(200).json({ message: "Attendance saved and daily summary updated successfully." });
+  } catch (error) {
+    console.error("Error saving attendance:", error);
+    res.status(500).json({ error: "Failed to save attendance." });
+  }
+});
+
+// ✅ FINAL VERSION: The Intelligent Attendance Overview
+router.get("/attendance-overview", authenticate, authorize("Department Head"), async (req, res) => {
+  try {
+    const { year, month } = req.query;
+    const departmentId = req.user.employee.departmentId;
+
+    if (!year || !month || !departmentId) {
+      return res.status(400).json({ error: "Year, month, and department context are required." });
+    }
+
+    const startDate = new Date(Date.UTC(year, month - 1, 1));
+    const endDate = new Date(Date.UTC(year, month, 0, 23, 59, 59));
+    const daysInMonth = endDate.getUTCDate();
+
+    // Step 1: Fetch ALL active employees in the department
+    const employees = await prisma.employee.findMany({
+      where: { departmentId: departmentId, jobStatus: { status: 'Active' } },
+      select: { id: true, firstName: true, lastName: true, photo: true },
+      orderBy: { firstName: 'asc' }
+    });
+    if (employees.length === 0) {
+      return res.status(200).json({ employees: [], attendanceMap: {} });
+    }
+    const employeeIds = employees.map(e => e.id);
+
+    // Step 2: Fetch all necessary data for the month in parallel
+    const [summaries, holidays] = await Promise.all([
+        prisma.attendanceSummary.findMany({
+            where: { employeeId: { in: employeeIds }, date: { gte: startDate, lte: endDate } },
+            select: { employeeId: true, date: true, status: true },
+        }),
+        prisma.holiday.findMany({
+            where: { date: { gte: startDate, lte: endDate } },
+            select: { date: true }
+        })
+    ]);
+
+    const holidayDates = new Set(holidays.map(h => new Date(h.date).getUTCDate()));
+    const summaryMap = new Map();
+    summaries.forEach(rec => {
+        const key = `${rec.employeeId}-${new Date(rec.date).getUTCDate()}`;
+        summaryMap.set(key, rec.status);
+    });
+
+    // Step 3: Build the complete attendance map for EVERY day for EVERY employee
+    const finalAttendanceMap = {};
+    for (const emp of employees) {
+        finalAttendanceMap[emp.id] = {};
+        for (let day = 1; day <= daysInMonth; day++) {
+            const currentDate = new Date(Date.UTC(year, month - 1, day));
+            const dayOfWeek = currentDate.getUTCDay(); // 0 = Sunday
+            const key = `${emp.id}-${day}`;
+            
+            // Apply logic in order of priority: Summary > Holiday > Weekend > Default
+            if (summaryMap.has(key)) {
+                finalAttendanceMap[emp.id][day] = summaryMap.get(key);
+            } else if (holidayDates.has(day)) {
+                finalAttendanceMap[emp.id][day] = 'holiday';
+            } else if (dayOfWeek === 0) {
+                finalAttendanceMap[emp.id][day] = 'weekend';
+            } else {
+                finalAttendanceMap[emp.id][day] = null; // A normal, unmarked working day
+            }
+        }
+    }
+
+    res.status(200).json({ employees, attendanceMap: finalAttendanceMap });
+  } catch (error) {
+    console.error("Error fetching department attendance overview:", error);
+    res.status(500).json({ error: "Failed to fetch attendance data." });
+  }
+});
 
 
 ///////PROFILE
@@ -659,80 +751,98 @@ router.post("/leaves", authenticate, authorize("Department Head"), async (req, r
 router.get("/attendance-roster", authenticate, authorize("Department Head"), async (req, res) => {
   try {
     const { date } = req.query;
-    if (!date) { return res.status(400).json({ error: "A date parameter is required." }); }
+    if (!date) return res.status(400).json({ error: "A date parameter is required." });
     
     const targetDate = new Date(date);
     targetDate.setUTCHours(0, 0, 0, 0);
 
-    const loggedInUser = req.user;
-    if (!loggedInUser.employee || !loggedInUser.employee.departmentId) {
+    const loggedInEmployee = req.user.employee;
+    if (!loggedInEmployee || !loggedInEmployee.departmentId) {
       return res.status(403).json({ error: "Access denied: Your user account is not linked to a department." });
     }
-    const departmentId = loggedInUser.employee.departmentId;
+    const departmentId = loggedInEmployee.departmentId;
 
-    // STEP 1: Get the IDs of all sub-departments managed by the department head.
-    const subDepartments = await prisma.department.findMany({
+    // Step 1: Find all sub-departments managed by this head
+    const subDepartmentsFromDb = await prisma.department.findMany({
         where: { parentId: departmentId },
+        orderBy: { name: 'asc' },
         select: { id: true, name: true }
     });
 
-    if (subDepartments.length === 0) {
-        return res.status(200).json({ subDepartments: [], attendanceRecords: {}, onLeaveIds: [] });
-    }
-    const subDepartmentIds = subDepartments.map(sd => sd.id);
+    // Step 2: Get a list of all relevant department IDs (the main one + all sub-departments)
+    const allManagedDeptIds = [departmentId, ...subDepartmentsFromDb.map(sd => sd.id)];
 
-    // STEP 2: Find all employees who belong to ANY of those sub-departments.
-    // ✅ THIS IS THE CRITICAL CHANGE ✅
-    // We are now querying the `subDepartmentId` field.
-    const employees = await prisma.employee.findMany({
+    // Step 3: Fetch ALL employees (including the head) from all managed departments
+    const allEmployees = await prisma.employee.findMany({
         where: {
-            subDepartmentId: { in: subDepartmentIds },
-            user: { roles: { some: { role: { name: { in: ['Staff', 'Intern'] } } } } }
+            OR: [
+                { departmentId: { in: allManagedDeptIds } },
+                { subDepartmentId: { in: allManagedDeptIds } }
+            ],
+            jobStatus: { status: 'Active' }
         },
         select: {
             id: true,
             firstName: true,
             lastName: true,
-            subDepartmentId: true, // select the subDepartmentId to help with sorting
+            subDepartmentId: true,
             user: { select: { roles: { select: { role: { select: { name: true } } } } } }
         }
     });
 
-    // STEP 3: Process the roster by grouping employees into their sub-departments.
-    const processedRoster = subDepartments.map(sd => {
-        const staff = [];
-        const interns = [];
+    // Step 4: Categorize all employees into their respective groups
+    const departmentRoster = {
+        id: departmentId,
+        name: "General / Unassigned", // A group for employees directly in the main department
+        staff: [],
+        interns: []
+    };
+    const subDepartmentRosters = subDepartmentsFromDb.map(sd => ({
+        ...sd,
+        staff: [],
+        interns: []
+    }));
 
-        // Find employees from the list that belong to the current sub-department (sd)
-        employees.forEach(emp => {
-            if (emp.subDepartmentId === sd.id) {
-                const role = emp.user?.roles[0]?.role.name;
-                const employeeData = { id: emp.id, name: `${emp.firstName} ${emp.lastName}` };
-                if (role === 'Staff') staff.push(employeeData);
-                else if (role === 'Intern') interns.push(employeeData);
+    // Create a map for easy lookup
+    const rosterMap = new Map();
+    rosterMap.set(departmentId, departmentRoster);
+    subDepartmentRosters.forEach(sdr => rosterMap.set(sdr.id, sdr));
+    
+    allEmployees.forEach(emp => {
+        const targetRoster = rosterMap.get(emp.subDepartmentId) || rosterMap.get(departmentId);
+        if (targetRoster) {
+            const role = emp.user?.roles[0]?.role.name;
+            const employeeData = { id: emp.id, name: `${emp.firstName} ${emp.lastName}` };
+            if (role === 'Intern') {
+                targetRoster.interns.push(employeeData);
+            } else {
+                // Anyone not an intern (Staff, Dep Head) goes into the staff list
+                targetRoster.staff.push(employeeData);
             }
-        });
-        return { id: sd.id, name: sd.name, staff, interns };
+        }
     });
-
-    // The rest of the logic remains the same.
-    const allEmployeeIds = employees.map(e => e.id);
-
+    
+    // Final combined roster, filtering out the empty "General" group if no one is in it
+    const finalRoster = [departmentRoster, ...subDepartmentRosters].filter(group => group.staff.length > 0 || group.interns.length > 0);
+    
+    // Step 5: The rest of the logic remains the same (fetching leaves and attendance)
+    const allEmployeeIds = allEmployees.map(e => e.id);
     if (allEmployeeIds.length === 0) {
-        return res.status(200).json({ subDepartments: processedRoster, attendanceRecords: {}, onLeaveIds: [] });
+        return res.status(200).json({ subDepartments: [], attendanceRecords: {}, onLeaveIds: [] });
     }
 
-    const leaves = await prisma.leave.findMany({
-      where: { employeeId: { in: allEmployeeIds }, status: 'approved', startDate: { lte: targetDate }, endDate: { gte: targetDate } },
-      select: { employeeId: true }
-    });
+    const [leaves, attendanceLogs] = await Promise.all([
+        prisma.leave.findMany({
+            where: { employeeId: { in: allEmployeeIds }, status: 'approved', startDate: { lte: targetDate }, endDate: { gte: targetDate } },
+            select: { employeeId: true }
+        }),
+        prisma.attendanceLog.findMany({
+            where: { date: targetDate, employeeId: { in: allEmployeeIds } },
+            select: { employeeId: true, sessionId: true, status: true }
+        })
+    ]);
+    
     const onLeaveEmployeeIds = new Set(leaves.map(l => l.employeeId));
-
-    const attendanceLogs = await prisma.attendanceLog.findMany({
-      where: { date: targetDate, employeeId: { in: allEmployeeIds } },
-      select: { employeeId: true, sessionId: true, status: true }
-    });
-
     const attendanceMap = {};
     attendanceLogs.forEach(log => {
         const sessionMap = { 1: 'morning', 2: 'afternoon', 3: 'evening' };
@@ -744,7 +854,7 @@ router.get("/attendance-roster", authenticate, authorize("Department Head"), asy
     });
     
     res.status(200).json({
-      subDepartments: processedRoster,
+      subDepartments: finalRoster,
       attendanceRecords: attendanceMap,
       onLeaveIds: Array.from(onLeaveEmployeeIds)
     });
@@ -758,90 +868,290 @@ router.get("/attendance-roster", authenticate, authorize("Department Head"), asy
 // POST /api/dep-head/attendance - Save attendance for the day// in depHead.routes.js
 
 // POST /api/dep-head/attendance - CORRECTED to use subDepartmentId
-router.post("/attendance", authenticate, authorize("Department Head"), async (req, res) => {
-  try {
-    const { date, attendance } = req.body;
-    const loggedInUser = req.user;
-
-    // 1. INPUT VALIDATION
-    if (!date || typeof attendance !== 'object' || attendance === null) {
-      return res.status(400).json({ error: "Invalid request body. 'date' and 'attendance' object are required." });
-    }
-    const targetDate = new Date(date);
-    if (isNaN(targetDate.getTime())) {
-      return res.status(400).json({ error: "Invalid date format." });
-    }
-    targetDate.setUTCHours(0, 0, 0, 0);
-
-    // 2. SECURITY CHECK: Get a list of employees this manager is ALLOWED to edit.
-    if (!loggedInUser.employee || !loggedInUser.employee.departmentId) {
-      return res.status(403).json({ error: "Access denied: Your user account is not linked to a department." });
-    }
-    const parentDepartmentId = loggedInUser.employee.departmentId;
-
-    // ✅ FIX: First, find the IDs of the sub-departments this manager oversees.
-    const managedSubDepts = await prisma.department.findMany({
-        where: { parentId: parentDepartmentId },
-        select: { id: true }
-    });
-    const managedSubDeptIds = managedSubDepts.map(d => d.id);
-
-    if (managedSubDeptIds.length === 0) {
-        // This is a valid 404: the manager's department has no sub-departments.
-        return res.status(404).json({ error: "You are not managing any sub-departments." });
-    }
-
-    // ✅ FIX: Now, find all employees who belong to those sub-departments.
-    const managedEmployees = await prisma.employee.findMany({
-        where: {
-            subDepartmentId: { in: managedSubDeptIds }
-        },
-        select: { id: true }
-    });
-    const managedEmployeeIds = new Set(managedEmployees.map(emp => emp.id));
 
 
-    // 3. BUILD DATABASE OPERATIONS (with validation)
-    const operations = [];
-    const validStatuses = ['present', 'late', 'absent', 'permission'];
 
-    for (const employeeIdStr in attendance) {
-      const employeeId = parseInt(employeeIdStr, 10);
+router.get("/export-attendance", authenticate, authorize("Department Head"), async (req, res) => {
+    try {
+        const { startDate, endDate } = req.query; // Expecting 'YYYY-MM-DD'
+        const departmentId = req.user.employee.departmentId;
 
-      // SECURITY: Skip any employee ID that is not managed by this Department Head.
-      if (!managedEmployeeIds.has(employeeId)) {
-        console.warn(`SECURITY WARNING: User ${loggedInUser.id} attempted to save attendance for unmanaged employee ${employeeId}. Skipping.`);
-        continue; // Silently ignore and move to the next employee
-      }
-
-      for (const session in attendance[employeeIdStr]) {
-        const sessionId = { morning: 1, afternoon: 2, evening: 3 }[session];
-        const status = attendance[employeeIdStr][session];
-        
-        if (sessionId && status && validStatuses.includes(status)) {
-            operations.push(
-                prisma.attendanceLog.upsert({
-                    where: { employeeId_date_sessionId: { employeeId, date: targetDate, sessionId } },
-                    update: { status: status },
-                    create: { employeeId, date: targetDate, sessionId, status }
-                })
-            );
+        if (!startDate || !endDate || !departmentId) {
+            return res.status(400).json({ error: "Start date, end date, and department context are required." });
         }
-      }
-    }
+        
+        const start = new Date(startDate);
+        const end = new Date(endDate);
 
-    if (operations.length === 0) {
-      return res.status(200).json({ message: "No valid attendance data was provided to save." });
-    }
-    
-    // 4. EXECUTE TRANSACTION
-    await prisma.$transaction(operations);
-    res.status(200).json({ message: "Attendance saved successfully." });
+        // --- Step 1: Get all employees, just like the overview page ---
+        const employees = await prisma.employee.findMany({
+            where: {
+                departmentId: departmentId,
+                jobStatus: { status: 'Active' }
+            },
+            select: { id: true, firstName: true, lastName: true },
+            orderBy: { firstName: 'asc' }
+        });
+        const employeeIds = employees.map(e => e.id);
 
-  } catch (error) {
-    console.error("Failed to save attendance:", error);
-    res.status(500).json({ error: "An unexpected error occurred while saving attendance." });
-  }
+        // --- Step 2: Get all summaries and holidays in the range, just like the overview page ---
+        const [summaries, holidays, logs] = await Promise.all([
+            prisma.attendanceSummary.findMany({
+                where: { employeeId: { in: employeeIds }, date: { gte: start, lte: end } },
+                select: { employeeId: true, date: true, status: true },
+            }),
+            prisma.holiday.findMany({
+                where: { date: { gte: start, lte: end } },
+                select: { date: true }
+            }),
+            // Also fetch raw logs to get session-specific data for the export
+            prisma.attendanceLog.findMany({
+                where: { employeeId: { in: employeeIds }, date: { gte: start, lte: end } },
+                select: { employeeId: true, date: true, sessionId: true, status: true }
+            })
+        ]);
+
+        const holidayDates = new Set(holidays.map(h => new Date(h.date).toISOString().slice(0, 10)));
+        const summaryMap = new Map();
+        summaries.forEach(rec => {
+            const dateStr = new Date(rec.date).toISOString().slice(0, 10);
+            const key = `${rec.employeeId}-${dateStr}`;
+            summaryMap.set(key, rec.status);
+        });
+
+        const logMap = new Map();
+        logs.forEach(log => {
+            const dateStr = new Date(log.date).toISOString().slice(0, 10);
+            const key = `${log.employeeId}-${dateStr}`;
+            if (!logMap.has(key)) logMap.set(key, {});
+            const sessionMap = { 1: 'morning', 2: 'afternoon', 3: 'evening' };
+            logMap.get(key)[sessionMap[log.sessionId]] = log.status;
+        });
+
+        // --- Step 3: Build the complete attendance map for the export ---
+        const finalAttendanceMap = {};
+        for (const emp of employees) {
+            for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+                const dateStr = d.toISOString().slice(0, 10);
+                const dayOfWeek = d.getUTCDay();
+                const key = `${emp.id}-${dateStr}`;
+
+                if (!finalAttendanceMap[key]) finalAttendanceMap[key] = {};
+
+                const summaryStatus = summaryMap.get(key);
+                const logData = logMap.get(key) || {};
+
+                if (summaryStatus === 'on_leave' || summaryStatus === 'holiday' || summaryStatus === 'weekend') {
+                    // For special days, mark all sessions with that status
+                    finalAttendanceMap[key] = {
+                        morning: summaryStatus,
+                        afternoon: summaryStatus,
+                        evening: summaryStatus
+                    };
+                } else {
+                    // For working days, use the specific log data
+                    finalAttendanceMap[key] = {
+                        morning: logData.morning || null,
+                        afternoon: logData.afternoon || null,
+                        evening: logData.evening || null,
+                    };
+                }
+            }
+        }
+
+        res.status(200).json({ employees, attendanceMap: finalAttendanceMap });
+
+    } catch (error) {
+        console.error("Error exporting attendance data:", error);
+        res.status(500).json({ error: "Failed to export attendance data." });
+    }
+});
+
+router.get("/overtime-requests", authenticate, authorize("Department Head"), async (req, res) => {
+    try {
+        const departmentId = req.user.employee.departmentId;
+
+        const requests = await prisma.overtimeLog.findMany({
+            where: {
+                employee: {
+                    departmentId: departmentId
+                }
+            },
+            orderBy: { date: 'desc' },
+            select: {
+                id: true,
+                date: true,
+                hours: true,
+                reason: true,
+                approvalStatus: true,
+                overtimeType: true, // ✅ Correctly select the field from OvertimeLog
+                employee: { 
+                    select: { 
+                        firstName: true, 
+                        lastName: true 
+                    } 
+                }
+            }
+        });
+        res.status(200).json(requests);
+    } catch (error) {
+        console.error("Error fetching overtime requests for department:", error);
+        res.status(500).json({ error: "Failed to fetch overtime requests." });
+    }
+});
+
+// ---------------------------------------------------------------------------------
+// 2. GET /api/dep-head/team-members - Fetch employees the Dep Head can select
+// ---------------------------------------------------------------------------------
+router.get("/team-members", authenticate, authorize("Department Head"), async (req, res) => {
+    try {
+        const departmentId = req.user.employee.departmentId;
+        const teamMembers = await prisma.employee.findMany({
+            where: {
+                departmentId: departmentId,
+                jobStatus: { status: 'Active' } // Only show active employees
+            },
+            select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+            },
+            orderBy: { firstName: 'asc' }
+        });
+        res.status(200).json(teamMembers);
+    } catch (error) {
+        console.error("Error fetching team members:", error);
+        res.status(500).json({ error: "Failed to fetch team members." });
+    }
+});
+
+// ---------------------------------------------------------------------------------
+// 3. POST /api/dep-head/overtime-requests - Create a new overtime request
+// ---------------------------------------------------------------------------------
+// in depHead.routes.js
+
+router.post("/overtime-requests", authenticate, authorize("Department Head"), async (req, res) => {
+    try {
+        const { employeeId, date, startTime, endTime, reason, compensationMethod, overtimeType, hours } = req.body;
+
+        if (!employeeId || !date || !reason || !overtimeType) {
+            return res.status(400).json({ error: "Employee, date, reason, and overtime type are required." });
+        }
+
+        let calculatedHours;
+        let startDateTime = null;
+        let endDateTime = null;
+        
+        // Logic depends on the type of overtime
+        if (overtimeType === 'WEEKDAY') {
+            if (!startTime || !endTime) {
+                return res.status(400).json({ error: "Start time and end time are required for weekday overtime." });
+            }
+            startDateTime = new Date(`${date}T${startTime}`);
+            endDateTime = new Date(`${date}T${endTime}`);
+            if (endDateTime <= startDateTime) {
+                return res.status(400).json({ error: "End time must be after start time." });
+            }
+            const durationMs = endDateTime - startDateTime;
+            calculatedHours = durationMs / (1000 * 60 * 60);
+        } else { // For SUNDAY or HOLIDAY
+            if (!hours || isNaN(parseFloat(hours)) || parseFloat(hours) <= 0) {
+                return res.status(400).json({ error: "A valid number of hours is required for this overtime type." });
+            }
+            calculatedHours = parseFloat(hours);
+        }
+
+        const newRequest = await prisma.overtimeLog.create({
+            data: {
+                employeeId: parseInt(employeeId),
+                date: new Date(date),
+                startTime: startDateTime,
+                endTime: endDateTime,
+                hours: calculatedHours,
+                reason: reason,
+                overtimeType: overtimeType, // Save the new type
+                compensationMethod: compensationMethod || 'cash',
+                approvalStatus: 'pending'
+            }
+        });
+        res.status(201).json(newRequest);
+    } catch (error) {
+        console.error("Error creating overtime request:", error);
+        res.status(500).json({ error: "Failed to create overtime request." });
+    }
+});
+
+function getStartOfMonth() {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), 1);
+}
+
+// ---------------------------------------------------------------------------------
+// GET /api/dep-head/payment-status - Fetch salary status for the Dep Head's team
+// ---------------------------------------------------------------------------------
+router.get("/payment-status", authenticate, authorize("Department Head"), async (req, res) => {
+    try {
+        const departmentId = req.user.employee.departmentId;
+        const startOfMonth = getStartOfMonth();
+
+        if (!departmentId) {
+            return res.status(403).json({ error: "User is not assigned to a department." });
+        }
+        
+        // Step 1: Find all employees in the department who are NOT interns
+        const teamMembers = await prisma.employee.findMany({
+            where: {
+                departmentId: departmentId,
+                jobStatus: { status: 'Active' },
+                user: {
+                    roles: {
+                        some: {
+                            role: { name: { not: 'Intern' } }
+                        }
+                    }
+                }
+            },
+            select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+            }
+        });
+
+        // Step 2: Get the IDs of these team members
+        const teamMemberIds = teamMembers.map(tm => tm.id);
+
+        // Step 3: Find all salary records for these employees for the current month
+        const salaryRecords = await prisma.salary.findMany({
+            where: {
+                employeeId: { in: teamMemberIds },
+                salaryMonth: startOfMonth,
+            },
+            select: {
+                employeeId: true,
+                status: true,
+            }
+        });
+
+        // Use a Map for efficient lookups
+        const salaryStatusMap = new Map(salaryRecords.map(s => [s.employeeId, s.status]));
+
+        // Step 4: Combine the data. For each team member, find their salary status.
+        // If a salary record doesn't exist for them, they are considered 'unpaid'.
+        const paymentStatuses = teamMembers.map(member => ({
+            id: member.id,
+            name: `${member.firstName} ${member.lastName}`,
+            // If the map has their ID, use that status, otherwise default to 'unpaid'
+            status: salaryStatusMap.get(member.id) || 'unpaid',
+        }));
+        
+        res.status(200).json(paymentStatuses);
+
+    } catch (error)
+{
+        console.error("Error fetching payment status for department:", error);
+        res.status(500).json({ error: "Failed to fetch payment status." });
+    }
 });
 
 
