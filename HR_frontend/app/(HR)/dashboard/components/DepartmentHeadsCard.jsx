@@ -1,54 +1,62 @@
 "use client";
 
-import { Users, Briefcase, Phone } from "lucide-react";
+import { Users, Phone, Briefcase } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "../../../../components/ui/card";
+import Image from 'next/image';
 
-export default function DepartmentHeadsCard({ heads }) {
-  // A safety check in case the heads prop is not passed or is empty
-  if (!heads || heads.length === 0) {
+// --- A dedicated sub-component for each Head's card ---
+const HeadContactCard = ({ head }) => {
+    const fullName = `${head.firstName} ${head.lastName}`;
+    
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 w-full h-full">
-        <h2 className="text-xl font-semibold mb-4 text-gray-700 dark:text-gray-200 flex items-center gap-2">
-          <Users className="text-blue-500" /> Department Heads
-        </h2>
-        <p className="text-sm text-gray-500">No department head information available.</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 w-full h-full">
-      <h2 className="text-xl font-semibold mb-4 text-gray-700 dark:text-gray-200 flex items-center gap-2">
-        <Users className="text-blue-500" /> Department Heads
-      </h2>
-
-      {/* List of department heads */}
-      <div className="space-y-4">
-        {heads.map((head) => (
-          <div
-            key={head.id}
-            className="flex items-center gap-4 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg"
-          >
-            {/* You could add a user photo here later */}
-            <div className="flex-1">
-              <p className="font-semibold text-gray-800 dark:text-white">
-                {head.firstName} {head.lastName}
-              </p>
-              
-              {/* Department Info */}
-              <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mt-1">
-                <Briefcase size={14} />
-                <span>{head.department?.name || "N/A"}</span>
-              </div>
-              
-              {/* Phone Info */}
-              <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mt-1">
-                <Phone size={14} />
-                <span>{head.phone || "No phone number"}</span>
-              </div>
+        <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-3 flex items-center gap-4 border dark:border-slate-700">
+            <div className="relative w-14 h-14 rounded-full flex-shrink-0">
+                <Image
+                    src={head.photo || '/images/default-avatar.png'}
+                    alt={fullName}
+                    fill
+                    className="rounded-full object-cover"
+                    sizes="56px"
+                />
             </div>
-          </div>
-        ))}
-      </div>
-    </div>
+            <div className="min-w-0">
+                <p className="font-bold text-slate-800 dark:text-white truncate" title={fullName}>{fullName}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5 mt-1 truncate">
+                    <Briefcase size={12} />
+                    {head.department?.name || 'N/A'}
+                </p>
+                <a 
+                    href={`tel:${head.phone}`} 
+                    className="inline-flex items-center gap-2 text-sm text-indigo-600 dark:text-indigo-400 font-semibold group mt-1"
+                >
+                    <Phone size={14} />
+                    <span className="group-hover:underline">
+                        {head.phone || 'No phone'}
+                    </span>
+                </a>
+            </div>
+        </div>
+    );
+};
+
+
+export  function DepartmentHeadsCard({ heads }) {
+  return (
+    <Card className="bg-white dark:bg-slate-800/50 shadow-lg h-full">
+        <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+                <Users className="text-blue-500" /> Key Contacts
+            </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3 max-h-[24rem] overflow-y-auto pr-2">
+            {(!heads || heads.length === 0) ? (
+                <p className="text-sm text-center text-slate-400 py-8">No department heads found.</p>
+            ) : (
+                heads.map(head => (
+                    <HeadContactCard key={head.id} head={head} />
+                ))
+            )}
+        </CardContent>
+    </Card>
   );
 }

@@ -18,64 +18,61 @@ const { processDailyAttendance } = require("../jobs/attendanceProcessor");
 //   hrController.respondToComplaint
 // );
 
-// GET /api/hr/dashboard
 
 
-// in your backend router file (e.g., hr.routes.js)
-// in hr.routes.js
+// in your backend HR routes file
+// in your backend HR routes file
 
-router.get("/dashboard", async (req, res) => {
+// in your backend HR routes file
+// in your backend HR routes file
+
+router.get("/dashboard", authenticate, authorize("HR"), async (req, res) => {
   try {
     const now = new Date();
     const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
 
     const [
       totalEmployees,
-      totalDepartments,
+      totalMainDepartments,
+      totalSubDepartments,
       totalStaff,
       totalIntern,
-      totalOnLeave,
-      totalAbsentToday,
-      totalWorkingDays,
-      pendingLeaveApproval,
-      todaysPresent,
-      totalComplaintsAllTime,
-      recentComplaints,
-      departmentHeads, // --- ADDITION 1: Add the new variable name here ---
+      totalOnLeaveToday,
+      pendingLeaves,
+      pendingOvertimes,
+      pendingComplaints,
+      departmentHeads,
+      meetings, // This will now get all meetings
+      holidays
     ] = await Promise.all([
-      // ... (Your first 11 queries remain exactly the same)
       prisma.employee.count({ where: { user: { roles: { some: { role: { name: { notIn: ["HR"] } } } } } } }),
-      prisma.department.count(),
-      prisma.employee.count({ where: { user: { roles: { some: { role: { name: "Staff" } } } } } }),
+      prisma.department.count({ where: { parentId: null } }),
+      prisma.department.count({ where: { parentId: { not: null } } }),
+      prisma.employee.count({ where: { user: { roles: { some: { role: { name: { in: ["Staff", "Department Head"] } } } } } } }),
       prisma.employee.count({ where: { user: { roles: { some: { role: { name: "Intern" } } } } } }),
       prisma.leave.count({ where: { status: "approved", startDate: { lte: today }, endDate: { gte: today } } }),
-      prisma.attendanceSummary.count({ where: { date: today, status: "absent" } }),
-      prisma.attendanceSummary.groupBy({ by: ["date"], where: { date: { gte: new Date(today.getFullYear(), 0, 1) } } }).then((days) => days.length),
       prisma.leave.count({ where: { status: "pending" } }),
-      prisma.attendanceSummary.count({ where: { date: today, status: "present" } }),
-      prisma.complaint.count(),
-      prisma.complaint.findMany({ where: { status: { in: ["open", "in_review"] } }, select: { createdAt: true, description: true }, orderBy: { createdAt: "desc" }, take: 5, }),
-      
-      // --- ADDITION 2: Add the new query for department heads ---
+      prisma.overtimeLog.count({ where: { approvalStatus: "pending" } }),
+      prisma.complaint.count({ where: { status: { in: ["open", "in_review"] } } }),
       prisma.employee.findMany({
-        where: {
-          user: { roles: { some: { role: { name: "Department Head" } } } },
-        },
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          phone: true,
-          department: {
-            select: {
-              name: true,
-            },
-          },
-        },
+        where: { user: { roles: { some: { role: { name: "Department Head" } } } } },
+        select: { id: true, firstName: true, lastName: true, phone: true, photo: true, department: { select: { name: true } } },
+        orderBy: { firstName: 'asc' }
       }),
+      
+      // ✅ REMOVED: The date filter to get all meetings
+      
+      prisma.meeting.findMany({
+        orderBy: { date: 'asc' },
+        include: { creator: { select: { firstName: true, lastName: true } } }
+      }),
+      prisma.holiday.findMany({ orderBy: { date: 'asc' } })
     ]);
+        console.log(`Found ${meetings.length} meetings in database`);
+    if (meetings.length > 0) {
+      console.log("Sample meeting:", meetings[0]);
+    }
 
-    // ... (The chart logic remains exactly the same)
     const presentSummaries = await prisma.attendanceSummary.findMany({
         where: { date: today, status: { in: ['present', 'absent'] }, departmentId: { not: null } },
         include: { department: { select: { name: true } } }
@@ -93,20 +90,19 @@ router.get("/dashboard", async (req, res) => {
         absent: counts.absent,
     }));
 
-    // --- Send the final JSON response ---
     res.status(200).json({
       totalEmployees,
-      totalDepartments,
+      totalMainDepartments,
+      totalSubDepartments,
       totalStaff,
       totalIntern,
-      totalOnLeave,
-      totalAbsentToday,
-      totalWorkingDays,
-      pendingLeaveApproval,
-      todaysPresent,
-      totalComplaintsAllTime,
-      recentComplaints,
-      departmentHeads: departmentHeads, // --- ADDITION 3: Add the new data to the response ---
+      totalOnLeave: totalOnLeaveToday,
+      pendingLeaves,
+      pendingOvertimes,
+      pendingComplaints,
+      departmentHeads,
+      meetings, // This will now include all meetings
+      holidays,
       presentPerDepartment: presentPerDepartmentChartData,
     });
   } catch (error) {
@@ -114,6 +110,7 @@ router.get("/dashboard", async (req, res) => {
     res.status(500).json({ error: "Failed to load dashboard data" });
   }
 });
+
 
 router.post("/process-attendance", authenticate, authorize("HR"), async (req, res) => {
     try {
@@ -135,14 +132,24 @@ router.post("/process-attendance", authenticate, authorize("HR"), async (req, re
     }
 });
 
-// In your HR routes file where the /dashboard route is
-// In your backend hr.routes.js file
 
 // GET /api/hr/meetings - Fetch all meetings
-router.get("/meetings",  async (req, res) => {
+// in your HR backend routes file
+
+// GET /api/hr/meetings - Fetch all RELEVANT meetings
+router.get("/meetings", authenticate, authorize("HR"), async (req, res) => {
   try {
+    // We are removing the date filter to fetch ALL meetings.
     const meetings = await prisma.meeting.findMany({
       orderBy: { date: "asc" },
+      include: {
+        creator: {
+          select: {
+            firstName: true,
+            lastName: true,
+          }
+        }
+      }
     });
     res.status(200).json(meetings);
   } catch (error) {
@@ -151,22 +158,26 @@ router.get("/meetings",  async (req, res) => {
   }
 });
 
-// POST /api/hr/meetings - Add a new meeting
 
-router.post("/meetings", async (req, res) => {
+// POST /api/hr/meetings - Add a new meeting
+router.post("/meetings", authenticate, authorize("HR"), async (req, res) => {
   try {
-    const { title, date, time } = req.body;
+    // ✅ ADDITION: Destructure the new 'description' field
+    const { title, date, time, description } = req.body;
     if (!title || !date || !time) {
-      return res.status(400).json({ error: "All fields are required" });
+      return res.status(400).json({ error: "Title, date, and time are required." });
     }
 
+    const meetingDate = new Date(date);
+    meetingDate.setUTCHours(0, 0, 0, 0);
  
-
     const newMeeting = await prisma.meeting.create({
       data: {
         title: title,
-        date: date, // Your schema expects a String
-        time: time, // Providing the required field
+        description: description, // ✅ ADDITION: Save the description
+        date: meetingDate,
+        time: time,
+        creatorId: req.user.employee.id,
       },
     });
     res.status(201).json(newMeeting);
@@ -190,12 +201,6 @@ router.delete("/meetings/:id",  async (req, res) => {
   }
 });
 
-// In your backend file: routes/hr.routes.js
-
-// ... your existing router setup ...
-
-// GET /api/hr/complaints - Fetch all complaints, ordered by newest first
-// In your backend file: routes/hr.routes.js
 
 // GET /api/hr/complaints - Fetch all complaints, ordered by newest first
 router.get("/complaints", async (req, res) => {
@@ -248,6 +253,7 @@ router.get("/complaints", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch complaints." });
   }
 });
+
 // PATCH /api/hr/complaints/:id - Update a complaint's status and add a response
 router.patch("/complaints/:id", async (req, res) => {
   try {
@@ -279,10 +285,6 @@ router.patch("/complaints/:id", async (req, res) => {
   }
 });
 
-// In a backend routes file, e.g., routes/hr.routes.js
-
-
-// ... your existing router setup ...
 
 // POST /api/hr/employees - Create a new user and employee profile
 router.post("/employees", async (req, res) => { // NOTE: Add 'authenticate, authorize("HR")' middleware back later
@@ -418,29 +420,42 @@ router.post("/employees", async (req, res) => { // NOTE: Add 'authenticate, auth
   }
 });
 
-// GET /api/hr/employees - Fetch ACTIVE employees for the list page
-router.get("/employees", async (req, res) => {
-  try {
-    const terminatedEmployeeIds = await prisma.termination.findMany({
-      select: { employeeId: true },
-    });
-    const idsToExclude = terminatedEmployeeIds.map(t => t.employeeId);
 
+// GET /api/hr/employees - Fetches a list of all employees
+router.get("/employees", authenticate, authorize("HR"), async (req, res) => {
+  try {
     const employees = await prisma.employee.findMany({
       where: {
-        id: {
-          notIn: idsToExclude, // ✅ EXCLUDE TERMINATED EMPLOYEES
-        },
+        deletedAt: null, // Optional: if you use soft deletes
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: {
+        firstName: 'asc',
+      },
+      // ✅ --- THIS IS THE FIX ---
+      // We now 'include' the related data needed for the card view.
       include: {
-        department: { select: { name: true } },
-        position: { select: { name: true } },
-      },
+        user: {
+          select: {
+            email: true,
+          }
+        },
+        department: {
+          select: {
+            name: true,
+          }
+        },
+        position: {
+          select: {
+            name: true,
+          }
+        }
+      }
     });
+
     res.status(200).json(employees);
   } catch (error) {
-    res.status(500).json({ error: "Failed to fetch employee list." });
+    console.error("Error fetching employees:", error);
+    res.status(500).json({ error: "Failed to fetch employees." });
   }
 });
 
@@ -468,14 +483,53 @@ router.get("/employees/search", async (req, res) => {
   }
 });
 
-router.get("/employees/:id", async (req, res) => { // Add auth middleware later
+router.get("/employee-form-lookups", authenticate, authorize("HR"), async (req, res) => {
+    try {
+        const [
+            departments,
+            positions,
+            maritalStatuses,
+            employmentTypes,
+            jobStatuses,
+            agreementStatuses
+        ] = await Promise.all([
+            // This query fetches ALL departments, including sub-departments
+            prisma.department.findMany({ select: { id: true, name: true, parentId: true }, orderBy: { name: 'asc' } }),
+            prisma.position.findMany({ select: { id: true, name: true }, orderBy: { name: 'asc' } }),
+            prisma.maritalStatus.findMany({ select: { id: true, status: true } }),
+            prisma.employmentType.findMany({ select: { id: true, type: true } }),
+            prisma.jobStatus.findMany({ select: { id: true, status: true } }),
+            prisma.agreementStatus.findMany({ select: { id: true, status: true } })
+        ]);
+
+        // We format the data to have a consistent { id, name } structure for the frontend dropdowns
+        res.status(200).json({
+            departments,
+            positions,
+            maritalStatuses: maritalStatuses.map(s => ({ id: s.id, name: s.status })),
+            employmentTypes: employmentTypes.map(t => ({ id: t.id, name: t.type })),
+            jobStatuses: jobStatuses.map(s => ({ id: s.id, name: s.status })),
+            agreementStatuses: agreementStatuses.map(s => ({ id: s.id, name: s.status })),
+        });
+    } catch (error) {
+        console.error("Error fetching employee form lookups:", error);
+        res.status(500).json({ error: "Failed to load form options." });
+    }
+});
+
+
+// PATCH /api/hr/employees/:id - Update an employee's full details
+router.get("/employees/:id", authenticate, authorize("HR"), async (req, res) => {
   try {
     const { id } = req.params;
     const employee = await prisma.employee.findUnique({
       where: { id: parseInt(id) },
-      include: { // Include all related data for a rich profile view
+      // Include all related data for a rich, complete profile view
+      include: {
         user: { select: { username: true, email: true, isActive: true } },
         department: { select: { name: true } },
+        // ✅ ADDITION: Include the sub-department information
+        subDepartment: { select: { name: true } }, 
         position: { select: { name: true } },
         maritalStatus: { select: { status: true } },
         employmentType: { select: { type: true } },
@@ -494,15 +548,13 @@ router.get("/employees/:id", async (req, res) => { // Add auth middleware later
   }
 });
 
-// PATCH /api/hr/employees/:id - Update an employee's details
-// In your backend file: routes/hr.routes.js
 
-// PATCH /api/hr/employees/:id - Update an employee's full details
-router.patch("/employees/:id", async (req, res) => { // Add auth middleware back later
+router.patch("/employees/:id", authenticate, authorize("HR"), async (req, res) => {
   try {
     const { id } = req.params;
     const data = req.body;
 
+    // --- Prepare a clean payload for Prisma ---
     const updatePayload = {
       // Direct string/enum/date/decimal fields that can be updated
       firstName: data.firstName,
@@ -525,30 +577,40 @@ router.patch("/employees/:id", async (req, res) => { // Add auth middleware back
       bonusSalary: data.bonusSalary ? parseFloat(data.bonusSalary) : undefined,
       accountNumber: data.accountNumber,
       employmentDate: data.employmentDate ? new Date(data.employmentDate) : null,
+      photo: data.photo, // For updating the photo URL
     };
 
-    // Conditionally connect relationships if the ID is provided
+    // --- ✅ THE FIX: Conditionally connect ALL relationships ---
+    // This uses Prisma's 'connect' syntax, which is the correct way to update a relation.
     if (data.departmentId) {
       updatePayload.department = { connect: { id: parseInt(data.departmentId) } };
+    }
+    if (data.subDepartmentId) {
+      updatePayload.subDepartment = { connect: { id: parseInt(data.subDepartmentId) } };
+    } else {
+      // If the user unsets the sub-department, we need to disconnect it.
+      updatePayload.subDepartment = { disconnect: true };
     }
     if (data.positionId) {
       updatePayload.position = { connect: { id: parseInt(data.positionId) } };
     }
-    // ... add more for maritalStatusId, employmentTypeId, etc.
+    if (data.maritalStatusId) {
+      updatePayload.maritalStatus = { connect: { id: parseInt(data.maritalStatusId) } };
+    }
+    if (data.employmentTypeId) {
+      updatePayload.employmentType = { connect: { id: parseInt(data.employmentTypeId) } };
+    }
+    if (data.jobStatusId) {
+      updatePayload.jobStatus = { connect: { id: parseInt(data.jobStatusId) } };
+    }
+    if (data.agreementStatusId) {
+      updatePayload.agreementStatus = { connect: { id: parseInt(data.agreementStatusId) } };
+    }
 
+    // --- Perform the update ---
     const updatedEmployee = await prisma.employee.update({
       where: { id: parseInt(id) },
       data: updatePayload,
-      // Re-fetch all data to send the updated profile back to the frontend
-      include: {
-        user: { select: { username: true, email: true, isActive: true } },
-        department: { select: { name: true } },
-        position: { select: { name: true } },
-        maritalStatus: { select: { status: true } },
-        employmentType: { select: { type: true } },
-        jobStatus: { select: { status: true } },
-        agreementStatus: { select: { status: true } },
-      },
     });
 
     res.status(200).json(updatedEmployee);
@@ -649,8 +711,6 @@ router.get("/terminations", async (req, res) => {
 });
 
 // POST /api/hr/terminations - Create a new termination record
-// In your backend file: routes/hr.routes.js
-
 router.post("/terminations", async (req, res) => {
   try {
     const { employeeId, terminationDate, reason, terminationType, remarks } = req.body;
@@ -807,8 +867,6 @@ router.delete("/terminations/:id",  async (req, res) => {
         res.status(500).json({ error: "Failed to delete termination." });
     }
 });
-
-// ... your existing GET, PATCH, DELETE routes for terminations ...
 
 // POST /api/hr/terminations - Create a new termination record
 router.post("/terminations", async (req, res) => { // Add auth middleware back later
@@ -1188,9 +1246,6 @@ router.patch("/leaves/:id/status", async (req, res) => {
   }
 });
 
-// GET /api/hr/overtime - Fetch all overtime requests
-
-// in your backend routes file
 
 // GET /api/hr/overtime - CORRECTED to include department info
 router.get("/overtime", async (req, res) => {

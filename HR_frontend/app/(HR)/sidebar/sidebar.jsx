@@ -16,6 +16,7 @@ import {
   IdCard,
   Clock,
   DollarSign,
+  OctagonMinus
 } from "lucide-react";
 import { MdOutlineReportProblem } from "react-icons/md";
 
@@ -110,7 +111,7 @@ export default function Sidebar() {
           />
           <SidebarLink
             href="/leave_request"
-            icon={<FileText size={18} />}
+            icon={<OctagonMinus size={18} />}
             label="Leave Requests"
           />
           <SidebarLink

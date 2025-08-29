@@ -30,6 +30,17 @@ enum LeaveType {
   other
 }
 
+enum ActivityType {
+  ATTENDANCE_MARKED
+  REVIEW_SUBMITTED
+  OVERTIME_REQUESTED
+  LEAVE_REQUESTED
+  COMPLAINT_SUBMITTED
+  // Actioned by HR
+  LEAVE_ACTIONED
+  OVERTIME_ACTIONED
+}
+
 enum LeaveStatus {
   pending
   approved
@@ -150,13 +161,15 @@ model Department {
 
   // This is the "children" relationship.
   // A department can have many sub-departments.
-  subDepartments      Department[]        @relation("SubDepartments")
-  createdAt           DateTime            @default(now())
-  updatedAt           DateTime            @updatedAt
-  employees           Employee[]
-  attendanceSummaries AttendanceSummary[]
-  payrollPolicyId     Int? // This department can have a custom policy
-  payrollPolicy       PayrollPolicy?      @relation(fields: [payrollPolicyId], references: [id])
+  subDepartments Department[] @relation("SubDepartments")
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  employees      Employee[]
+
+  subDepartmentEmployees Employee[]          @relation("SubDepartment")
+  attendanceSummaries    AttendanceSummary[]
+  payrollPolicyId        Int? // This department can have a custom policy
+  payrollPolicy          PayrollPolicy?      @relation(fields: [payrollPolicyId], references: [id])
 }
 
 model Position {
@@ -202,7 +215,7 @@ model Meeting {
 
   // We will store the meeting date and time separately as requested.
   // Using String is flexible but requires careful handling on the frontend.
-  date String // e.g., "2024-10-28"
+  date DateTime // e.g., "2024-10-28"
   time String // e.g., "14:00 - 15:00"
 
   // This creates a direct link to the HR employee who posted the announcement.
@@ -270,6 +283,11 @@ model Employee {
   terminations        Termination[]
   salaries            Salary[]
   overtimes           OvertimeLog[]
+
+  subDepartment Department? @relation("SubDepartment", fields: [subDepartmentId], references: [id], onDelete: SetNull)
+
+  activitiesDone     ActivityLog[] @relation("ActivityBy")
+  activitiesReceived ActivityLog[] @relation("ActivityFor")
 }
 
 // ----------------------
@@ -338,6 +356,24 @@ model AttendanceSummary {
   @@unique([employeeId, date])
 }
 
+///--------------------
+// Activity logs
+//---------------------
+model ActivityLog {
+  id           Int          @id @default(autoincrement())
+  type         ActivityType
+  message      String
+  actorId      Int // The ID of the employee who performed the action
+  targetId     Int? // The ID of the employee the action was performed on (optional)
+  departmentId Int // The department this activity is relevant to
+  createdAt    DateTime     @default(now())
+
+  actor  Employee  @relation("ActivityBy", fields: [actorId], references: [id])
+  target Employee? @relation("ActivityFor", fields: [targetId], references: [id])
+
+  @@index([departmentId, createdAt])
+}
+
 // ----------------------
 // 7. LEAVES & HOLIDAYS
 // ----------------------
@@ -383,6 +419,9 @@ model OvertimeLog {
   approvedBy         Int?
   approvalStatus     OvertimeApprovalStatus @default(pending)
   compensationMethod CompensationMethod     @default(cash)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 
   employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
   approver User?    @relation("ApprovedOvertimes", fields: [approvedBy], references: [id], onDelete: SetNull)

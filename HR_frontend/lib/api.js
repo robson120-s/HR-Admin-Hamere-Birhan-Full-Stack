@@ -92,10 +92,10 @@ export const getDashboardData = async () => {
 };
 // lib/api.js - add these to your file
 
-export const getMeetings = async () => {
-  const response = await apiClientHr.get("/meetings");
-  return response.data;
-};
+// export const getMeetings = async () => {
+//   const response = await apiClientHr.get("/meetings");
+//   return response.data;
+// };
 
 export const addMeeting = async (meetingData) => {
   const response = await apiClientHr.post("/meetings", meetingData);
@@ -132,13 +132,33 @@ export const updateComplaint = async (id, data) => {
   } catch (error) {
     throw new Error(error.response?.data?.error || "Could not update complaint.");
   }
-};export const createEmployee = async (payload) => {
+};
+
+export const createEmployee = async (payload) => {
   try {
     const response = await apiClientHr.post("/employees", payload);
     return response.data;
   } catch (error) {
     throw new Error(error.response?.data?.error || "Could not create employee.");
   }
+};
+
+export const uploadPhoto = async (file) => {
+    const formData = new FormData();
+    formData.append('photo', file); // 'photo' must match the name in the backend `upload.single('photo')`
+
+    // Use the general apiClient
+    const response = await apiClient.post('/upload/photo', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
+    return response.data; // This will return { filePath: '/uploads/photo-12345.jpg' }
+};
+
+export const getEmployeeFormLookups = async () => {
+    const response = await apiClientHr.get('/employee-form-lookups');
+    return response.data;
 };
 
 /**

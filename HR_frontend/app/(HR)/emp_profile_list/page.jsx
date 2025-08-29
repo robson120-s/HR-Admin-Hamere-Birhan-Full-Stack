@@ -1,133 +1,128 @@
-// app/(HR)/emp_profile_list/page.jsx
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { useTheme } from "next-themes";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import toast from "react-hot-toast";
-import { UserPlus, Sun, Moon, Briefcase, UserCircle, Phone, Mail } from "lucide-react";
-import { CreateEmployeeModal } from "./components/CreateEmployeeModal"; // We'll create this
-import { getEmployees, createEmployee } from "../../../lib/api"; // Adjust path if needed
+import { Plus, Search, Building, LoaderCircle } from "lucide-react";
+import { Button } from "../../../components/ui/button";
+import { Input } from "../../../components/ui/input";
+import { EmployeeCard } from "./components/EmployeeCard";
+import { CreateEmployeeModal } from "./components/CreateEmployeeModal";
+import { getEmployees } from "../../../lib/api";
 
-// Main Page Component
 export default function EmployeeListPage() {
-  const [openCreateModal, setOpenCreateModal] = useState(false);
   const [employees, setEmployees] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-  const router = useRouter();
-
-  useEffect(() => setMounted(true), []);
-
-  const fetchEmployees = async () => {
-    setIsLoading(true);
-    try {
-      // ✅ THIS IS THE FIX ✅
-      // Fetch the live data from your backend API
-      const data = await getEmployees();
-      setEmployees(data);
-    } catch (error) {
-      toast.error(error.message || "Could not fetch employee list.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const triggerRefresh = () => setRefreshKey(prevKey => prevKey + 1);
 
   useEffect(() => {
-    fetchEmployees();
-  }, []);
+    setIsLoading(true);
+    getEmployees()
+      .then(data => {
+        setEmployees(Array.isArray(data) ? data : []);
+      })
+      .catch(error => {
+        toast.error(error.message || "Failed to fetch employees.");
+        setEmployees([]);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  }, [refreshKey]);
 
-  const handleEmployeeCreated = (newEmployee) => {
-    setEmployees((prev) => [newEmployee, ...prev]);
-    toast.success(`${newEmployee.firstName} ${newEmployee.lastName} has been added.`);
-    setOpenCreateModal(false);
+  const handleCreateSuccess = () => {
+    setIsCreateModalOpen(false);
+    triggerRefresh();
   };
 
+  // ✅ --- THIS IS THE NEW GROUPING LOGIC ---
+  const groupedAndFilteredEmployees = useMemo(() => {
+    // 1. First, filter the employees based on the search term
+    const filtered = employees.filter(emp =>
+      `${emp.firstName} ${emp.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (emp.position?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (emp.department?.name || '').toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    // 2. Then, group the filtered results into a dictionary-like object
+    const grouped = filtered.reduce((acc, employee) => {
+      // Use the department name as the key. Fallback for uncategorized employees.
+      const departmentName = employee.department?.name || 'Uncategorized';
+      if (!acc[departmentName]) {
+        acc[departmentName] = []; // If we haven't seen this department yet, create an empty array for it
+      }
+      acc[departmentName].push(employee); // Add the employee to their department's array
+      return acc;
+    }, {});
+
+    // 3. Convert the object into an array of { departmentName, employees } for easy rendering
+    return Object.entries(grouped).map(([departmentName, employees]) => ({
+      departmentName,
+      employees,
+    }));
+  }, [employees, searchTerm]);
+
   return (
-    <div className="min-h-screen p-4 md:p-8 bg-slate-50 dark:bg-slate-900">
-      {/* Page Header */}
-      <header className="flex items-center justify-between gap-4 mb-8">
+    <div className="p-4 md:p-8 space-y-6 bg-slate-50 dark:bg-slate-900 min-h-screen">
+      <header className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100">Employee Profiles</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            View, manage, and create employee profiles.
+            View, search, and manage all employee profiles in the organization.
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          {mounted && (
-            <button
-              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="p-2 rounded-full bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600"
-            >
-              {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
-            </button>
-          )}
-          <Button onClick={() => setOpenCreateModal(true)}>
-            <UserPlus className="mr-2 h-4 w-4" />
-            Create New
-          </Button>
-        </div>
+        <Button onClick={() => setIsCreateModalOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" />
+          Create Employee
+        </Button>
       </header>
 
-      {/* Employee Grid */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+        <Input
+          placeholder="Search by name, position, or department..."
+          className="pl-10 w-full md:w-1/3"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
+
       {isLoading ? (
-        <div className="text-center py-16 text-slate-500">Loading...</div>
-      ) : employees.length === 0 ? (
-        <div className="text-center py-16 text-slate-500">No employees found.</div>
+        <div className="flex items-center justify-center p-20">
+          <LoaderCircle className="animate-spin h-10 w-10 text-indigo-500" />
+        </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {employees.map((emp) => (
-            <EmployeeCard key={emp.id} employee={emp} />
+        // ✅ --- THIS IS THE NEW RENDER LOGIC ---
+        <div className="space-y-8">
+          {groupedAndFilteredEmployees.map(({ departmentName, employees }) => (
+            <section key={departmentName}>
+              <h2 className="text-xl font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-3 mb-4 border-b pb-2 dark:border-slate-700">
+                <Building size={20} />
+                {departmentName}
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {employees.map(employee => (
+                  <EmployeeCard key={employee.id} employee={employee} />
+                ))}
+              </div>
+            </section>
           ))}
         </div>
       )}
 
-      {/* Create Modal */}
+      {groupedAndFilteredEmployees.length === 0 && !isLoading && (
+        <div className="text-center py-20 text-slate-500">
+          <p>No employees found matching your search.</p>
+        </div>
+      )}
+
       <CreateEmployeeModal
-        open={openCreateModal}
-        onClose={() => setOpenCreateModal(false)}
-        onCreated={handleEmployeeCreated}
+        open={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onCreated={handleCreateSuccess}
       />
     </div>
   );
-}
-
-// Attractive Employee Card Component
-function EmployeeCard({ employee }) {
-  const router = useRouter();
-  const fullName = `${employee.firstName} ${employee.lastName}`;
-  
-  return (
-    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg text-center p-6 transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
-      <img
-        src={employee.photo || "/images/default-avatar.png"} // Fallback to a default avatar
-        alt={fullName}
-        className="w-28 h-28 rounded-full object-cover mx-auto border-4 border-slate-200 dark:border-slate-700"
-      />
-      <h3 className="mt-4 font-bold text-lg text-slate-900 dark:text-slate-100 truncate" title={fullName}>
-        {fullName}
-      </h3>
-      <p className="text-sm text-indigo-500 dark:text-indigo-400 font-semibold">{employee.position?.name || "No Position"}</p>
-      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{employee.department?.name || "No Department"}</p>
-      <Button onClick={() => router.push(`/emp_profile_list/${employee.id}`)} className="mt-5">
-        View Profile
-      </Button>
-    </div>
-  );
-}
-
-// Simple Button component for reuse
-function Button({ children, onClick, className = '' }) {
-    return (
-        <button
-            onClick={onClick}
-            className={`px-4 py-2 rounded-lg bg-indigo-600 text-white font-semibold text-sm
-                        hover:bg-indigo-700 transition-colors duration-200
-                        focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500
-                        dark:focus:ring-offset-slate-900 ${className}`}
-        >
-            {children}
-        </button>
-    )
 }

@@ -1,8 +1,7 @@
-// app/(HR)/emp_profile_list/components/CreateEmployeeModal.jsx
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, User, Briefcase, Info, Phone, Banknote, ChevronsUpDown, Check } from "lucide-react";
+import { X, User, Briefcase, Info, Phone, Banknote, ChevronsUpDown, Check, LoaderCircle } from "lucide-react";
 import toast from "react-hot-toast";
 import { Combobox } from '@headlessui/react';
 import { createEmployee } from "../../../../lib/api";
@@ -10,11 +9,14 @@ import {
     getRoles, getDepartmentsLookup, getPositionsLookup, getMaritalStatuses, 
     getEmploymentTypes, getJobStatuses, getAgreementStatuses 
 } from "../../../../lib/api";
+import Image from 'next/image';
+
+// --- IMPORT UPLOADTHING'S BUTTON COMPONENT ---
+import { UploadButton } from "@uploadthing/react";
 
 // ==============================================================================
-// HELPER COMPONENTS (Defined within this file for simplicity)
+// HELPER COMPONENTS (These are correct and unchanged)
 // ==============================================================================
-
 const FormInput = ({ label, name, value, onChange, type = "text", required = false, placeholder = '', step }) => (
   <div>
     <label htmlFor={name} className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">{label}{required && <span className="text-red-500">*</span>}</label>
@@ -62,7 +64,7 @@ const TabButton = ({ icon, label, isActive, onClick }) => (
   </button>
 );
 
-function SearchableDropdown({ label, options = [], selected, setSelected, required = false, placeholder = '' }) {
+function SearchableDropdown({ label, options = [], selected, setSelected, required = false, placeholder = '', disabled = false }) {
   const [query, setQuery] = useState('');
 
   const filteredOptions =
@@ -72,12 +74,12 @@ function SearchableDropdown({ label, options = [], selected, setSelected, requir
 
   return (
     <div>
-      <Combobox value={selected} onChange={setSelected} nullable>
+      <Combobox value={selected} onChange={setSelected} nullable disabled={disabled}>
         <div className="relative">
           <Combobox.Label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">
             {label} {required && <span className="text-red-500">*</span>}
           </Combobox.Label>
-          <div className="relative w-full cursor-default overflow-hidden rounded-md bg-white dark:bg-slate-800 text-left border border-slate-300 dark:border-slate-600 focus-within:ring-2 focus-within:ring-indigo-500">
+          <div className={`relative w-full cursor-default overflow-hidden rounded-md text-left border ${disabled ? 'bg-slate-100 dark:bg-slate-700' : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 focus-within:ring-2 focus-within:ring-indigo-500'}`}>
             <Combobox.Input
               className="w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 dark:text-gray-100 bg-transparent focus:ring-0"
               displayValue={(option) => option?.name || ''}
@@ -114,15 +116,8 @@ function SearchableDropdown({ label, options = [], selected, setSelected, requir
   );
 }
 
-// --- Initial State for the Form ---
 const initialUserData = { username: '', email: '', password: '' };
-const initialEmployeeData = {
-  firstName: '', lastName: '', baptismalName: '', dateOfBirth: '', sex: 'male', nationality: '',
-  subDepartmentId: '', employmentDate: '', phone: '', address: '', subCity: '',
-  emergencyContactName: '', emergencyContactPhone: '', repentanceFatherName: '',
-  repentanceFatherChurch: '', repentanceFatherPhone: '', academicQualification: '',
-  educationalInstitution: '', salary: '', bonusSalary: '', accountNumber: '', photoBase64: '',
-};
+const initialEmployeeData = { firstName: '', lastName: '', baptismalName: '', dateOfBirth: '', sex: 'male', nationality: '', subDepartmentId: '', employmentDate: '', phone: '', address: '', subCity: '', emergencyContactName: '', emergencyContactPhone: '', repentanceFatherName: '', repentanceFatherChurch: '', repentanceFatherPhone: '', academicQualification: '', educationalInstitution: '', salary: '', bonusSalary: '', accountNumber: '', photo: '' };
 
 // ==============================================================================
 // MAIN MODAL COMPONENT
@@ -136,7 +131,6 @@ export function CreateEmployeeModal({ open, onClose, onCreated }) {
       roles: [], departments: [], positions: [], maritalStatuses: [],
       employmentTypes: [], jobStatuses: [], agreementStatuses: []
   });
-
   const [selectedRole, setSelectedRole] = useState(null);
   const [selectedMaritalStatus, setSelectedMaritalStatus] = useState(null);
   const [selectedDept, setSelectedDept] = useState(null);
@@ -145,8 +139,10 @@ export function CreateEmployeeModal({ open, onClose, onCreated }) {
   const [selectedEmpType, setSelectedEmpType] = useState(null);
   const [selectedJobStatus, setSelectedJobStatus] = useState(null);
   const [selectedAgreement, setSelectedAgreement] = useState(null);
-   const [availableSubDepts, setAvailableSubDepts] = useState([]);
-
+  const [availableSubDepts, setAvailableSubDepts] = useState([]);
+  
+  // ✅ NEW STATE: This will track the upload progress visually.
+  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -173,39 +169,31 @@ export function CreateEmployeeModal({ open, onClose, onCreated }) {
         setSelectedJobStatus(null);
         setSelectedAgreement(null);
         setSelectedSubDept(null);
-      setAvailableSubDepts([]);
+        setAvailableSubDepts([]);
     }
   }, [open]);
-    useEffect(() => {
-    // When the user selects a parent department...
+
+  useEffect(() => {
     if (selectedDept && lookupData.departments.length > 0) {
-      // Find all departments from the master list whose parentId matches the selected department's id.
       const subs = lookupData.departments.filter(d => d.parentId === selectedDept.id);
       setAvailableSubDepts(subs);
-      
-      // If the currently selected sub-department doesn't belong to the new parent, reset it.
       if (selectedSubDept && selectedSubDept.parentId !== selectedDept.id) {
           setSelectedSubDept(null);
       }
     } else {
-      // If no parent department is selected, clear the sub-department list and any selection.
       setAvailableSubDepts([]);
       setSelectedSubDept(null);
     }
-  }, [selectedDept, lookupData.departments]); 
+  }, [selectedDept, lookupData.departments, selectedSubDept]); 
 
   const handleUserChange = (e) => setUserData({ ...userData, [e.target.name]: e.target.value });
   const handleEmployeeChange = (e) => setEmployeeData({ ...employeeData, [e.target.name]: e.target.value });
-  const onFileChange = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => setEmployeeData(p => ({ ...p, photoBase64: reader.result }));
-    reader.readAsDataURL(file);
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isUploading) {
+        return toast.error("Please wait for the photo to finish uploading.");
+    }
     setIsLoading(true);
     try {
       const payload = {
@@ -219,14 +207,15 @@ export function CreateEmployeeModal({ open, onClose, onCreated }) {
           employmentTypeId: selectedEmpType?.id,
           jobStatusId: selectedJobStatus?.id,
           agreementStatusId: selectedAgreement?.id,
-          photo: employeeData.photoBase64,
         },
         roleId: selectedRole?.id,
       };
-      const newEmployee = await createEmployee(payload);
-      onCreated(newEmployee);
+      await createEmployee(payload);
+      toast.success("Employee created successfully!");
+      onCreated();
+      onClose();
     } catch (error) {
-      toast.error(error.message);
+      toast.error(error.response?.data?.error || "Failed to create employee.");
     } finally {
       setIsLoading(false);
     }
@@ -269,9 +258,51 @@ export function CreateEmployeeModal({ open, onClose, onCreated }) {
                 <FormSelect label="Sex" name="sex" value={employeeData.sex} onChange={handleEmployeeChange}><option value="male">Male</option><option value="female">Female</option></FormSelect>
                 <FormInput label="Nationality" name="nationality" value={employeeData.nationality} onChange={handleEmployeeChange} />
                 <SearchableDropdown label="Marital Status" options={lookupData.maritalStatuses} selected={selectedMaritalStatus} setSelected={setSelectedMaritalStatus} placeholder="Select status..." />
-                <div className="md:col-span-2">
-                    <label htmlFor="photo" className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">Employee Photo</label>
-                    <input type="file" id="photo" name="photo" accept="image/*" onChange={onFileChange} className="w-full text-sm"/>
+                
+                <div className="md:col-span-2 flex items-center gap-4">
+                    <div className="w-24 h-24 rounded-full bg-slate-200 dark:bg-slate-700 flex-shrink-0 flex items-center justify-center overflow-hidden relative">
+                        {employeeData.photo ? (
+                            <Image src={employeeData.photo} alt="Employee Preview" width={96} height={96} className="object-cover w-full h-full"/>
+                        ) : (
+                            <User size={40} className="text-slate-400"/>
+                        )}
+                        {/* ✅ VISIBLE LOADING OVERLAY */}
+                        {isUploading && (
+                            <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                                <LoaderCircle className="w-8 h-8 text-white animate-spin" />
+                            </div>
+                        )}
+                    </div>
+                    <div className="flex-1">
+                        <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">Employee Photo</label>
+                        <UploadButton
+                            endpoint="employeePhotoUploader"
+                            onUploadBegin={() => {
+                                setIsUploading(true);
+                                toast.loading("Uploading photo...");
+                            }}
+                            onClientUploadComplete={(res) => {
+                                setIsUploading(false);
+                                toast.dismiss(); // Dismiss the loading toast
+                                if (res && res[0]) {
+                                    setEmployeeData(p => ({ ...p, photo: res[0].url }));
+                                    toast.success("Upload Completed!");
+                                }
+                            }}
+                            onUploadError={(error) => {
+                                setIsUploading(false);
+                                toast.dismiss();
+                                toast.error(`ERROR! ${error.message}`);
+                            }}
+                            // --- ✅ ATTRACTIVE STYLING ---
+                            appearance={{
+                                button: "bg-indigo-600 hover:bg-indigo-700 text-sm font-semibold h-10",
+                                container: "w-max",
+                                allowedContent: "text-slate-500 text-xs",
+                            }}
+                        />
+                         <p className="text-xs text-slate-500 mt-1">PNG or JPG, up to 2MB.</p>
+                    </div>
                 </div>
               </div>
             )}
@@ -289,24 +320,22 @@ export function CreateEmployeeModal({ open, onClose, onCreated }) {
             )}
             {activeTab === 'employment' && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {console.log("Department Options:", lookupData.departments)}
                 <SearchableDropdown 
                     label="Department (Main)" 
-                    // ✅ Filter the options to only show top-level departments
-options={lookupData.departments.filter(d => !d.parentId)}
+                    options={lookupData.departments.filter(d => !d.parentId)}
                     selected={selectedDept} 
                     setSelected={setSelectedDept} 
                     placeholder="Select Main department..." 
                 />
                 <SearchableDropdown 
-                    label="Sub-Department Optional" 
+                    label="Sub-Department (Optional)" 
                     options={availableSubDepts} 
                     selected={selectedSubDept} 
                     setSelected={setSelectedSubDept} 
-                    // Disable the dropdown if no parent department is selected
                     disabled={!selectedDept || availableSubDepts.length === 0}
-                    placeholder={!selectedDept ? "Select a department first" : "Select a subdepartment..."}
-                /><SearchableDropdown label="Position" options={lookupData.positions} selected={selectedPos} setSelected={setSelectedPos} placeholder="Select position..." />
+                    placeholder={!selectedDept ? "Select a department first" : "Select a sub-department..."}
+                />
+                <SearchableDropdown label="Position" options={lookupData.positions} selected={selectedPos} setSelected={setSelectedPos} placeholder="Select position..." />
                 <SearchableDropdown label="Employment Type" options={lookupData.employmentTypes} selected={selectedEmpType} setSelected={setSelectedEmpType} placeholder="Select type..." />
                 <FormInput label="Employment Date" name="employmentDate" value={employeeData.employmentDate} onChange={handleEmployeeChange} type="date" />
                 <SearchableDropdown label="Job Status" options={lookupData.jobStatuses} selected={selectedJobStatus} setSelected={setSelectedJobStatus} placeholder="Select status..." />
@@ -326,8 +355,8 @@ options={lookupData.departments.filter(d => !d.parentId)}
 
           <footer className="p-4 border-t dark:border-slate-700 flex justify-end gap-3 bg-slate-50 dark:bg-slate-800/50 sticky bottom-0">
             <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg bg-slate-200 dark:bg-slate-600 hover:bg-slate-300 dark:hover:bg-slate-500">Cancel</button>
-            <button type="submit" disabled={isLoading} className="px-6 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 disabled:bg-slate-400">
-              {isLoading ? "Creating..." : "Create Employee"}
+            <button type="submit" disabled={isLoading || isUploading} className="px-6 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 disabled:bg-slate-400 disabled:cursor-not-allowed">
+              {isLoading ? "Creating..." : isUploading ? "Uploading..." : "Create Employee"}
             </button>
           </footer>
         </form>

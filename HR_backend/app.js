@@ -1,6 +1,7 @@
 const express =require('express')
 const app =express()
 const cors = require('cors')
+const path = require('path');
 const hrRoutes = require('./app/routes/hr.routes');
 const depHeadRoutes = require('./app/routes/depHead.routes');
 
@@ -38,6 +39,14 @@ app.use("/api/attendance-logs", attendanceLogRoutes);
 app.use("/api/attendance-summaries", attendanceSummaryRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/hr", hrRoutes);
+
+
+//Uploading
+const uploadRoutes = require('./app/routes/upload.routes');
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use("/api/upload", uploadRoutes);
+
+
 //salary routes
 const salaryRoutes= require('./app/routes/salary.routes');
 app.use("/api/salary", salaryRoutes);

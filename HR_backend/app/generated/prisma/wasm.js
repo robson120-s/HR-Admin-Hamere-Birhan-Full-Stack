@@ -277,6 +277,16 @@ exports.Prisma.AttendanceSummaryScalarFieldEnum = {
   departmentId: 'departmentId'
 };
 
+exports.Prisma.ActivityLogScalarFieldEnum = {
+  id: 'id',
+  type: 'type',
+  message: 'message',
+  actorId: 'actorId',
+  targetId: 'targetId',
+  departmentId: 'departmentId',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.LeaveScalarFieldEnum = {
   id: 'id',
   employeeId: 'employeeId',
@@ -309,7 +319,9 @@ exports.Prisma.OvertimeLogScalarFieldEnum = {
   reason: 'reason',
   approvedBy: 'approvedBy',
   approvalStatus: 'approvalStatus',
-  compensationMethod: 'compensationMethod'
+  compensationMethod: 'compensationMethod',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.SalaryScalarFieldEnum = {
@@ -435,7 +447,6 @@ exports.Prisma.AgreementStatusOrderByRelevanceFieldEnum = {
 exports.Prisma.MeetingOrderByRelevanceFieldEnum = {
   title: 'title',
   description: 'description',
-  date: 'date',
   time: 'time'
 };
 
@@ -465,6 +476,10 @@ exports.Prisma.ShiftOrderByRelevanceFieldEnum = {
 
 exports.Prisma.AttendanceSummaryOrderByRelevanceFieldEnum = {
   remarks: 'remarks'
+};
+
+exports.Prisma.ActivityLogOrderByRelevanceFieldEnum = {
+  message: 'message'
 };
 
 exports.Prisma.LeaveOrderByRelevanceFieldEnum = {
@@ -525,6 +540,16 @@ exports.SummaryStatus = exports.$Enums.SummaryStatus = {
   permission: 'permission',
   holiday: 'holiday',
   weekend: 'weekend'
+};
+
+exports.ActivityType = exports.$Enums.ActivityType = {
+  ATTENDANCE_MARKED: 'ATTENDANCE_MARKED',
+  REVIEW_SUBMITTED: 'REVIEW_SUBMITTED',
+  OVERTIME_REQUESTED: 'OVERTIME_REQUESTED',
+  LEAVE_REQUESTED: 'LEAVE_REQUESTED',
+  COMPLAINT_SUBMITTED: 'COMPLAINT_SUBMITTED',
+  LEAVE_ACTIONED: 'LEAVE_ACTIONED',
+  OVERTIME_ACTIONED: 'OVERTIME_ACTIONED'
 };
 
 exports.LeaveType = exports.$Enums.LeaveType = {
@@ -606,6 +631,7 @@ exports.Prisma.ModelName = {
   SessionDefinition: 'SessionDefinition',
   AttendanceLog: 'AttendanceLog',
   AttendanceSummary: 'AttendanceSummary',
+  ActivityLog: 'ActivityLog',
   Leave: 'Leave',
   Holiday: 'Holiday',
   OvertimeLog: 'OvertimeLog',
