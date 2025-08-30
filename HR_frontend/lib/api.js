@@ -36,6 +36,18 @@ const addAuthToken = (config) => {
     }
     return config;
 };
+apiClientDepHead.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 apiClientHr.interceptors.request.use(addAuthToken);
 apiClientDepHead.interceptors.request.use(addAuthToken);
@@ -361,6 +373,17 @@ export const updateOvertimeStatus = async (id, status) => {
   } catch (error) {
     throw new Error(error.response?.data?.error || "Could not update overtime status.");
   }
+};
+
+/////////////Attendance approval 
+export const getAttendanceForApproval = async (date) => {
+    const response = await apiClientHr.get(`/attendance-for-approval?date=${date}`);
+    return response.data;
+};
+
+export const approveAttendance = async (date, employeeIds) => {
+    const response = await apiClientHr.post('/approve-attendance', { date, employeeIds });
+    return response.data;
 };
 
 

@@ -133,9 +133,6 @@ router.post("/process-attendance", authenticate, authorize("HR"), async (req, re
 });
 
 
-// GET /api/hr/meetings - Fetch all meetings
-// in your HR backend routes file
-
 // GET /api/hr/meetings - Fetch all RELEVANT meetings
 router.get("/meetings", authenticate, authorize("HR"), async (req, res) => {
   try {
@@ -198,6 +195,143 @@ router.delete("/meetings/:id",  async (req, res) => {
   } catch (error) {
     console.error("Error deleting meeting:", error);
     res.status(500).json({ error: "Failed to delete meeting" });
+  }
+});
+
+
+// GET /api/hr/attendance-for-approval?date=YYYY-MM-DD
+router.get("/attendance-for-approval", authenticate, authorize("HR"), async (req, res) => {
+    try {
+        const { date } = req.query;
+        if (!date) return res.status(400).json({ error: "Date is required." });
+        
+        const targetDate = new Date(date);
+        targetDate.setUTCHours(0, 0, 0, 0);
+
+        // --- ✅ THE FIX: We perform the queries in a logical sequence ---
+
+        // Step 1: Fetch all main departments with their sub-departments
+        const departments = await prisma.department.findMany({
+            where: { parentId: null },
+            include: { subDepartments: { orderBy: { name: 'asc' } } },
+            orderBy: { name: 'asc' }
+        });
+
+        // Step 2: Get a complete list of all sub-department IDs
+        const allSubDeptIds = departments.flatMap(d => d.subDepartments.map(sd => sd.id));
+        if (allSubDeptIds.length === 0) {
+            // If there are no sub-departments, there's no data to fetch.
+            return res.status(200).json({ departments: [], employees: [], attendanceLogs: [], approvedEmployeeIds: [] });
+        }
+
+        // Step 3: Now that we have the IDs, fetch all employees belonging to those sub-departments.
+        const employees = await prisma.employee.findMany({
+            where: { subDepartmentId: { in: allSubDeptIds } },
+            select: { 
+                id: true, 
+                firstName: true, 
+                lastName: true, 
+                subDepartmentId: true, 
+                user: { 
+                    select: { 
+                        roles: { 
+                            select: { 
+                                role: { 
+                                    select: { name: true } 
+                                } 
+                            } 
+                        } 
+                    } 
+                } 
+            }
+        });
+        const employeeIds = employees.map(e => e.id);
+        if (employeeIds.length === 0) {
+            return res.status(200).json({ departments, employees: [], attendanceLogs: [], approvedEmployeeIds: [] });
+        }
+
+        // Step 4: Now that we have the employee IDs, fetch their logs and summaries in parallel.
+        const [attendanceLogs, existingSummaries] = await Promise.all([
+            prisma.attendanceLog.findMany({
+                where: { 
+                    date: targetDate, 
+                    employeeId: { in: employeeIds }
+                }
+            }),
+            prisma.attendanceSummary.findMany({
+                where: { 
+                    date: targetDate, 
+                    employeeId: { in: employeeIds } 
+                },
+                select: { employeeId: true }
+            })
+        ]);
+
+        const approvedEmployeeIds = new Set(existingSummaries.map(s => s.employeeId));
+
+        res.status(200).json({ departments, employees, attendanceLogs, approvedEmployeeIds: Array.from(approvedEmployeeIds) });
+    } catch (error) {
+        console.error("Error fetching attendance for approval:", error);
+        res.status(500).json({ error: "Failed to fetch data." });
+    }
+});
+
+// POST /api/hr/approve-attendance
+router.post("/approve-attendance", authenticate, authorize("HR"), async (req, res) => {
+    try {
+        const { date, employeeIds } = req.body;
+        if (!date || !employeeIds || !Array.isArray(employeeIds)) {
+            return res.status(400).json({ error: "Date and a list of employee IDs are required." });
+        }
+        const targetDate = new Date(date);
+        targetDate.setUTCHours(0, 0, 0, 0);
+
+        // Use our intelligent processor to generate the final summaries for these employees
+        const summaryOperations = await processAttendanceForDate(targetDate, employeeIds);
+        
+        await prisma.$transaction(summaryOperations);
+        
+        res.status(200).json({ message: `Successfully approved attendance for ${employeeIds.length} employees.` });
+    } catch (error) {
+        console.error("Error approving attendance:", error);
+        res.status(500).json({ error: "Failed to approve attendance." });
+    }
+});
+
+router.post("/attendance", authenticate, authorize("HR"), async (req, res) => {
+  try {
+    const { date, attendance } = req.body;
+    const targetDate = new Date(date);
+    targetDate.setUTCHours(0, 0, 0, 0);
+
+    const logOperations = [];
+    const employeeIdsToProcess = new Set();
+
+    for (const employeeId in attendance) {
+      employeeIdsToProcess.add(parseInt(employeeId));
+      for (const session in attendance[employeeId]) {
+        const sessionId = { Morning: 1, Afternoon: 2, Evening: 3 }[session];
+        const status = attendance[employeeId][session];
+        
+        if (sessionId && status) {
+            logOperations.push(
+                prisma.attendanceLog.upsert({
+                    where: { employeeId_date_sessionId: { employeeId: parseInt(employeeId), date: targetDate, sessionId } },
+                    update: { status: status },
+                    create: { employeeId: parseInt(employeeId), date: targetDate, sessionId, status }
+                })
+            );
+        }
+      }
+    }
+
+    // When HR saves, we do NOT automatically create a summary. That is a separate "Approve" step.
+    await prisma.$transaction(logOperations);
+
+    res.status(200).json({ message: "Attendance draft saved successfully." });
+  } catch (error) {
+    console.error("Error saving attendance draft:", error);
+    res.status(500).json({ error: "Failed to save attendance draft." });
   }
 });
 

@@ -2,6 +2,7 @@ const express =require('express')
 const app =express()
 const cors = require('cors')
 const path = require('path');
+const bodyParser = require('body-parser');
 const hrRoutes = require('./app/routes/hr.routes');
 const depHeadRoutes = require('./app/routes/depHead.routes');
 
@@ -15,6 +16,7 @@ const corsOptions = {
   allowedHeaders: ['Content-Type', 'Authorization'], 
 };
 app.use(cors(corsOptions));
+
 
 app.use(express.json({ limit: '50mb' }));
 
