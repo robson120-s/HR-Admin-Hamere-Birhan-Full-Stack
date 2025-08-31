@@ -8,7 +8,7 @@ async function processAttendanceForDate(targetDate, employeeIds) {
     return [];
   }
   
-  // Normalize date to UTC midnight
+  // Normalize date to UTC midnight for consistent database queries
   const normalizedDate = new Date(targetDate);
   normalizedDate.setUTCHours(0, 0, 0, 0);
   

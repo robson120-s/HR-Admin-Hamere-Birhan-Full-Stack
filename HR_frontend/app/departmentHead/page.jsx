@@ -2,74 +2,27 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { useTheme } from "next-themes";
-import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "./../../components/ui/card";
 import {
   UserCheck, UserX, Users, User2, Briefcase, AlertCircle, Star, MessageSquare, Sun, Moon, LoaderCircle, CheckCircle, XCircle, Clock, CalendarCheck2, History
 } from "lucide-react";
 import Sidebar from "./Sidebar";
-import { getDepHeadDashboard } from "../../lib/api";
+import { getDepHeadDashboard } from "./../../lib/api";
 import toast from "react-hot-toast";
+import { MeetingBoard } from "./components/MeetingBoard";
+import DashboardCalendar from "./components/DashboardCalendar";
 
 // ==============================================================================
-// HELPER & SUB-COMPONENTS
+// ALL SUB-COMPONENTS ARE DEFINED HERE
 // ==============================================================================
 
 const PerformanceCard = ({ title, score, icon }) => (
     <Card className="text-center w-full sm:w-56 border-t-4 border-teal-500 bg-white dark:bg-slate-800 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-      <CardHeader className="flex flex-col items-center gap-2 pt-6">
-        <div className="text-teal-500">{icon}</div>
-        <CardTitle className="text-base font-semibold text-slate-600 dark:text-slate-300">{title}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p className="text-4xl font-bold text-slate-800 dark:text-slate-100">{score > 0 ? score.toFixed(1) : "N/A"}</p>
-        <p className="text-xs text-slate-400">Average Score</p>
-      </CardContent>
+      <CardHeader className="flex flex-col items-center gap-2 pt-6"><div className="text-teal-500">{icon}</div><CardTitle className="text-base font-semibold text-slate-600 dark:text-slate-300">{title}</CardTitle></CardHeader>
+      <CardContent><p className="text-4xl font-bold text-slate-800 dark:text-slate-100">{score > 0 ? score.toFixed(1) : "N/A"}</p><p className="text-xs text-slate-400">Average Score</p></CardContent>
     </Card>
 );
 
-// --- ✅ REVAMPED MeetingBoard ---
-const MeetingBoard = ({ meetings }) => {
-    const now = new Date();
-    
-    // More precise logic: A meeting is past only if its END time has passed.
-    const getMeetingEndTime = (meeting) => {
-        const timePart = meeting.time.split('-')[1] || meeting.time.split('-')[0]; // Get end time, fallback to start time
-        return new Date(`${meeting.date}T${timePart.trim()}`);
-    };
-
-    const upcomingMeetings = meetings.filter(m => getMeetingEndTime(m) >= now);
-    const pastMeetings = meetings.filter(m => getMeetingEndTime(m) < now);
-
-    const MeetingItem = ({ meeting, isUpcoming }) => (
-        <div className={`p-4 rounded-lg flex items-start gap-4 transition-all duration-300 ${isUpcoming ? 'bg-blue-50 dark:bg-blue-900/40' : 'bg-slate-100 dark:bg-slate-700/50 opacity-60'}`}>
-            <div className={`flex-shrink-0 w-12 h-12 rounded-lg flex flex-col items-center justify-center shadow-sm ${isUpcoming ? 'bg-blue-600 text-white' : 'bg-slate-500 text-white'}`}>
-                <span className="text-xs font-bold uppercase">{new Date(meeting.date).toLocaleString('default', { month: 'short' })}</span>
-                <span className="text-xl font-bold">{new Date(meeting.date).getDate()}</span>
-            </div>
-            <div>
-                <p className="font-semibold text-slate-800 dark:text-slate-100">{meeting.title}</p>
-                <p className="text-sm text-slate-500 dark:text-slate-400">{meeting.time}</p>
-            </div>
-        </div>
-    );
-
-    return (
-        <Card className="bg-white dark:bg-slate-800/50 shadow-lg h-full">
-            <CardHeader><CardTitle className="flex items-center gap-2"><CalendarCheck2 className="text-blue-500"/> Meeting Schedule</CardTitle></CardHeader>
-            <CardContent className="space-y-4 max-h-[28rem] overflow-y-auto">
-                {upcomingMeetings.length > 0 && <h3 className="text-sm font-semibold text-blue-600 dark:text-blue-400">Upcoming</h3>}
-                {upcomingMeetings.map(m => <MeetingItem key={m.id} meeting={m} isUpcoming={true} />)}
-                
-                {pastMeetings.length > 0 && <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 pt-4 border-t dark:border-slate-700">Past Meetings</h3>}
-                {pastMeetings.map(m => <MeetingItem key={m.id} meeting={m} isUpcoming={false} />)}
-                
-                {meetings.length === 0 && <p className="text-center text-sm text-slate-400 py-8">No meetings scheduled.</p>}
-            </CardContent>
-        </Card>
-    );
-};
-
-// --- ✅ NEW: RequestsCard Component ---
 const RequestsCard = ({ requests }) => {
     const icons = {
         "Leave approved": <CheckCircle className="text-green-500" />,
@@ -100,7 +53,6 @@ const RequestsCard = ({ requests }) => {
     );
 };
 
-
 // ==============================================================================
 // MAIN PAGE COMPONENT
 // ==============================================================================
@@ -111,12 +63,21 @@ export default function DepartmentHeadDashboard() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);
+  useEffect(() => {
+  if (data) {
+    console.log("Dashboard data:", data);
+    console.log("Holidays data:", data.holiday);
+  }
+}, [data]);
 
   const fetchDashboardData = useCallback(async () => {
     try {
       const dashboardData = await getDepHeadDashboard();
       setData(dashboardData);
-    } catch (error) { toast.error(error.message); }
+    } catch (error) { 
+      console.error("Error fetching dashboard data:", error);
+      toast.error(error.message || "Failed to load dashboard data"); 
+    }
     finally { setIsLoading(false); }
   }, []);
 
@@ -134,10 +95,49 @@ export default function DepartmentHeadDashboard() {
     Default: <MessageSquare className="w-5 h-5 text-gray-500 flex-shrink-0" />,
   };
 
+  // Normalize meetings data to ensure it's always an array with proper structure
+  const normalizeMeetings = (meetings) => {
+    if (!meetings || !Array.isArray(meetings)) return [];
+    
+    return meetings.map(meeting => ({
+      id: meeting.id,
+      title: meeting.title || 'Untitled Meeting',
+      description: meeting.description || '',
+      date: meeting.date,
+      time: meeting.time || '00:00 - 00:00',
+      creator: meeting.creator || null
+    }));
+  };
+
+  // Prepare events for the calendar (meetings + holidays)
+  const prepareCalendarEvents = (meetings = [], holidays = []) => {
+    const meetingEvents = meetings.map(meeting => ({
+      id: `meeting-${meeting.id}`,
+      date: meeting.date,
+      type: 'meeting',
+      title: meeting.title
+    }));
+
+    const holidayEvents = holidays.map(holiday => ({
+      id: `holiday-${holiday.id}`,
+      date: holiday.date,
+      type: 'holiday',
+      title: holiday.name
+    }));
+
+    return [...meetingEvents, ...holidayEvents];
+  };
+
+  const normalizedMeetings = normalizeMeetings(data?.meetings);
+  const calendarEvents = prepareCalendarEvents(data?.meetings, data?.holidays || []);
+
   if (!mounted || isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-white dark:bg-gray-900">
-        <LoaderCircle className="w-12 h-12 animate-spin text-indigo-500" />
+      <div className="flex min-h-screen bg-slate-50 dark:bg-slate-900">
+        <Sidebar />
+        <main className="flex-1 flex items-center justify-center">
+            <LoaderCircle className="w-12 h-12 animate-spin text-indigo-500" />
+        </main>
       </div>
     );
   }
@@ -174,31 +174,38 @@ export default function DepartmentHeadDashboard() {
                     </div>
                 </div>
                 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start mb-10">
                     <div className="lg:col-span-2">
-                        <MeetingBoard meetings={data.meetings} />
+                        <MeetingBoard meetings={normalizedMeetings} />
                     </div>
                     <div>
-                        <RequestsCard requests={data.actionedRequests} />
+                        <RequestsCard requests={data.actionedRequests || []} />
                     </div>
                 </div>
 
-                <div className="mt-10">
-                    <h2 className="text-2xl font-semibold mb-6 text-slate-700 dark:text-slate-300 flex items-center gap-2"><History/> Recent Activity Feed</h2>
-                    <div className="space-y-3">
-                        {data.recentActivity.length === 0 ? (
-                            <p className="text-center py-6 text-gray-500 dark:text-gray-400">No recent activity to show.</p>
-                        ) : (
-                            data.recentActivity.map(({ id, type, message, date }) => (
-                                <div key={id} className="flex items-start space-x-4 p-3 bg-white dark:bg-slate-800/50 rounded-lg shadow-sm">
-                                    <div>{activityIcons[type] || activityIcons.Default}</div>
-                                    <div className="flex-1">
-                                        <p className="text-sm text-gray-800 dark:text-gray-100">{message}</p>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400">{new Date(date).toLocaleDateString()}</p>
+                {/* Calendar and Recent Activity Side by Side */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-10">
+                    <div>
+                        {/* Replace the existing DashboardCalendar usage with: */}
+                        <DashboardCalendar holidays={data?.holiday || []} />
+                    </div>
+                    <div>
+                        <h2 className="text-2xl font-semibold mb-6 text-slate-700 dark:text-slate-300 flex items-center gap-2"><History/> Recent Activity Feed</h2>
+                        <div className="space-y-3">
+                            {(data.recentActivity && data.recentActivity.length === 0) ? (
+                                <p className="text-center py-6 text-gray-500 dark:text-gray-400">No recent activity to show.</p>
+                            ) : (
+                                (data.recentActivity || []).map(({ id, type, message, date }) => (
+                                    <div key={id} className="flex items-start space-x-4 p-3 bg-white dark:bg-slate-800/50 rounded-lg shadow-sm">
+                                        <div>{activityIcons[type] || activityIcons.Default}</div>
+                                        <div className="flex-1">
+                                            <p className="text-sm text-gray-800 dark:text-gray-100">{message}</p>
+                                            <p className="text-xs text-gray-500 dark:text-gray-400">{new Date(date).toLocaleDateString()}</p>
+                                        </div>
                                     </div>
-                                </div>
-                            ))
-                        )}
+                                ))
+                            )}
+                        </div>
                     </div>
                 </div>
             </>
@@ -207,4 +214,3 @@ export default function DepartmentHeadDashboard() {
     </div>
   );
 }
-

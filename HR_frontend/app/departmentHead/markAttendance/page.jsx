@@ -150,49 +150,19 @@ export default function MarkAttendancePage() {
     setAttendance(newAttendance);
   };
   
-
-const handleSave = async () => {
-  setIsSaving(true);
-  
-  // Convert session names to numeric IDs for the backend
-  const formattedAttendance = {};
-  Object.entries(attendance).forEach(([employeeId, sessions]) => {
-    formattedAttendance[employeeId] = {};
-    
-    // Map session names to numeric IDs
-    const sessionMap = {
-      'morning': 1,
-      'afternoon': 2, 
-      'evening': 3
-    };
-    
-    Object.entries(sessions).forEach(([sessionName, status]) => {
-      if (sessionMap[sessionName]) {
-        formattedAttendance[employeeId][sessionMap[sessionName]] = status;
-      }
-    });
-  });
-  
-  // FIX: Use 'date' instead of 'selectedDate'
-  const payload = {
-    date: date, // Changed from selectedDate to date
-    attendance: formattedAttendance
-  };
-  
-  console.log("Sending payload:", payload); // Debug log
-  
-  try {
-    await saveAttendance(payload);
-    toast.success('Attendance saved successfully!');
-    fetchRoster(date); // Refresh the data
-    
-  } catch (error) {
-    console.error("Save error:", error); // Debug log
-    toast.error(error.message || 'Failed to save attendance.');
-  } finally {
+  const handleSave = async () => {
+    setIsSaving(true);
+    await toast.promise(
+        saveAttendance({ date, attendance }),
+        {
+            loading: 'Saving attendance...',
+            success: 'Attendance saved successfully!',
+            error: (err) => err.message || 'Failed to save attendance.'
+        }
+    );
+    fetchRoster(date); 
     setIsSaving(false);
-  }
-};
+  };
 
   const handleExport = async (rangeType) => {
       let startDate, endDate;

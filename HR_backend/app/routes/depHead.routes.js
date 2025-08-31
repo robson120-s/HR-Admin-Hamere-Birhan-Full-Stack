@@ -37,6 +37,9 @@ router.get('/dashboard', authenticate, authorize("Department Head"), async (req,
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setUTCDate(thirtyDaysAgo.getUTCDate() - 30);
 
+
+    
+
     const [
       staffInDept,
       internsInDept,
@@ -46,7 +49,8 @@ router.get('/dashboard', authenticate, authorize("Department Head"), async (req,
       allReviews,
       actionedLeaves,
       actionedOvertimes,
-      recentActivityLogs
+      recentActivityLogs,
+      holidays
     ] = await Promise.all([
       // --- Basic Counts ---
       prisma.employee.count({ where: { OR: [{departmentId: { in: managedDeptIds }}, {subDepartmentId: { in: managedDeptIds }}], user: { roles: { some: { role: { name: 'Staff' } } } } } }),
@@ -55,7 +59,17 @@ router.get('/dashboard', authenticate, authorize("Department Head"), async (req,
       prisma.attendanceSummary.count({ where: { date: today, status: 'absent', employee: { departmentId: { in: managedDeptIds } } } }),
       
       // --- Data for Components ---
-      prisma.meeting.findMany({ orderBy: { date: 'asc' } }),
+      prisma.meeting.findMany({ 
+        orderBy: { date: 'asc' },
+        include: {
+          creator: {
+            select: {
+              firstName: true,
+              lastName: true
+            }
+          }
+        }
+      }),
       
       prisma.performanceReview.findMany({
           where: { employee: { OR: [{departmentId: { in: managedDeptIds }}, {subDepartmentId: { in: managedDeptIds }}] } },
@@ -72,6 +86,7 @@ router.get('/dashboard', authenticate, authorize("Department Head"), async (req,
           take: 3,
           include: { employee: { select: { firstName: true, lastName: true } } }
       }),
+      
       
       prisma.overtimeLog.findMany({
           where: { 
@@ -91,9 +106,12 @@ router.get('/dashboard', authenticate, authorize("Department Head"), async (req,
               actor: { select: { firstName: true, lastName: true } },
               target: { select: { firstName: true, lastName: true } }
           }
-      })
+      }),
+      prisma.holiday.findMany({ orderBy: { date: 'asc' } })
     ]);
     
+
+
     // --- Performance Score Processing ---
     let totalScore = 0, staffScore = 0, internScore = 0;
     let staffReviewCount = 0, internReviewCount = 0;
@@ -152,6 +170,7 @@ router.get('/dashboard', authenticate, authorize("Department Head"), async (req,
         totalInterns: internsInDept,
         totalSubDepartment: subDepartments.length,
         meetings: meetings,
+        holiday: holidays,
         actionedRequests: actionedRequests,
         recentActivity: recentActivity,
         avgPerformance: allReviews.length > 0 ? (totalScore / allReviews.length) : 0, 
@@ -817,103 +836,119 @@ router.post("/leaves", authenticate, authorize("Department Head"), async (req, r
 
 // in depHead.routes.js
 
-// GET route for fetching attendance roster
-// router.get("/attendance-roster", authenticate, authorize("Department Head"), async (req, res) => {
-//   try {
-//     const { date } = req.query; // Note: using req.query for GET requests
-//     if (!date) return res.status(400).json({ error: "A date parameter is required." });
-    
-//     // Your existing attendance roster logic here...
-//     // (the code you had before for fetching the roster)
-    
-//   } catch (error) {
-//     console.error("Error fetching attendance roster:", error);
-//     res.status(500).json({ error: "Failed to fetch attendance roster." });
-//   }
-// });
-
-// POST route for saving attendance
-// GET route for fetching attendance roster
 router.get("/attendance-roster", authenticate, authorize("Department Head"), async (req, res) => {
   try {
-    const { date } = req.query; // Note: using req.query for GET requests
+    const { date } = req.query;
     if (!date) return res.status(400).json({ error: "A date parameter is required." });
     
-    // Your existing attendance roster logic here...
-    // (the code you had before for fetching the roster)
+    const targetDate = new Date(date);
+    targetDate.setUTCHours(0, 0, 0, 0);
+
+    const loggedInEmployee = req.user.employee;
+    if (!loggedInEmployee || !loggedInEmployee.departmentId) {
+      return res.status(403).json({ error: "Access denied: Your user account is not linked to a department." });
+    }
+    const departmentId = loggedInEmployee.departmentId;
+
+    // Step 1: Find all sub-departments managed by this head
+    const subDepartmentsFromDb = await prisma.department.findMany({
+        where: { parentId: departmentId },
+        orderBy: { name: 'asc' },
+        select: { id: true, name: true }
+    });
+
+    // Step 2: Get a list of all relevant department IDs (the main one + all sub-departments)
+    const allManagedDeptIds = [departmentId, ...subDepartmentsFromDb.map(sd => sd.id)];
+
+    // Step 3: Fetch ALL employees (including the head) from all managed departments
+    const allEmployees = await prisma.employee.findMany({
+        where: {
+            OR: [
+                { departmentId: { in: allManagedDeptIds } },
+                { subDepartmentId: { in: allManagedDeptIds } }
+            ],
+            jobStatus: { status: 'Active' }
+        },
+        select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            subDepartmentId: true,
+            user: { select: { roles: { select: { role: { select: { name: true } } } } } }
+        }
+    });
+
+    // Step 4: Categorize all employees into their respective groups
+    const departmentRoster = {
+        id: departmentId,
+        name: "General / Unassigned", // A group for employees directly in the main department
+        staff: [],
+        interns: []
+    };
+    const subDepartmentRosters = subDepartmentsFromDb.map(sd => ({
+        ...sd,
+        staff: [],
+        interns: []
+    }));
+
+    // Create a map for easy lookup
+    const rosterMap = new Map();
+    rosterMap.set(departmentId, departmentRoster);
+    subDepartmentRosters.forEach(sdr => rosterMap.set(sdr.id, sdr));
     
+    allEmployees.forEach(emp => {
+        const targetRoster = rosterMap.get(emp.subDepartmentId) || rosterMap.get(departmentId);
+        if (targetRoster) {
+            const role = emp.user?.roles[0]?.role.name;
+            const employeeData = { id: emp.id, name: `${emp.firstName} ${emp.lastName}` };
+            if (role === 'Intern') {
+                targetRoster.interns.push(employeeData);
+            } else {
+                // Anyone not an intern (Staff, Dep Head) goes into the staff list
+                targetRoster.staff.push(employeeData);
+            }
+        }
+    });
+    
+    // Final combined roster, filtering out the empty "General" group if no one is in it
+    const finalRoster = [departmentRoster, ...subDepartmentRosters].filter(group => group.staff.length > 0 || group.interns.length > 0);
+    
+    // Step 5: The rest of the logic remains the same (fetching leaves and attendance)
+    const allEmployeeIds = allEmployees.map(e => e.id);
+    if (allEmployeeIds.length === 0) {
+        return res.status(200).json({ subDepartments: [], attendanceRecords: {}, onLeaveIds: [] });
+    }
+
+    const [leaves, attendanceLogs] = await Promise.all([
+        prisma.leave.findMany({
+            where: { employeeId: { in: allEmployeeIds }, status: 'approved', startDate: { lte: targetDate }, endDate: { gte: targetDate } },
+            select: { employeeId: true }
+        }),
+        prisma.attendanceLog.findMany({
+            where: { date: targetDate, employeeId: { in: allEmployeeIds } },
+            select: { employeeId: true, sessionId: true, status: true }
+        })
+    ]);
+    
+    const onLeaveEmployeeIds = new Set(leaves.map(l => l.employeeId));
+    const attendanceMap = {};
+    attendanceLogs.forEach(log => {
+        const sessionMap = { 1: 'morning', 2: 'afternoon', 3: 'evening' };
+        const session = sessionMap[log.sessionId];
+        if (session) {
+            if (!attendanceMap[log.employeeId]) attendanceMap[log.employeeId] = {};
+            attendanceMap[log.employeeId][session] = log.status;
+        }
+    });
+    
+    res.status(200).json({
+      subDepartments: finalRoster,
+      attendanceRecords: attendanceMap,
+      onLeaveIds: Array.from(onLeaveEmployeeIds)
+    });
   } catch (error) {
     console.error("Error fetching attendance roster:", error);
     res.status(500).json({ error: "Failed to fetch attendance roster." });
-  }
-});
-
-// POST route for saving attendance
-router.post("/attendance", authenticate, authorize("Department Head"), async (req, res) => {
-  try {
-    const { date, attendance } = req.body;
-    
-    if (!date || !attendance) {
-      return res.status(400).json({ error: "Date and attendance data are required." });
-    }
-    
-    // Convert date to UTC midnight
-    const targetDate = new Date(date);
-    targetDate.setUTCHours(0, 0, 0, 0);
-    
-    console.log("Saving attendance for date:", targetDate.toISOString());
-    console.log("Attendance data:", JSON.stringify(attendance));
-
-    const logOperations = [];
-    const employeeIdsToProcess = new Set();
-
-    for (const employeeId in attendance) {
-      employeeIdsToProcess.add(parseInt(employeeId));
-      
-      for (const sessionId in attendance[employeeId]) {
-        const status = attendance[employeeId][sessionId];
-        
-        if (status) {
-          logOperations.push(
-            prisma.attendanceLog.upsert({
-              where: { 
-                employeeId_date_sessionId: { 
-                  employeeId: parseInt(employeeId), 
-                  date: targetDate, 
-                  sessionId: parseInt(sessionId) 
-                } 
-              },
-              update: { status: status },
-              create: { 
-                employeeId: parseInt(employeeId), 
-                date: targetDate, 
-                sessionId: parseInt(sessionId), 
-                status: status 
-              }
-            })
-          );
-        }
-      }
-    }
-
-    await prisma.$transaction(logOperations);
-    
-    // Immediately process the attendance to update summaries
-    try {
-      const processOperations = await processAttendanceForDate(targetDate, Array.from(employeeIdsToProcess));
-      if (processOperations.length > 0) {
-        await prisma.$transaction(processOperations);
-        console.log(`Processed ${processOperations.length} attendance summaries`);
-      }
-    } catch (processError) {
-      console.error("Error processing attendance:", processError);
-      // Don't fail the request if processing fails
-    }
-
-    res.status(200).json({ message: "Attendance saved and processed successfully." });
-  } catch (error) {
-    console.error("Error saving attendance:", error);
-    res.status(500).json({ error: "Failed to save attendance." });
   }
 });
 

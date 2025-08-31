@@ -4,6 +4,7 @@ const prisma = new PrismaClient();
 
 
 // Authentication middleware to verify JWT and extract user info
+// In your authMiddleware.js
 const authenticate = async (req, res, next) => {
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.split(' ')[1];
@@ -28,31 +29,34 @@ const authenticate = async (req, res, next) => {
             }
           }
         },
-        // CRITICAL: Also fetch the employee profile linked to this user
         employees: {
           select: {
             id: true,
             firstName: true,
             lastName: true,
             departmentId: true,
+            subDepartmentId: true,
           }
         }
       }
     });
 
-if (!user || !user.isActive) {
+    if (!user || !user.isActive) {
       return res.status(401).json({ error: "User not found or is inactive." });
     }
     
+    // Check if user has an employee record
+    if (!user.employees || user.employees.length === 0) {
+      return res.status(403).json({ error: "No employee profile associated with this user." });
+    }
+    
     // 3. Attach a clean, combined user/employee object to the request.
-    // We take the first employee profile found (as there should only be one).
     req.user = {
         id: user.id,
         username: user.username,
         email: user.email,
         roles: user.roles.map(r => r.role.name),
-        // This will now correctly contain the employee object if it exists
-        employee: user.employees[0] || null
+        employee: user.employees[0] // Take the first employee record
     };
 
     next(); // Proceed to the next middleware (authorize) or the route handler

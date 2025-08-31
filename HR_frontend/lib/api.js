@@ -575,13 +575,23 @@ export const createLeaveRequest = async (data) => {
 
 //Mark Attendace
 export const getAttendanceRoster = async (date) => {
+  try {
     const response = await apiClientDepHead.get(`/attendance-roster?date=${date}`);
     return response.data;
+  } catch (error) {
+    console.error('Error fetching attendance roster:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.error || 'Failed to fetch attendance roster');
+  }
 };
 
 export const saveAttendance = async (data) => {
+  try {
     const response = await apiClientDepHead.post('/attendance', data);
     return response.data;
+  } catch (error) {
+    console.error('Error saving attendance:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.error || 'Failed to save attendance');
+  }
 };
 
 export const exportDepHeadAttendance = async (startDate, endDate) => {
