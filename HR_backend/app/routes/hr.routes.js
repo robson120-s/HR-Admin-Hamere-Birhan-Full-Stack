@@ -8,6 +8,8 @@ const { authenticate, authorize } = require("../middlewares/authMiddleware");
 const hrController = require("../controllers/hr.controller");
 const { processDailyAttendance } = require("../jobs/attendanceProcessor");
 
+const { processAttendanceForDate } = require('../utils/attendanceProcessor');
+
 // router.get(
 //   "/complaints",
 //   hrController.getAllComplaints
@@ -198,142 +200,340 @@ router.delete("/meetings/:id",  async (req, res) => {
   }
 });
 
-
-// GET /api/hr/attendance-for-approval?date=YYYY-MM-DD
 router.get("/attendance-for-approval", authenticate, authorize("HR"), async (req, res) => {
-    try {
-        const { date } = req.query;
-        if (!date) return res.status(400).json({ error: "Date is required." });
-        
-        const targetDate = new Date(date);
-        targetDate.setUTCHours(0, 0, 0, 0);
-
-        // --- ✅ THE FIX: We perform the queries in a logical sequence ---
-
-        // Step 1: Fetch all main departments with their sub-departments
-        const departments = await prisma.department.findMany({
-            where: { parentId: null },
-            include: { subDepartments: { orderBy: { name: 'asc' } } },
-            orderBy: { name: 'asc' }
-        });
-
-        // Step 2: Get a complete list of all sub-department IDs
-        const allSubDeptIds = departments.flatMap(d => d.subDepartments.map(sd => sd.id));
-        if (allSubDeptIds.length === 0) {
-            // If there are no sub-departments, there's no data to fetch.
-            return res.status(200).json({ departments: [], employees: [], attendanceLogs: [], approvedEmployeeIds: [] });
-        }
-
-        // Step 3: Now that we have the IDs, fetch all employees belonging to those sub-departments.
-        const employees = await prisma.employee.findMany({
-            where: { subDepartmentId: { in: allSubDeptIds } },
-            select: { 
-                id: true, 
-                firstName: true, 
-                lastName: true, 
-                subDepartmentId: true, 
-                user: { 
-                    select: { 
-                        roles: { 
-                            select: { 
-                                role: { 
-                                    select: { name: true } 
-                                } 
-                            } 
-                        } 
-                    } 
-                } 
-            }
-        });
-        const employeeIds = employees.map(e => e.id);
-        if (employeeIds.length === 0) {
-            return res.status(200).json({ departments, employees: [], attendanceLogs: [], approvedEmployeeIds: [] });
-        }
-
-        // Step 4: Now that we have the employee IDs, fetch their logs and summaries in parallel.
-        const [attendanceLogs, existingSummaries] = await Promise.all([
-            prisma.attendanceLog.findMany({
-                where: { 
-                    date: targetDate, 
-                    employeeId: { in: employeeIds }
-                }
-            }),
-            prisma.attendanceSummary.findMany({
-                where: { 
-                    date: targetDate, 
-                    employeeId: { in: employeeIds } 
-                },
-                select: { employeeId: true }
-            })
-        ]);
-
-        const approvedEmployeeIds = new Set(existingSummaries.map(s => s.employeeId));
-
-        res.status(200).json({ departments, employees, attendanceLogs, approvedEmployeeIds: Array.from(approvedEmployeeIds) });
-    } catch (error) {
-        console.error("Error fetching attendance for approval:", error);
-        res.status(500).json({ error: "Failed to fetch data." });
+  try {
+    const { date, page = 1, limit = 20, departmentId, search } = req.query;
+    if (!date) return res.status(400).json({ error: "Date is required." });
+    
+    const targetDate = new Date(date);
+    targetDate.setUTCHours(0, 0, 0, 0);
+    
+    // Calculate pagination
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    
+    // Build where clause for filtering
+    let whereClause = {
+      date: targetDate
+    };
+    
+    // Add department filter if provided
+    if (departmentId) {
+      whereClause.employee = {
+        departmentId: parseInt(departmentId)
+      };
     }
+    
+    // Add search filter if provided
+    if (search) {
+      whereClause.employee = {
+        ...whereClause.employee,
+        OR: [
+          { firstName: { contains: search, mode: 'insensitive' } },
+          { lastName: { contains: search, mode: 'insensitive' } }
+        ]
+      };
+    }
+    
+    // Get attendance logs with pagination
+    const [attendanceLogs, totalLogs] = await Promise.all([
+      prisma.attendanceLog.findMany({
+        where: whereClause,
+        include: {
+          employee: {
+            include: {
+              department: true,
+              subDepartment: true
+            }
+          },
+          session: true
+        },
+        skip,
+        take: parseInt(limit),
+        orderBy: {
+          employee: {
+            firstName: 'asc'
+          }
+        }
+      }),
+      prisma.attendanceLog.count({
+        where: whereClause
+      })
+    ]);
+    
+    // Get approved summaries
+    const approvedSummaries = await prisma.attendanceSummary.findMany({
+      where: { date: targetDate },
+      select: { employeeId: true }
+    });
+    
+    const approvedEmployeeIds = approvedSummaries.map(s => s.employeeId);
+    
+    // Get departments for filter
+    const departments = await prisma.department.findMany({
+      include: {
+        subDepartments: true
+      },
+      orderBy: { name: 'asc' }
+    });
+    
+    res.status(200).json({
+      attendanceLogs,
+      approvedEmployeeIds,
+      departments,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total: totalLogs,
+        pages: Math.ceil(totalLogs / parseInt(limit))
+      }
+    });
+  } catch (error) {
+    console.error("Error fetching attendance for approval:", error);
+    res.status(500).json({ error: "Failed to fetch data." });
+  }
 });
 
 // POST /api/hr/approve-attendance
 router.post("/approve-attendance", authenticate, authorize("HR"), async (req, res) => {
-    try {
-        const { date, employeeIds } = req.body;
-        if (!date || !employeeIds || !Array.isArray(employeeIds)) {
-            return res.status(400).json({ error: "Date and a list of employee IDs are required." });
-        }
-        const targetDate = new Date(date);
-        targetDate.setUTCHours(0, 0, 0, 0);
-
-        // Use our intelligent processor to generate the final summaries for these employees
-        const summaryOperations = await processAttendanceForDate(targetDate, employeeIds);
-        
-        await prisma.$transaction(summaryOperations);
-        
-        res.status(200).json({ message: `Successfully approved attendance for ${employeeIds.length} employees.` });
-    } catch (error) {
-        console.error("Error approving attendance:", error);
-        res.status(500).json({ error: "Failed to approve attendance." });
+  try {
+    const { date, employeeIds } = req.body;
+    if (!date || !employeeIds || !Array.isArray(employeeIds)) {
+      return res.status(400).json({ error: "Date and a list of employee IDs are required." });
     }
+    
+    const targetDate = new Date(date);
+    targetDate.setUTCHours(0, 0, 0, 0);
+    
+    // Process each employee
+    const results = [];
+    for (const employeeId of employeeIds) {
+      try {
+        // Get all logs for this employee on this date
+        const logs = await prisma.attendanceLog.findMany({
+          where: {
+            employeeId: parseInt(employeeId),
+            date: targetDate
+          },
+          include: {
+            session: true
+          }
+        });
+        
+        if (logs.length === 0) {
+          results.push({ employeeId, status: 'skipped', reason: 'No attendance records' });
+          continue;
+        }
+        
+        // Calculate summary data
+        let status = 'absent';
+        let lateArrival = false;
+        let earlyDeparture = false;
+        let unplannedAbsence = false;
+        let totalWorkHours = 0;
+        
+        // Process each session
+        for (const log of logs) {
+          if (log.status === 'present' || log.status === 'late') {
+            if (log.status === 'late') lateArrival = true;
+            
+            // Calculate work hours if clock in/out times exist
+            if (log.actualClockIn && log.actualClockOut) {
+              const hours = (new Date(log.actualClockOut) - new Date(log.actualClockIn)) / (1000 * 60 * 60);
+              totalWorkHours += hours;
+            }
+          } else if (log.status === 'absent') {
+            unplannedAbsence = true;
+          }
+        }
+        
+        // Determine overall status
+        if (logs.some(log => log.status === 'present' || log.status === 'late')) {
+          status = 'present';
+        } else if (logs.some(log => log.status === 'permission')) {
+          status = 'permission';
+        }
+        
+        // Check for early departure
+        const lastLog = logs[logs.length - 1];
+        if (lastLog.actualClockOut && lastLog.session.expectedClockOut) {
+          const actualOut = new Date(lastLog.actualClockOut);
+          const expectedOut = new Date(lastLog.session.expectedClockOut);
+          if (actualOut < expectedOut) {
+            earlyDeparture = true;
+          }
+        }
+        
+        // Create or update summary
+        await prisma.attendanceSummary.upsert({
+          where: {
+            employeeId_date: {
+              employeeId: parseInt(employeeId),
+              date: targetDate
+            }
+          },
+          update: {
+            status,
+            lateArrival,
+            earlyDeparture,
+            unplannedAbsence,
+            totalWorkHours: totalWorkHours > 0 ? totalWorkHours : null
+          },
+          create: {
+            employeeId: parseInt(employeeId),
+            date: targetDate,
+            status,
+            lateArrival,
+            earlyDeparture,
+            unplannedAbsence,
+            totalWorkHours: totalWorkHours > 0 ? totalWorkHours : null,
+            departmentId: logs[0].employee.departmentId
+          }
+        });
+        
+        results.push({ employeeId, status: 'approved' });
+      } catch (error) {
+        results.push({ employeeId, status: 'error', error: error.message });
+      }
+    }
+    
+    res.status(200).json({ 
+      message: `Processed ${employeeIds.length} employees.`,
+      results 
+    });
+  } catch (error) {
+    console.error("Error approving attendance:", error);
+    res.status(500).json({ error: "Failed to approve attendance." });
+  }
 });
 
+// POST /api/hr/attendance
 router.post("/attendance", authenticate, authorize("HR"), async (req, res) => {
   try {
     const { date, attendance } = req.body;
+    if (!date || !attendance) {
+      return res.status(400).json({ error: "Date and attendance data are required." });
+    }
+    
     const targetDate = new Date(date);
     targetDate.setUTCHours(0, 0, 0, 0);
-
+    
     const logOperations = [];
-    const employeeIdsToProcess = new Set();
-
+    
     for (const employeeId in attendance) {
-      employeeIdsToProcess.add(parseInt(employeeId));
       for (const session in attendance[employeeId]) {
         const sessionId = { Morning: 1, Afternoon: 2, Evening: 3 }[session];
         const status = attendance[employeeId][session];
         
         if (sessionId && status) {
-            logOperations.push(
-                prisma.attendanceLog.upsert({
-                    where: { employeeId_date_sessionId: { employeeId: parseInt(employeeId), date: targetDate, sessionId } },
-                    update: { status: status },
-                    create: { employeeId: parseInt(employeeId), date: targetDate, sessionId, status }
-                })
-            );
+          logOperations.push(
+            prisma.attendanceLog.upsert({
+              where: { 
+                employeeId_date_sessionId: { 
+                  employeeId: parseInt(employeeId), 
+                  date: targetDate, 
+                  sessionId 
+                } 
+              },
+              update: { status },
+              create: { 
+                employeeId: parseInt(employeeId), 
+                date: targetDate, 
+                sessionId, 
+                status 
+              }
+            })
+          );
         }
       }
     }
-
-    // When HR saves, we do NOT automatically create a summary. That is a separate "Approve" step.
+    
     await prisma.$transaction(logOperations);
-
-    res.status(200).json({ message: "Attendance draft saved successfully." });
+    res.status(200).json({ message: "Attendance saved successfully." });
   } catch (error) {
-    console.error("Error saving attendance draft:", error);
-    res.status(500).json({ error: "Failed to save attendance draft." });
+    console.error("Error saving attendance:", error);
+    res.status(500).json({ error: "Failed to save attendance." });
   }
 });
+
+// GET /api/hr/export-attendance
+router.get("/export-attendance", authenticate, authorize("HR"), async (req, res) => {
+  try {
+    const { date, departmentId } = req.query;
+    if (!date) return res.status(400).json({ error: "Date is required." });
+    
+    const targetDate = new Date(date);
+    targetDate.setUTCHours(0, 0, 0, 0);
+    
+    // Build where clause
+    let whereClause = {
+      date: targetDate
+    };
+    
+    if (departmentId) {
+      whereClause.employee = {
+        departmentId: parseInt(departmentId)
+      };
+    }
+    
+    // Get attendance data
+    const attendanceLogs = await prisma.attendanceLog.findMany({
+      where: whereClause,
+      include: {
+        employee: {
+          include: {
+            department: true,
+            subDepartment: true
+          }
+        },
+        session: true
+      },
+      orderBy: [
+        { employee: { departmentId: 'asc' } },
+        { employee: { firstName: 'asc' } }
+      ]
+    });
+    
+    // Get approved summaries
+    const approvedSummaries = await prisma.attendanceSummary.findMany({
+      where: { date: targetDate },
+      select: { employeeId: true }
+    });
+    
+    const approvedEmployeeIds = new Set(approvedSummaries.map(s => s.employeeId));
+    
+    // Format data for CSV
+    const csvData = [];
+    csvData.push(['Employee', 'Department', 'Date', 'Session', 'Status', 'Approval Status']);
+    
+    for (const log of attendanceLogs) {
+      const approvalStatus = approvedEmployeeIds.has(log.employeeId) ? 'Approved' : 'Pending';
+      const sessionName = { 1: 'Morning', 2: 'Afternoon', 3: 'Evening' }[log.sessionId];
+      
+      csvData.push([
+        `${log.employee.firstName} ${log.employee.lastName}`,
+        log.employee.department.name,
+        log.date.toISOString().split('T')[0],
+        sessionName,
+        log.status,
+        approvalStatus
+      ]);
+    }
+    
+    // Convert to CSV string
+    const csvContent = csvData.map(row => row.join(',')).join('\n');
+    
+    // Set headers for file download
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename=attendance-${date}.csv`);
+    
+    res.status(200).send(csvContent);
+  } catch (error) {
+    console.error("Error exporting attendance:", error);
+    res.status(500).json({ error: "Failed to export attendance data." });
+  }
+});
+
+
 
 
 // GET /api/hr/complaints - Fetch all complaints, ordered by newest first

@@ -353,7 +353,7 @@ model AttendanceSummary {
 
   employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
   departmentId Int?
-   department Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  department Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
 
   @@unique([employeeId, date])
 }

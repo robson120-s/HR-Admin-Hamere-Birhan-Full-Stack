@@ -376,16 +376,52 @@ export const updateOvertimeStatus = async (id, status) => {
 };
 
 /////////////Attendance approval 
-export const getAttendanceForApproval = async (date) => {
-    const response = await apiClientHr.get(`/attendance-for-approval?date=${date}`);
+export const getAttendanceForApproval = async (date, page = 1, departmentId = '', search = '') => {
+  try {
+    const params = new URLSearchParams({
+      date,
+      page,
+      limit: 20,
+      ...(departmentId && { departmentId }),
+      ...(search && { search })
+    });
+    
+    console.log('Fetching from:', `/api/hr/attendance-for-approval?${params}`);
+    
+    const response = await apiClientHr.get(`/attendance-for-approval?${params}`);
     return response.data;
+  } catch (error) {
+    console.error('API Error:', error);
+    throw new Error(error.response?.data?.error || 'Failed to fetch data');
+  }
 };
 
 export const approveAttendance = async (date, employeeIds) => {
-    const response = await apiClientHr.post('/approve-attendance', { date, employeeIds });
-    return response.data;
+  const response = await apiClientHr.post('/approve-attendance', { date, employeeIds });
+  return response.data;
 };
 
+export const saveAttendances = async (data) => {
+  try {
+    const response = await apiClientHr.post('/attendance', data);
+    return response.data;
+  } catch (error) {
+    console.error('Error saving attendance:', error.response?.data || error.message);
+    throw new Error(error.response?.data?.error || 'Failed to save attendance');
+  }
+};
+
+export const exportAttendance = async (date, departmentId = '') => {
+  const params = new URLSearchParams({
+    date,
+    ...(departmentId && { departmentId })
+  });
+  
+  const response = await apiClientHr.get(`/export-attendance?${params}`, {
+    responseType: 'blob' // Important for file downloads
+  });
+  return response.data;
+};
 
 // In your frontend file: lib/api.js
 
