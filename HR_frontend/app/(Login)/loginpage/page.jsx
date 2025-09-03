@@ -311,10 +311,10 @@ export default function LoginPage() {
         {/* Content stays sharp */}
         <div className="relative z-10 flex flex-col items-center">
           <Image
-            src="/assets/images/logo.jpg"
+            src="/assets/images/logo.png"
             alt="Logo"
-            width={120}
-            height={120}
+            width={300}
+            height={300}
             className="rounded-full"
           />
           <h1 className="text-3xl font-bold mt-6 text-center">

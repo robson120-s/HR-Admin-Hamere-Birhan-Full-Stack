@@ -22,14 +22,14 @@ export default function WelcomeSection() {
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center">
         <Image
-          src="/logo.png"
+          src="/assets/images/logo.png"
           alt="Logo"
-          width={200}
-          height={200}
+          width={300}
+          height={300}
           className="rounded-full mb-6 transform transition duration-300 hover:scale-110"
         />
 
-        <h2 className="text-xl font-semibold mb-6 text-white">
+        <h2 className="text-2xl font-semibold mb-6 text-white">
           እንኳን ወደ ቅዱስ ዮሐንስ አፈወርቅ ልዩ የዘመነ ክረምት የሕጻናት ት/ት መርሐግብር በደኅና መጡ
         </h2>
 
