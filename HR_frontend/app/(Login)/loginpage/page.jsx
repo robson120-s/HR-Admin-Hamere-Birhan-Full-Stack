@@ -107,7 +107,7 @@
 //             className="rounded-full"
 //           />
 //           <h1 className="text-3xl font-bold mt-6 text-center">
-//             Welcome to SJC Summer Camp HRMS
+//             Welcome to SJC Summer Camp HRMS(Human Resource Management System)
 //           </h1>
 //           <p className="mt-4 text-lg max-w-md text-center">
 //             Manage attendance, departments, and reports easily with our smart HR
