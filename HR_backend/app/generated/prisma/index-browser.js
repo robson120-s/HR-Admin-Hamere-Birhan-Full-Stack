@@ -120,77 +120,64 @@ exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
   Serializable: 'Serializable'
 });
 
-exports.Prisma.RoleScalarFieldEnum = {
+exports.Prisma.ActivitylogScalarFieldEnum = {
   id: 'id',
-  name: 'name',
+  type: 'type',
+  message: 'message',
+  actorId: 'actorId',
+  targetId: 'targetId',
+  departmentId: 'departmentId',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.AgreementstatusScalarFieldEnum = {
+  id: 'id',
+  status: 'status'
+};
+
+exports.Prisma.AttendancelogScalarFieldEnum = {
+  id: 'id',
+  employeeId: 'employeeId',
+  date: 'date',
+  sessionId: 'sessionId',
+  actualClockIn: 'actualClockIn',
+  actualClockOut: 'actualClockOut',
+  status: 'status',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.AttendancesummaryScalarFieldEnum = {
+  id: 'id',
+  employeeId: 'employeeId',
+  date: 'date',
+  status: 'status',
+  lateArrival: 'lateArrival',
+  earlyDeparture: 'earlyDeparture',
+  unplannedAbsence: 'unplannedAbsence',
+  totalWorkHours: 'totalWorkHours',
+  remarks: 'remarks',
+  departmentId: 'departmentId'
+};
+
+exports.Prisma.ComplaintScalarFieldEnum = {
+  id: 'id',
+  employeeId: 'employeeId',
+  subject: 'subject',
   description: 'description',
+  status: 'status',
+  response: 'response',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
-};
-
-exports.Prisma.UserScalarFieldEnum = {
-  id: 'id',
-  username: 'username',
-  email: 'email',
-  password: 'password',
-  isActive: 'isActive',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
-  notifyOnComplaint: 'notifyOnComplaint'
-};
-
-exports.Prisma.UserRoleScalarFieldEnum = {
-  userId: 'userId',
-  roleId: 'roleId'
 };
 
 exports.Prisma.DepartmentScalarFieldEnum = {
   id: 'id',
   name: 'name',
   description: 'description',
-  parentId: 'parentId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
+  parentId: 'parentId',
   payrollPolicyId: 'payrollPolicyId'
-};
-
-exports.Prisma.PositionScalarFieldEnum = {
-  id: 'id',
-  name: 'name',
-  description: 'description',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-};
-
-exports.Prisma.MaritalStatusScalarFieldEnum = {
-  id: 'id',
-  status: 'status'
-};
-
-exports.Prisma.EmploymentTypeScalarFieldEnum = {
-  id: 'id',
-  type: 'type'
-};
-
-exports.Prisma.JobStatusScalarFieldEnum = {
-  id: 'id',
-  status: 'status'
-};
-
-exports.Prisma.AgreementStatusScalarFieldEnum = {
-  id: 'id',
-  status: 'status'
-};
-
-exports.Prisma.MeetingScalarFieldEnum = {
-  id: 'id',
-  title: 'title',
-  description: 'description',
-  date: 'date',
-  time: 'time',
-  creatorId: 'creatorId',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.EmployeeScalarFieldEnum = {
@@ -204,7 +191,6 @@ exports.Prisma.EmployeeScalarFieldEnum = {
   nationality: 'nationality',
   maritalStatusId: 'maritalStatusId',
   departmentId: 'departmentId',
-  subDepartmentId: 'subDepartmentId',
   positionId: 'positionId',
   employmentTypeId: 'employmentTypeId',
   employmentDate: 'employmentDate',
@@ -226,19 +212,11 @@ exports.Prisma.EmployeeScalarFieldEnum = {
   photo: 'photo',
   deletedAt: 'deletedAt',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  subDepartmentId: 'subDepartmentId'
 };
 
-exports.Prisma.ShiftScalarFieldEnum = {
-  id: 'id',
-  name: 'name',
-  startTime: 'startTime',
-  endTime: 'endTime',
-  isFlexible: 'isFlexible',
-  description: 'description'
-};
-
-exports.Prisma.EmployeeShiftScalarFieldEnum = {
+exports.Prisma.EmployeeshiftScalarFieldEnum = {
   id: 'id',
   employeeId: 'employeeId',
   shiftId: 'shiftId',
@@ -246,45 +224,33 @@ exports.Prisma.EmployeeShiftScalarFieldEnum = {
   effectiveTo: 'effectiveTo'
 };
 
-exports.Prisma.SessionDefinitionScalarFieldEnum = {
+exports.Prisma.EmploymenttypeScalarFieldEnum = {
   id: 'id',
-  sessionNumber: 'sessionNumber',
-  expectedClockIn: 'expectedClockIn',
-  expectedClockOut: 'expectedClockOut'
+  type: 'type'
 };
 
-exports.Prisma.AttendanceLogScalarFieldEnum = {
+exports.Prisma.HolidayScalarFieldEnum = {
   id: 'id',
-  employeeId: 'employeeId',
+  name: 'name',
   date: 'date',
-  sessionId: 'sessionId',
-  actualClockIn: 'actualClockIn',
-  actualClockOut: 'actualClockOut',
-  status: 'status',
-  createdAt: 'createdAt'
+  isPublic: 'isPublic',
+  description: 'description'
 };
 
-exports.Prisma.AttendanceSummaryScalarFieldEnum = {
+exports.Prisma.InterviewScalarFieldEnum = {
   id: 'id',
-  employeeId: 'employeeId',
-  date: 'date',
-  status: 'status',
-  lateArrival: 'lateArrival',
-  earlyDeparture: 'earlyDeparture',
-  unplannedAbsence: 'unplannedAbsence',
-  totalWorkHours: 'totalWorkHours',
-  remarks: 'remarks',
-  departmentId: 'departmentId'
+  candidateName: 'candidateName',
+  position: 'position',
+  interviewDate: 'interviewDate',
+  result: 'result',
+  comments: 'comments',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 };
 
-exports.Prisma.ActivityLogScalarFieldEnum = {
+exports.Prisma.JobstatusScalarFieldEnum = {
   id: 'id',
-  type: 'type',
-  message: 'message',
-  actorId: 'actorId',
-  targetId: 'targetId',
-  departmentId: 'departmentId',
-  createdAt: 'createdAt'
+  status: 'status'
 };
 
 exports.Prisma.LeaveScalarFieldEnum = {
@@ -300,81 +266,52 @@ exports.Prisma.LeaveScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
-exports.Prisma.HolidayScalarFieldEnum = {
+exports.Prisma.MaritalstatusScalarFieldEnum = {
   id: 'id',
-  name: 'name',
-  date: 'date',
-  isPublic: 'isPublic',
-  description: 'description'
+  status: 'status'
 };
 
-exports.Prisma.OvertimeLogScalarFieldEnum = {
+exports.Prisma.MeetingScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  description: 'description',
+  date: 'date',
+  time: 'time',
+  creatorId: 'creatorId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.OvertimelogScalarFieldEnum = {
   id: 'id',
   employeeId: 'employeeId',
   date: 'date',
   hours: 'hours',
-  startTime: 'startTime',
-  endTime: 'endTime',
-  overtimeType: 'overtimeType',
   reason: 'reason',
   approvedBy: 'approvedBy',
   approvalStatus: 'approvalStatus',
   compensationMethod: 'compensationMethod',
+  endTime: 'endTime',
+  startTime: 'startTime',
+  overtimeType: 'overtimeType',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
 
-exports.Prisma.SalaryScalarFieldEnum = {
-  id: 'id',
-  employeeId: 'employeeId',
-  salaryMonth: 'salaryMonth',
-  amount: 'amount',
-  baseSalary: 'baseSalary',
-  deductions: 'deductions',
-  status: 'status',
-  overtimeHours: 'overtimeHours',
-  overtimePay: 'overtimePay',
-  paidAt: 'paidAt',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-};
-
-exports.Prisma.PayrollPolicyScalarFieldEnum = {
+exports.Prisma.PayrollpolicyScalarFieldEnum = {
   id: 'id',
   name: 'name',
   isDefault: 'isDefault',
   otMultiplierWeekday1: 'otMultiplierWeekday1',
   otMultiplierWeekday2: 'otMultiplierWeekday2',
-  otMultiplierSleepover: 'otMultiplierSleepover',
   otMultiplierSunday: 'otMultiplierSunday',
   otMultiplierHoliday: 'otMultiplierHoliday',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  otMultiplierSleepover: 'otMultiplierSleepover'
 };
 
-exports.Prisma.ComplaintScalarFieldEnum = {
-  id: 'id',
-  employeeId: 'employeeId',
-  subject: 'subject',
-  description: 'description',
-  status: 'status',
-  response: 'response',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-};
-
-exports.Prisma.InterviewScalarFieldEnum = {
-  id: 'id',
-  candidateName: 'candidateName',
-  position: 'position',
-  interviewDate: 'interviewDate',
-  result: 'result',
-  comments: 'comments',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-};
-
-exports.Prisma.PerformanceReviewScalarFieldEnum = {
+exports.Prisma.PerformancereviewScalarFieldEnum = {
   id: 'id',
   employeeId: 'employeeId',
   reviewDate: 'reviewDate',
@@ -385,16 +322,79 @@ exports.Prisma.PerformanceReviewScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.PositionScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.RoleScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.SalaryScalarFieldEnum = {
+  id: 'id',
+  employeeId: 'employeeId',
+  salaryMonth: 'salaryMonth',
+  amount: 'amount',
+  status: 'status',
+  overtimeHours: 'overtimeHours',
+  overtimePay: 'overtimePay',
+  paidAt: 'paidAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  baseSalary: 'baseSalary',
+  deductions: 'deductions'
+};
+
+exports.Prisma.SessiondefinitionScalarFieldEnum = {
+  id: 'id',
+  sessionNumber: 'sessionNumber',
+  expectedClockIn: 'expectedClockIn',
+  expectedClockOut: 'expectedClockOut'
+};
+
+exports.Prisma.ShiftScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  startTime: 'startTime',
+  endTime: 'endTime',
+  isFlexible: 'isFlexible',
+  description: 'description'
+};
+
 exports.Prisma.TerminationScalarFieldEnum = {
   id: 'id',
   employeeId: 'employeeId',
   terminationDate: 'terminationDate',
   reason: 'reason',
   status: 'status',
-  workflowStatus: 'workflowStatus',
   remarks: 'remarks',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  workflowStatus: 'workflowStatus'
+};
+
+exports.Prisma.UserScalarFieldEnum = {
+  id: 'id',
+  username: 'username',
+  email: 'email',
+  password: 'password',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  notifyOnComplaint: 'notifyOnComplaint'
+};
+
+exports.Prisma.UserroleScalarFieldEnum = {
+  userId: 'userId',
+  roleId: 'roleId'
 };
 
 exports.Prisma.SortOrder = {
@@ -407,50 +407,30 @@ exports.Prisma.NullsOrder = {
   last: 'last'
 };
 
-exports.Prisma.RoleOrderByRelevanceFieldEnum = {
-  name: 'name',
-  description: 'description'
+exports.Prisma.activitylogOrderByRelevanceFieldEnum = {
+  message: 'message'
 };
 
-exports.Prisma.UserOrderByRelevanceFieldEnum = {
-  username: 'username',
-  email: 'email',
-  password: 'password'
-};
-
-exports.Prisma.DepartmentOrderByRelevanceFieldEnum = {
-  name: 'name',
-  description: 'description'
-};
-
-exports.Prisma.PositionOrderByRelevanceFieldEnum = {
-  name: 'name',
-  description: 'description'
-};
-
-exports.Prisma.MaritalStatusOrderByRelevanceFieldEnum = {
+exports.Prisma.agreementstatusOrderByRelevanceFieldEnum = {
   status: 'status'
 };
 
-exports.Prisma.EmploymentTypeOrderByRelevanceFieldEnum = {
-  type: 'type'
+exports.Prisma.attendancesummaryOrderByRelevanceFieldEnum = {
+  remarks: 'remarks'
 };
 
-exports.Prisma.JobStatusOrderByRelevanceFieldEnum = {
-  status: 'status'
-};
-
-exports.Prisma.AgreementStatusOrderByRelevanceFieldEnum = {
-  status: 'status'
-};
-
-exports.Prisma.MeetingOrderByRelevanceFieldEnum = {
-  title: 'title',
+exports.Prisma.complaintOrderByRelevanceFieldEnum = {
+  subject: 'subject',
   description: 'description',
-  time: 'time'
+  response: 'response'
 };
 
-exports.Prisma.EmployeeOrderByRelevanceFieldEnum = {
+exports.Prisma.departmentOrderByRelevanceFieldEnum = {
+  name: 'name',
+  description: 'description'
+};
+
+exports.Prisma.employeeOrderByRelevanceFieldEnum = {
   firstName: 'firstName',
   lastName: 'lastName',
   baptismalName: 'baptismalName',
@@ -469,80 +449,78 @@ exports.Prisma.EmployeeOrderByRelevanceFieldEnum = {
   photo: 'photo'
 };
 
-exports.Prisma.ShiftOrderByRelevanceFieldEnum = {
+exports.Prisma.employmenttypeOrderByRelevanceFieldEnum = {
+  type: 'type'
+};
+
+exports.Prisma.holidayOrderByRelevanceFieldEnum = {
   name: 'name',
   description: 'description'
 };
 
-exports.Prisma.AttendanceSummaryOrderByRelevanceFieldEnum = {
-  remarks: 'remarks'
-};
-
-exports.Prisma.ActivityLogOrderByRelevanceFieldEnum = {
-  message: 'message'
-};
-
-exports.Prisma.LeaveOrderByRelevanceFieldEnum = {
-  reason: 'reason'
-};
-
-exports.Prisma.HolidayOrderByRelevanceFieldEnum = {
-  name: 'name',
-  description: 'description'
-};
-
-exports.Prisma.OvertimeLogOrderByRelevanceFieldEnum = {
-  reason: 'reason'
-};
-
-exports.Prisma.PayrollPolicyOrderByRelevanceFieldEnum = {
-  name: 'name'
-};
-
-exports.Prisma.ComplaintOrderByRelevanceFieldEnum = {
-  subject: 'subject',
-  description: 'description',
-  response: 'response'
-};
-
-exports.Prisma.InterviewOrderByRelevanceFieldEnum = {
+exports.Prisma.interviewOrderByRelevanceFieldEnum = {
   candidateName: 'candidateName',
   position: 'position',
   comments: 'comments'
 };
 
-exports.Prisma.PerformanceReviewOrderByRelevanceFieldEnum = {
+exports.Prisma.jobstatusOrderByRelevanceFieldEnum = {
+  status: 'status'
+};
+
+exports.Prisma.leaveOrderByRelevanceFieldEnum = {
+  reason: 'reason'
+};
+
+exports.Prisma.maritalstatusOrderByRelevanceFieldEnum = {
+  status: 'status'
+};
+
+exports.Prisma.meetingOrderByRelevanceFieldEnum = {
+  title: 'title',
+  description: 'description',
+  time: 'time'
+};
+
+exports.Prisma.overtimelogOrderByRelevanceFieldEnum = {
+  reason: 'reason'
+};
+
+exports.Prisma.payrollpolicyOrderByRelevanceFieldEnum = {
+  name: 'name'
+};
+
+exports.Prisma.performancereviewOrderByRelevanceFieldEnum = {
   reviewerName: 'reviewerName',
   comments: 'comments'
 };
 
-exports.Prisma.TerminationOrderByRelevanceFieldEnum = {
+exports.Prisma.positionOrderByRelevanceFieldEnum = {
+  name: 'name',
+  description: 'description'
+};
+
+exports.Prisma.roleOrderByRelevanceFieldEnum = {
+  name: 'name',
+  description: 'description'
+};
+
+exports.Prisma.shiftOrderByRelevanceFieldEnum = {
+  name: 'name',
+  description: 'description'
+};
+
+exports.Prisma.terminationOrderByRelevanceFieldEnum = {
   reason: 'reason',
   remarks: 'remarks'
 };
-exports.Sex = exports.$Enums.Sex = {
-  male: 'male',
-  female: 'female'
-};
 
-exports.AttendanceStatus = exports.$Enums.AttendanceStatus = {
-  present: 'present',
-  late: 'late',
-  absent: 'absent',
-  permission: 'permission'
+exports.Prisma.userOrderByRelevanceFieldEnum = {
+  username: 'username',
+  email: 'email',
+  password: 'password'
 };
-
-exports.SummaryStatus = exports.$Enums.SummaryStatus = {
-  present: 'present',
-  absent: 'absent',
-  half_day: 'half_day',
-  on_leave: 'on_leave',
-  permission: 'permission',
-  holiday: 'holiday',
-  weekend: 'weekend'
-};
-
-exports.ActivityType = exports.$Enums.ActivityType = {
+exports.activitylog_type = exports.$Enums.activitylog_type = {
   ATTENDANCE_MARKED: 'ATTENDANCE_MARKED',
   REVIEW_SUBMITTED: 'REVIEW_SUBMITTED',
   OVERTIME_REQUESTED: 'OVERTIME_REQUESTED',
@@ -552,7 +530,42 @@ exports.ActivityType = exports.$Enums.ActivityType = {
   OVERTIME_ACTIONED: 'OVERTIME_ACTIONED'
 };
 
-exports.LeaveType = exports.$Enums.LeaveType = {
+exports.attendancelog_status = exports.$Enums.attendancelog_status = {
+  present: 'present',
+  late: 'late',
+  absent: 'absent',
+  permission: 'permission'
+};
+
+exports.attendancesummary_status = exports.$Enums.attendancesummary_status = {
+  present: 'present',
+  absent: 'absent',
+  half_day: 'half_day',
+  on_leave: 'on_leave',
+  permission: 'permission',
+  holiday: 'holiday',
+  weekend: 'weekend'
+};
+
+exports.complaint_status = exports.$Enums.complaint_status = {
+  open: 'open',
+  in_review: 'in_review',
+  resolved: 'resolved',
+  rejected: 'rejected'
+};
+
+exports.employee_sex = exports.$Enums.employee_sex = {
+  male: 'male',
+  female: 'female'
+};
+
+exports.interview_result = exports.$Enums.interview_result = {
+  pending: 'pending',
+  selected: 'selected',
+  rejected: 'rejected'
+};
+
+exports.leave_leaveType = exports.$Enums.leave_leaveType = {
   annual: 'annual',
   sick: 'sick',
   unpaid: 'unpaid',
@@ -560,87 +573,74 @@ exports.LeaveType = exports.$Enums.LeaveType = {
   other: 'other'
 };
 
-exports.LeaveStatus = exports.$Enums.LeaveStatus = {
+exports.leave_status = exports.$Enums.leave_status = {
   pending: 'pending',
   approved: 'approved',
   rejected: 'rejected'
 };
 
-exports.OvertimeType = exports.$Enums.OvertimeType = {
+exports.overtimelog_approvalStatus = exports.$Enums.overtimelog_approvalStatus = {
+  pending: 'pending',
+  approved: 'approved',
+  rejected: 'rejected'
+};
+
+exports.overtimelog_compensationMethod = exports.$Enums.overtimelog_compensationMethod = {
+  cash: 'cash',
+  time_off: 'time_off'
+};
+
+exports.overtimelog_overtimeType = exports.$Enums.overtimelog_overtimeType = {
   WEEKDAY: 'WEEKDAY',
   SUNDAY: 'SUNDAY',
   HOLIDAY: 'HOLIDAY'
 };
 
-exports.OvertimeApprovalStatus = exports.$Enums.OvertimeApprovalStatus = {
-  pending: 'pending',
-  approved: 'approved',
-  rejected: 'rejected'
-};
-
-exports.CompensationMethod = exports.$Enums.CompensationMethod = {
-  cash: 'cash',
-  time_off: 'time_off'
-};
-
-exports.SalaryStatus = exports.$Enums.SalaryStatus = {
+exports.salary_status = exports.$Enums.salary_status = {
   paid: 'paid',
   unpaid: 'unpaid',
   pending: 'pending'
 };
 
-exports.ComplaintStatus = exports.$Enums.ComplaintStatus = {
-  open: 'open',
-  in_review: 'in_review',
-  resolved: 'resolved',
-  rejected: 'rejected'
-};
-
-exports.InterviewResult = exports.$Enums.InterviewResult = {
-  pending: 'pending',
-  selected: 'selected',
-  rejected: 'rejected'
-};
-
-exports.TerminationStatus = exports.$Enums.TerminationStatus = {
+exports.termination_status = exports.$Enums.termination_status = {
   voluntary: 'voluntary',
   involuntary: 'involuntary',
   retired: 'retired'
 };
 
-exports.WorkflowStatus = exports.$Enums.WorkflowStatus = {
+exports.termination_workflowStatus = exports.$Enums.termination_workflowStatus = {
   pending_approval: 'pending_approval',
   processing: 'processing',
   finalized: 'finalized'
 };
 
 exports.Prisma.ModelName = {
-  Role: 'Role',
-  User: 'User',
-  UserRole: 'UserRole',
-  Department: 'Department',
-  Position: 'Position',
-  MaritalStatus: 'MaritalStatus',
-  EmploymentType: 'EmploymentType',
-  JobStatus: 'JobStatus',
-  AgreementStatus: 'AgreementStatus',
-  Meeting: 'Meeting',
-  Employee: 'Employee',
-  Shift: 'Shift',
-  EmployeeShift: 'EmployeeShift',
-  SessionDefinition: 'SessionDefinition',
-  AttendanceLog: 'AttendanceLog',
-  AttendanceSummary: 'AttendanceSummary',
-  ActivityLog: 'ActivityLog',
-  Leave: 'Leave',
-  Holiday: 'Holiday',
-  OvertimeLog: 'OvertimeLog',
-  Salary: 'Salary',
-  PayrollPolicy: 'PayrollPolicy',
-  Complaint: 'Complaint',
-  Interview: 'Interview',
-  PerformanceReview: 'PerformanceReview',
-  Termination: 'Termination'
+  activitylog: 'activitylog',
+  agreementstatus: 'agreementstatus',
+  attendancelog: 'attendancelog',
+  attendancesummary: 'attendancesummary',
+  complaint: 'complaint',
+  department: 'department',
+  employee: 'employee',
+  employeeshift: 'employeeshift',
+  employmenttype: 'employmenttype',
+  holiday: 'holiday',
+  interview: 'interview',
+  jobstatus: 'jobstatus',
+  leave: 'leave',
+  maritalstatus: 'maritalstatus',
+  meeting: 'meeting',
+  overtimelog: 'overtimelog',
+  payrollpolicy: 'payrollpolicy',
+  performancereview: 'performancereview',
+  position: 'position',
+  role: 'role',
+  salary: 'salary',
+  sessiondefinition: 'sessiondefinition',
+  shift: 'shift',
+  termination: 'termination',
+  user: 'user',
+  userrole: 'userrole'
 };
 
 /**

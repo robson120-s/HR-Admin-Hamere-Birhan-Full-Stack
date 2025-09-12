@@ -58,20 +58,20 @@ export default function AttendancePage() {
   
   const { theme } = useTheme(); // For theme-responsive styles
 
-  const fetchAttendance = useCallback(async (date) => {
-    setIsLoading(true);
-    const year = date.getFullYear();
-    const month = date.getMonth() + 1; // API expects 1-12
-    try {
-      const data = await getAttendanceOverview(year, month);
-      setEmployees(data.employees);
-      setAttendanceMap(data.attendanceMap);
-    } catch (error) {
-      toast.error(error.message);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+const fetchAttendance = useCallback(async (date) => {
+  setIsLoading(true);
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1; // API expects 1-12
+  try {
+    const data = await getAttendanceOverview(year, month);
+    setEmployees(data.employees);
+    setAttendanceMap(data.attendanceMap);
+  } catch (error) {
+    toast.error(error.message);
+  } finally {
+    setIsLoading(false);
+  }
+}, []);
 
   useEffect(() => {
     fetchAttendance(currentDate);

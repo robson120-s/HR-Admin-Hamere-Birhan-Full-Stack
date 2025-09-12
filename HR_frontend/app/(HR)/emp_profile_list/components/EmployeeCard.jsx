@@ -7,17 +7,17 @@ import { User, Briefcase, Phone, Mail } from 'lucide-react';
 export function EmployeeCard({ employee }) {
   const fullName = `${employee.firstName} ${employee.lastName}`;
   const position = employee.position?.name || 'No Position';
-  const department = employee.department?.name || 'No Department';
+  
+  // Fix: Use the correct field name for department
+  const department = employee.department_employee_departmentIdTodepartment?.name || 'No Department';
 
   return (
-    // ✅ --- ADDITION 2: Wrap the entire card in a Link component ---
-    // The `href` dynamically points to the detail page for this specific employee.
     <Link href={`/emp_profile_list/${employee.id}`} className="block">
       <div 
         className="bg-white dark:bg-slate-800 rounded-xl shadow-md overflow-hidden 
                    border border-transparent hover:border-indigo-500 dark:hover:border-indigo-400
                    transition-all duration-300 ease-in-out 
-                   transform hover:-translate-y-1 group h-full" // Added h-full for consistent height in a grid
+                   transform hover:-translate-y-1 group h-full"
       >
         <div className="relative h-24 bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-indigo-900/70 dark:to-purple-900/70">
           {/* Placeholder for a potential cover image */}
@@ -29,9 +29,9 @@ export function EmployeeCard({ employee }) {
             <Image 
               src={employee.photo || '/images/default-avatar.png'}
               alt={fullName}
-              fill // Use fill instead of layout="fill" for Next.js v13+
+              fill
               className="rounded-full object-cover"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" // Provide sizes prop for better performance
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
           </div>
 
@@ -41,7 +41,7 @@ export function EmployeeCard({ employee }) {
               {fullName}
             </h3>
             <p className="text-sm font-medium text-slate-500 dark:text-slate-400">{position}</p>
-            <p className="text-xs text-slate-400 dark:text-slate-500">{department}</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500">{department}</p> {/* Use the fixed department variable */}
           </div>
 
           {/* Contact Info */}

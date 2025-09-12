@@ -8,6 +8,9 @@ import Image from 'next/image';
 const HeadContactCard = ({ head }) => {
     const fullName = `${head.firstName} ${head.lastName}`;
     
+    const departmentName = head.department_employee_departmentIdTodepartment?.name || 'N/A';
+
+    
     return (
         <div className="bg-slate-50 dark:bg-slate-900/50 rounded-xl p-3 flex items-center gap-4 border dark:border-slate-700">
             <div className="relative w-14 h-14 rounded-full flex-shrink-0">
@@ -23,7 +26,7 @@ const HeadContactCard = ({ head }) => {
                 <p className="font-bold text-slate-800 dark:text-white truncate" title={fullName}>{fullName}</p>
                 <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5 mt-1 truncate">
                     <Briefcase size={12} />
-                    {head.department?.name || 'N/A'}
+                    {departmentName}
                 </p>
                 <a 
                     href={`tel:${head.phone}`} 

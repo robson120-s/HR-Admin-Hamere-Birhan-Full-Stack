@@ -19,6 +19,7 @@ CREATE TABLE `User` (
     `isActive` BOOLEAN NOT NULL DEFAULT true,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
+    `notifyOnComplaint` BOOLEAN NOT NULL DEFAULT true,
 
     UNIQUE INDEX `User_username_key`(`username`),
     UNIQUE INDEX `User_email_key`(`email`),
@@ -38,8 +39,10 @@ CREATE TABLE `Department` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(191) NOT NULL,
     `description` VARCHAR(191) NULL,
+    `parentId` INTEGER NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
+    `payrollPolicyId` INTEGER NULL,
 
     UNIQUE INDEX `Department_name_key`(`name`),
     PRIMARY KEY (`id`)
@@ -94,6 +97,20 @@ CREATE TABLE `AgreementStatus` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
+CREATE TABLE `Meeting` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `title` VARCHAR(191) NOT NULL,
+    `description` VARCHAR(191) NULL,
+    `date` DATETIME(3) NOT NULL,
+    `time` VARCHAR(191) NOT NULL,
+    `creatorId` INTEGER NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
 CREATE TABLE `Employee` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `userId` INTEGER NULL,
@@ -101,10 +118,11 @@ CREATE TABLE `Employee` (
     `lastName` VARCHAR(191) NOT NULL,
     `baptismalName` VARCHAR(191) NULL,
     `dateOfBirth` DATETIME(3) NULL,
-    `sex` ENUM('male', 'female', 'other') NOT NULL,
+    `sex` ENUM('male', 'female') NOT NULL,
     `nationality` VARCHAR(191) NULL,
     `maritalStatusId` INTEGER NULL,
     `departmentId` INTEGER NULL,
+    `subDepartmentId` INTEGER NULL,
     `positionId` INTEGER NULL,
     `employmentTypeId` INTEGER NULL,
     `employmentDate` DATETIME(3) NULL,
@@ -128,6 +146,7 @@ CREATE TABLE `Employee` (
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
+    UNIQUE INDEX `Employee_userId_key`(`userId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -185,14 +204,29 @@ CREATE TABLE `AttendanceSummary` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `employeeId` INTEGER NOT NULL,
     `date` DATETIME(3) NOT NULL,
-    `status` ENUM('present', 'absent', 'half_day', 'on_leave', 'holiday', 'weekend') NOT NULL,
+    `status` ENUM('present', 'absent', 'half_day', 'on_leave', 'permission', 'holiday', 'weekend') NOT NULL,
     `lateArrival` BOOLEAN NOT NULL DEFAULT false,
     `earlyDeparture` BOOLEAN NOT NULL DEFAULT false,
     `unplannedAbsence` BOOLEAN NOT NULL DEFAULT false,
     `totalWorkHours` DECIMAL(65, 30) NULL,
     `remarks` VARCHAR(191) NULL,
+    `departmentId` INTEGER NULL,
 
     UNIQUE INDEX `AttendanceSummary_employeeId_date_key`(`employeeId`, `date`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `ActivityLog` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `type` ENUM('ATTENDANCE_MARKED', 'REVIEW_SUBMITTED', 'OVERTIME_REQUESTED', 'LEAVE_REQUESTED', 'COMPLAINT_SUBMITTED', 'LEAVE_ACTIONED', 'OVERTIME_ACTIONED') NOT NULL,
+    `message` VARCHAR(191) NOT NULL,
+    `actorId` INTEGER NOT NULL,
+    `targetId` INTEGER NULL,
+    `departmentId` INTEGER NOT NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    INDEX `ActivityLog_departmentId_createdAt_idx`(`departmentId`, `createdAt`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -229,11 +263,16 @@ CREATE TABLE `OvertimeLog` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `employeeId` INTEGER NOT NULL,
     `date` DATETIME(3) NOT NULL,
-    `hours` DECIMAL(65, 30) NOT NULL,
+    `hours` DECIMAL(65, 30) NULL,
+    `startTime` DATETIME(3) NULL,
+    `endTime` DATETIME(3) NULL,
+    `overtimeType` ENUM('WEEKDAY', 'SUNDAY', 'HOLIDAY') NOT NULL DEFAULT 'WEEKDAY',
     `reason` VARCHAR(191) NULL,
     `approvedBy` INTEGER NULL,
     `approvalStatus` ENUM('pending', 'approved', 'rejected') NOT NULL DEFAULT 'pending',
     `compensationMethod` ENUM('cash', 'time_off') NOT NULL DEFAULT 'cash',
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -244,6 +283,8 @@ CREATE TABLE `Salary` (
     `employeeId` INTEGER NOT NULL,
     `salaryMonth` DATETIME(3) NOT NULL,
     `amount` DECIMAL(65, 30) NOT NULL,
+    `baseSalary` DECIMAL(65, 30) NOT NULL DEFAULT 0.00,
+    `deductions` DECIMAL(65, 30) NOT NULL DEFAULT 0.00,
     `status` ENUM('paid', 'unpaid', 'pending') NOT NULL DEFAULT 'pending',
     `overtimeHours` DECIMAL(65, 30) NOT NULL DEFAULT 0.00,
     `overtimePay` DECIMAL(65, 30) NOT NULL DEFAULT 0.00,
@@ -252,6 +293,23 @@ CREATE TABLE `Salary` (
     `updatedAt` DATETIME(3) NOT NULL,
 
     UNIQUE INDEX `Salary_employeeId_salaryMonth_key`(`employeeId`, `salaryMonth`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `PayrollPolicy` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `name` VARCHAR(191) NOT NULL,
+    `isDefault` BOOLEAN NOT NULL DEFAULT false,
+    `otMultiplierWeekday1` DECIMAL(65, 30) NOT NULL DEFAULT 1.5,
+    `otMultiplierWeekday2` DECIMAL(65, 30) NOT NULL DEFAULT 1.75,
+    `otMultiplierSleepover` DECIMAL(65, 30) NOT NULL DEFAULT 2.2,
+    `otMultiplierSunday` DECIMAL(65, 30) NOT NULL DEFAULT 2.0,
+    `otMultiplierHoliday` DECIMAL(65, 30) NOT NULL DEFAULT 2.5,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    UNIQUE INDEX `PayrollPolicy_name_key`(`name`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -304,6 +362,7 @@ CREATE TABLE `Termination` (
     `terminationDate` DATETIME(3) NOT NULL,
     `reason` VARCHAR(191) NULL,
     `status` ENUM('voluntary', 'involuntary', 'retired') NOT NULL,
+    `workflowStatus` ENUM('pending_approval', 'processing', 'finalized') NOT NULL DEFAULT 'pending_approval',
     `remarks` VARCHAR(191) NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
@@ -316,6 +375,15 @@ ALTER TABLE `UserRole` ADD CONSTRAINT `UserRole_userId_fkey` FOREIGN KEY (`userI
 
 -- AddForeignKey
 ALTER TABLE `UserRole` ADD CONSTRAINT `UserRole_roleId_fkey` FOREIGN KEY (`roleId`) REFERENCES `Role`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Department` ADD CONSTRAINT `Department_parentId_fkey` FOREIGN KEY (`parentId`) REFERENCES `Department`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Department` ADD CONSTRAINT `Department_payrollPolicyId_fkey` FOREIGN KEY (`payrollPolicyId`) REFERENCES `PayrollPolicy`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Meeting` ADD CONSTRAINT `Meeting_creatorId_fkey` FOREIGN KEY (`creatorId`) REFERENCES `Employee`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Employee` ADD CONSTRAINT `Employee_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
@@ -339,6 +407,9 @@ ALTER TABLE `Employee` ADD CONSTRAINT `Employee_jobStatusId_fkey` FOREIGN KEY (`
 ALTER TABLE `Employee` ADD CONSTRAINT `Employee_agreementStatusId_fkey` FOREIGN KEY (`agreementStatusId`) REFERENCES `AgreementStatus`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE `Employee` ADD CONSTRAINT `Employee_subDepartmentId_fkey` FOREIGN KEY (`subDepartmentId`) REFERENCES `Department`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE `EmployeeShift` ADD CONSTRAINT `EmployeeShift_employeeId_fkey` FOREIGN KEY (`employeeId`) REFERENCES `Employee`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -352,6 +423,15 @@ ALTER TABLE `AttendanceLog` ADD CONSTRAINT `AttendanceLog_sessionId_fkey` FOREIG
 
 -- AddForeignKey
 ALTER TABLE `AttendanceSummary` ADD CONSTRAINT `AttendanceSummary_employeeId_fkey` FOREIGN KEY (`employeeId`) REFERENCES `Employee`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `AttendanceSummary` ADD CONSTRAINT `AttendanceSummary_departmentId_fkey` FOREIGN KEY (`departmentId`) REFERENCES `Department`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `ActivityLog` ADD CONSTRAINT `ActivityLog_actorId_fkey` FOREIGN KEY (`actorId`) REFERENCES `Employee`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `ActivityLog` ADD CONSTRAINT `ActivityLog_targetId_fkey` FOREIGN KEY (`targetId`) REFERENCES `Employee`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Leave` ADD CONSTRAINT `Leave_employeeId_fkey` FOREIGN KEY (`employeeId`) REFERENCES `Employee`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;

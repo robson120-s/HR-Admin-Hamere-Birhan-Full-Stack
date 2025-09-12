@@ -45,8 +45,9 @@ const MeetingForm = ({ onSave, onCancel }) => {
 };
 
 const MeetingItem = ({ meeting, isPast, onDelete }) => {
-    // Fix for null creator
-    const creatorName = meeting.creator ? `${meeting.creator.firstName} ${meeting.creator.lastName}` : 'Unknown';
+    // Fix for creator - use employee instead of creator
+    const creatorName = meeting.employee ? 
+        `${meeting.employee.firstName} ${meeting.employee.lastName}` : 'Unknown';
     
     // Format date for display
     const meetingDate = new Date(meeting.date);

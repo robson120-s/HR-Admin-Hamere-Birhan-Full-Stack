@@ -152,11 +152,23 @@ export function CreateEmployeeModal({ open, onClose, onCreated }) {
             getRoles(), getDepartmentsLookup(), getPositionsLookup(), getMaritalStatuses(), 
             getEmploymentTypes(), getJobStatuses(), getAgreementStatuses()
           ]);
-          setLookupData({ roles, departments, positions, maritalStatuses, employmentTypes, jobStatuses, agreementStatuses });
-        } catch (error) { toast.error("Failed to load form options."); }
-      };
-      fetchLookups();
-    } else {
+                  console.log("Departments API response:", departments); 
+        setLookupData({ 
+          roles, 
+          departments, 
+          positions, 
+          maritalStatuses, 
+          employmentTypes, 
+          jobStatuses, 
+          agreementStatuses 
+        });
+      } catch (error) { 
+        console.error("Failed to load form options:", error);
+        toast.error("Failed to load form options. Check console for details."); 
+      }
+    };
+    fetchLookups();
+  } else {
         // Reset all state when the modal is closed
         setActiveTab("account");
         setUserData(initialUserData);
@@ -173,18 +185,18 @@ export function CreateEmployeeModal({ open, onClose, onCreated }) {
     }
   }, [open]);
 
-  useEffect(() => {
-    if (selectedDept && lookupData.departments.length > 0) {
-      const subs = lookupData.departments.filter(d => d.parentId === selectedDept.id);
-      setAvailableSubDepts(subs);
-      if (selectedSubDept && selectedSubDept.parentId !== selectedDept.id) {
-          setSelectedSubDept(null);
-      }
-    } else {
-      setAvailableSubDepts([]);
+useEffect(() => {
+  if (selectedDept && Array.isArray(lookupData.departments) && lookupData.departments.length > 0) {
+    const subs = lookupData.departments.filter(d => d && d.parentId === selectedDept.id);
+    setAvailableSubDepts(subs);
+    if (selectedSubDept && selectedSubDept.parentId !== selectedDept.id) {
       setSelectedSubDept(null);
     }
-  }, [selectedDept, lookupData.departments, selectedSubDept]); 
+  } else {
+    setAvailableSubDepts([]);
+    setSelectedSubDept(null);
+  }
+}, [selectedDept, lookupData.departments, selectedSubDept]);
 
   const handleUserChange = (e) => setUserData({ ...userData, [e.target.name]: e.target.value });
   const handleEmployeeChange = (e) => setEmployeeData({ ...employeeData, [e.target.name]: e.target.value });
@@ -320,13 +332,13 @@ export function CreateEmployeeModal({ open, onClose, onCreated }) {
             )}
             {activeTab === 'employment' && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <SearchableDropdown 
-                    label="Department (Main)" 
-                    options={lookupData.departments.filter(d => !d.parentId)}
-                    selected={selectedDept} 
-                    setSelected={setSelectedDept} 
-                    placeholder="Select Main department..." 
-                />
+<SearchableDropdown 
+  label="Department (Main)" 
+  options={Array.isArray(lookupData.departments) ? lookupData.departments.filter(d => d && !d.parentId) : []}
+  selected={selectedDept} 
+  setSelected={setSelectedDept} 
+  placeholder="Select Main department..." 
+/>
                 <SearchableDropdown 
                     label="Sub-Department (Optional)" 
                     options={availableSubDepts} 

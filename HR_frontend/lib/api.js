@@ -216,29 +216,63 @@ export const getRoles = async () => {
     const response = await apiClientHr.get("/lookup/roles");
     return response.data;
 };
-export const getDepartmentsLookup = async () => {
-    const response = await apiClientHr.get("/lookup/departments");
-    return response.data;
-};
+
 export const getPositionsLookup = async () => {
-    const response = await apiClientHr.get("/lookup/positions");
+  try {
+    const response = await apiClientHr.get('/lookup/positions');
     return response.data;
+  } catch (error) {
+    console.error('Error fetching positions:', error);
+    return []; // Return empty array instead of throwing error
+  }  
 };
+export const getDepartmentsLookup = async () => {
+  try {
+    const response = await apiClientHr.get('/lookup/departments');
+    // Extract the 'all' array from the response
+    return response.data.all || [];
+  } catch (error) {
+    console.error('Error fetching departments:', error);
+    return [];
+  }
+};
+
+// Do the same for other lookup functions
 export const getMaritalStatuses = async () => {
-    const response = await apiClientHr.get("/lookup/marital-statuses");
+  try {
+    const response = await apiClientHr.get('/lookup/marital-statuses');
     return response.data;
+  } catch (error) {
+    console.error('Error fetching marital statuses:', error);
+    return [];
+  }
 };
 export const getEmploymentTypes = async () => {
-    const response = await apiClientHr.get("/lookup/employment-types");
+  try {
+    const response = await apiClientHr.get('/lookup/employment-types');
     return response.data;
+  } catch (error) {
+    console.error('Error fetching employment types:', error);
+    return [];
+  }
 };
 export const getJobStatuses = async () => {
-    const response = await apiClientHr.get("/lookup/job-statuses");
+  try {
+    const response = await apiClientHr.get('/lookup/job-statuses');
     return response.data;
+  } catch (error) {
+    console.error('Error fetching job statuses:', error);
+    return [];
+  }
 };
 export const getAgreementStatuses = async () => {
-    const response = await apiClientHr.get("/lookup/agreement-statuses");
+  try {
+    const response = await apiClientHr.get('/lookup/agreement-statuses');
     return response.data;
+  } catch (error) {
+    console.error('Error fetching agreement statuses:', error);
+    return [];
+  }
 };
 
 
@@ -423,16 +457,21 @@ export const exportAttendance = async (date, departmentId = '') => {
   return response.data;
 };
 
-// In your frontend file: lib/api.js
 
+// export const getAttendanceOverview = async (year, month) => {
+//   const response = await fetch(`/api/hr/attendance/overview?year=${year}&month=${month}`);
+//   if (!response.ok) {
+//     throw new Error('Failed to fetch attendance data');
+//   }
+//   return response.json();
+// };
 export const getAttendanceOverview = async (year, month) => {
-  try {
+  
     // We send year and month as query parameters
     const response = await apiClientHr.get(`/attendance/overview?year=${year}&month=${month}`);
     return response.data; // Will return { employees, attendanceMap }
-  } catch (error) {
-    throw new Error(error.response?.data?.error || "Could not fetch attendance overview.");
-  }
+  
+  
 };
 
 export const getAttendanceReport = async (timeframe = 'weekly') => {

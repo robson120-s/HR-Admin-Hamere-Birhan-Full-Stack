@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../app/generated/prisma"
@@ -14,235 +8,106 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ----------------------
-// 1. ENUMS
-// ----------------------
-enum Sex {
-  male
-  female
+model activitylog {
+  id                                      Int              @id @default(autoincrement())
+  type                                    activitylog_type
+  message                                 String
+  actorId                                 Int
+  targetId                                Int?
+  departmentId                            Int
+  createdAt                               DateTime         @default(now())
+  employee_activitylog_actorIdToemployee  employee         @relation("activitylog_actorIdToemployee", fields: [actorId], references: [id], onDelete: NoAction, map: "ActivityLog_actorId_fkey")
+  employee_activitylog_targetIdToemployee employee?        @relation("activitylog_targetIdToemployee", fields: [targetId], references: [id], map: "ActivityLog_targetId_fkey")
+
+  @@index([actorId], map: "ActivityLog_actorId_fkey")
+  @@index([departmentId, createdAt], map: "ActivityLog_departmentId_createdAt_idx")
+  @@index([targetId], map: "ActivityLog_targetId_fkey")
 }
 
-enum LeaveType {
-  annual
-  sick
-  unpaid
-  maternity
-  other
+model agreementstatus {
+  id       Int        @id @default(autoincrement())
+  status   String     @unique(map: "AgreementStatus_status_key")
+  employee employee[]
 }
 
-enum ActivityType {
-  ATTENDANCE_MARKED
-  REVIEW_SUBMITTED
-  OVERTIME_REQUESTED
-  LEAVE_REQUESTED
-  COMPLAINT_SUBMITTED
-  // Actioned by HR
-  LEAVE_ACTIONED
-  OVERTIME_ACTIONED
+model attendancelog {
+  id                Int                  @id @default(autoincrement())
+  employeeId        Int
+  date              DateTime
+  sessionId         Int
+  actualClockIn     DateTime?
+  actualClockOut    DateTime?
+  status            attendancelog_status
+  createdAt         DateTime             @default(now())
+  employee          employee             @relation(fields: [employeeId], references: [id], onDelete: Cascade, map: "AttendanceLog_employeeId_fkey")
+  sessiondefinition sessiondefinition    @relation(fields: [sessionId], references: [id], onDelete: Cascade, map: "AttendanceLog_sessionId_fkey")
+
+  @@unique([employeeId, date, sessionId], map: "AttendanceLog_employeeId_date_sessionId_key")
+  @@index([sessionId], map: "AttendanceLog_sessionId_fkey")
 }
 
-enum LeaveStatus {
-  pending
-  approved
-  rejected
+model attendancesummary {
+  id               Int                      @id @default(autoincrement())
+  employeeId       Int
+  date             DateTime
+  status           attendancesummary_status
+  lateArrival      Boolean                  @default(false)
+  earlyDeparture   Boolean                  @default(false)
+  unplannedAbsence Boolean                  @default(false)
+  totalWorkHours   Decimal?
+  remarks          String?
+  departmentId     Int?
+  department       department?              @relation(fields: [departmentId], references: [id], map: "AttendanceSummary_departmentId_fkey")
+  employee         employee                 @relation(fields: [employeeId], references: [id], onDelete: Cascade, map: "AttendanceSummary_employeeId_fkey")
+
+  @@unique([employeeId, date], map: "AttendanceSummary_employeeId_date_key")
+  @@index([departmentId], map: "AttendanceSummary_departmentId_fkey")
 }
 
-enum OvertimeType {
-  WEEKDAY
-  SUNDAY
-  HOLIDAY
+model complaint {
+  id          Int              @id @default(autoincrement())
+  employeeId  Int
+  subject     String
+  description String
+  status      complaint_status @default(open)
+  response    String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime
+  employee    employee         @relation(fields: [employeeId], references: [id], onDelete: Cascade, map: "Complaint_employeeId_fkey")
+
+  @@index([employeeId], map: "Complaint_employeeId_fkey")
 }
 
-enum AttendanceStatus {
-  present
-  late
-  absent
-  permission
+model department {
+  id                                            Int                 @id @default(autoincrement())
+  name                                          String              @unique(map: "Department_name_key")
+  description                                   String?
+  createdAt                                     DateTime            @default(now())
+  updatedAt                                     DateTime
+  parentId                                      Int?
+  payrollPolicyId                               Int?
+  attendancesummary                             attendancesummary[]
+  department                                    department?         @relation("departmentTodepartment", fields: [parentId], references: [id], map: "Department_parentId_fkey")
+  other_department                              department[]        @relation("departmentTodepartment")
+  payrollpolicy                                 payrollpolicy?      @relation(fields: [payrollPolicyId], references: [id], map: "Department_payrollPolicyId_fkey")
+  employee_employee_departmentIdTodepartment    employee[]          @relation("employee_departmentIdTodepartment")
+  employee_employee_subDepartmentIdTodepartment employee[]          @relation("employee_subDepartmentIdTodepartment")
+
+  @@index([parentId], map: "Department_parentId_fkey")
+  @@index([payrollPolicyId], map: "Department_payrollPolicyId_fkey")
 }
 
-enum SummaryStatus {
-  present
-  absent
-  half_day
-  on_leave
-  permission
-  holiday
-  weekend
-}
-
-enum ComplaintStatus {
-  open
-  in_review
-  resolved
-  rejected
-}
-
-enum InterviewResult {
-  pending
-  selected
-  rejected
-}
-
-enum OvertimeApprovalStatus {
-  pending
-  approved
-  rejected
-}
-
-enum CompensationMethod {
-  cash
-  time_off
-}
-
-enum SalaryStatus {
-  paid
-  unpaid
-  pending
-}
-
-enum TerminationStatus {
-  voluntary
-  involuntary
-  retired
-}
-
-enum WorkflowStatus {
-  pending_approval
-  processing
-  finalized
-}
-
-// ----------------------
-// 2. ROLES & USERS
-// ----------------------
-model Role {
-  id          Int        @id @default(autoincrement())
-  name        String     @unique
-  description String?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  users       UserRole[]
-}
-
-model User {
-  id                Int           @id @default(autoincrement())
-  username          String        @unique
-  email             String        @unique
-  password          String
-  isActive          Boolean       @default(true)
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
-  roles             UserRole[]
-  employees         Employee[]
-  approvedLeaves    Leave[]       @relation("ApprovedLeaves")
-  approvedOvertimes OvertimeLog[] @relation("ApprovedOvertimes")
-  notifyOnComplaint Boolean       @default(true)
-}
-
-model UserRole {
-  userId Int
-  roleId Int
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
-
-  @@id([userId, roleId])
-}
-
-// ----------------------
-// 3. ORGANIZATIONAL STRUCTURE
-// ----------------------
-model Department {
-  id          Int         @id @default(autoincrement())
-  name        String      @unique
-  description String?
-  parent      Department? @relation("SubDepartments", fields: [parentId], references: [id])
-  parentId    Int? // This field stores the ID of the parent department. It's optional.
-
-  // This is the "children" relationship.
-  // A department can have many sub-departments.
-  subDepartments Department[] @relation("SubDepartments")
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  employees      Employee[]
-
-  subDepartmentEmployees Employee[]          @relation("SubDepartment")
-  attendanceSummaries    AttendanceSummary[]
-  payrollPolicyId        Int? // This department can have a custom policy
-  payrollPolicy          PayrollPolicy?      @relation(fields: [payrollPolicyId], references: [id])
-}
-
-model Position {
-  id          Int        @id @default(autoincrement())
-  name        String     @unique
-  description String?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  employees   Employee[]
-}
-
-model MaritalStatus {
-  id        Int        @id @default(autoincrement())
-  status    String     @unique
-  employees Employee[]
-}
-
-model EmploymentType {
-  id        Int        @id @default(autoincrement())
-  type      String     @unique
-  employees Employee[]
-}
-
-model JobStatus {
-  id        Int        @id @default(autoincrement())
-  status    String     @unique
-  employees Employee[]
-}
-
-model AgreementStatus {
-  id        Int        @id @default(autoincrement())
-  status    String     @unique
-  employees Employee[]
-}
-
-// ----------------------
-// 4. Meeting announcement
-// ----------------------
-model Meeting {
-  id          Int     @id @default(autoincrement())
-  title       String
-  description String?
-
-  // We will store the meeting date and time separately as requested.
-  // Using String is flexible but requires careful handling on the frontend.
-  date DateTime // e.g., "2024-10-28"
-  time String // e.g., "14:00 - 15:00"
-
-  // This creates a direct link to the HR employee who posted the announcement.
-  // This is a one-to-many relationship: One employee can create many meetings.
-  creator   Employee? @relation("CreatedMeetings", fields: [creatorId], references: [id])
-  creatorId Int?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-// ----------------------
-// 5. EMPLOYEES
-// ----------------------
-
-model Employee {
-  id                     Int       @id @default(autoincrement())
-  userId                 Int?      @unique
+model employee {
+  id                     Int          @id @default(autoincrement())
+  userId                 Int?         @unique(map: "Employee_userId_key")
   firstName              String
   lastName               String
   baptismalName          String?
   dateOfBirth            DateTime?
-  sex                    Sex
+  sex                    employee_sex
   nationality            String?
   maritalStatusId        Int?
   departmentId           Int?
-  subDepartmentId        Int?
   positionId             Int?
   employmentTypeId       Int?
   employmentDate         DateTime?
@@ -257,247 +122,164 @@ model Employee {
   repentanceFatherPhone  String?
   academicQualification  String?
   educationalInstitution String?
-  salary                 Decimal   @default(0.00)
-  bonusSalary            Decimal   @default(0.00)
+  salary                 Decimal      @default(0.0)
+  bonusSalary            Decimal      @default(0.0)
   accountNumber          String?
   agreementStatusId      Int?
   photo                  String?
   deletedAt              DateTime?
-  createdAt              DateTime  @default(now())
-  updatedAt              DateTime  @updatedAt
+  createdAt              DateTime     @default(now())
+  updatedAt              DateTime
+  subDepartmentId        Int?
 
-  user                User?               @relation(fields: [userId], references: [id], onDelete: SetNull)
-  department          Department?         @relation(fields: [departmentId], references: [id], onDelete: SetNull)
-  position            Position?           @relation(fields: [positionId], references: [id], onDelete: SetNull)
-  maritalStatus       MaritalStatus?      @relation(fields: [maritalStatusId], references: [id])
-  employmentType      EmploymentType?     @relation(fields: [employmentTypeId], references: [id])
-  jobStatus           JobStatus?          @relation(fields: [jobStatusId], references: [id])
-  agreementStatus     AgreementStatus?    @relation(fields: [agreementStatusId], references: [id])
-  createdMeetings     Meeting[]           @relation("CreatedMeetings")
-  shifts              EmployeeShift[]
-  attendanceLogs      AttendanceLog[]
-  attendanceSummaries AttendanceSummary[]
-  leaves              Leave[]
-  complaints          Complaint[]
-  performanceReviews  PerformanceReview[]
-  terminations        Termination[]
-  salaries            Salary[]
-  overtimes           OvertimeLog[]
+  activitylog_activitylog_actorIdToemployee       activitylog[]       @relation("activitylog_actorIdToemployee")
+  activitylog_activitylog_targetIdToemployee      activitylog[]       @relation("activitylog_targetIdToemployee")
+  attendancelog                                   attendancelog[]
+  attendancesummary                               attendancesummary[]
+  complaint                                       complaint[]
+  agreementstatus                                 agreementstatus?    @relation(fields: [agreementStatusId], references: [id], map: "Employee_agreementStatusId_fkey")
+  department_employee_departmentIdTodepartment    department?         @relation("employee_departmentIdTodepartment", fields: [departmentId], references: [id], map: "Employee_departmentId_fkey")
+  employmenttype                                  employmenttype?     @relation(fields: [employmentTypeId], references: [id], map: "Employee_employmentTypeId_fkey")
+  jobstatus                                       jobstatus?          @relation(fields: [jobStatusId], references: [id], map: "Employee_jobStatusId_fkey")
+  maritalstatus                                   maritalstatus?      @relation(fields: [maritalStatusId], references: [id], map: "Employee_maritalStatusId_fkey")
+  position                                        position?           @relation(fields: [positionId], references: [id], map: "Employee_positionId_fkey")
+  department_employee_subDepartmentIdTodepartment department?         @relation("employee_subDepartmentIdTodepartment", fields: [subDepartmentId], references: [id], map: "Employee_subDepartmentId_fkey")
+  user                                            user?               @relation(fields: [userId], references: [id], map: "Employee_userId_fkey")
+  employeeshift                                   employeeshift[]
+  leave                                           leave[]
+  meeting                                         meeting[]
+  overtimelog                                     overtimelog[]
+  performancereview                               performancereview[]
+  salaryRecords                                   salary[]            @relation("EmployeeToSalary")
+  termination                                     termination[]
 
-  subDepartment Department? @relation("SubDepartment", fields: [subDepartmentId], references: [id], onDelete: SetNull)
-
-  activitiesDone     ActivityLog[] @relation("ActivityBy")
-  activitiesReceived ActivityLog[] @relation("ActivityFor")
+  @@index([agreementStatusId], map: "Employee_agreementStatusId_fkey")
+  @@index([departmentId], map: "Employee_departmentId_fkey")
+  @@index([employmentTypeId], map: "Employee_employmentTypeId_fkey")
+  @@index([jobStatusId], map: "Employee_jobStatusId_fkey")
+  @@index([maritalStatusId], map: "Employee_maritalStatusId_fkey")
+  @@index([positionId], map: "Employee_positionId_fkey")
+  @@index([subDepartmentId], map: "Employee_subDepartmentId_fkey")
 }
 
-// ----------------------
-// 6. SHIFTS & ATTENDANCE
-// ----------------------
-model Shift {
-  id          Int             @id @default(autoincrement())
-  name        String
-  startTime   DateTime
-  endTime     DateTime
-  isFlexible  Boolean         @default(false)
-  description String?
-  assignments EmployeeShift[]
-}
-
-model EmployeeShift {
+model employeeshift {
   id            Int       @id @default(autoincrement())
   employeeId    Int
   shiftId       Int
   effectiveFrom DateTime
   effectiveTo   DateTime?
+  employee      employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade, map: "EmployeeShift_employeeId_fkey")
+  shift         shift     @relation(fields: [shiftId], references: [id], onDelete: Cascade, map: "EmployeeShift_shiftId_fkey")
 
-  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  shift    Shift    @relation(fields: [shiftId], references: [id], onDelete: Cascade)
+  @@index([employeeId], map: "EmployeeShift_employeeId_fkey")
+  @@index([shiftId], map: "EmployeeShift_shiftId_fkey")
 }
 
-model SessionDefinition {
-  id               Int             @id @default(autoincrement())
-  sessionNumber    Int             @unique
-  expectedClockIn  DateTime
-  expectedClockOut DateTime
-  logs             AttendanceLog[]
+model employmenttype {
+  id       Int        @id @default(autoincrement())
+  type     String     @unique(map: "EmploymentType_type_key")
+  employee employee[]
 }
 
-model AttendanceLog {
-  id             Int              @id @default(autoincrement())
-  employeeId     Int
-  date           DateTime
-  sessionId      Int
-  actualClockIn  DateTime?
-  actualClockOut DateTime?
-  status         AttendanceStatus
-  createdAt      DateTime         @default(now())
-
-  employee Employee          @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  session  SessionDefinition @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-
-  @@unique([employeeId, date, sessionId])
-}
-
-model AttendanceSummary {
-  id               Int           @id @default(autoincrement())
-  employeeId       Int
-  date             DateTime
-  status           SummaryStatus
-  lateArrival      Boolean       @default(false)
-  earlyDeparture   Boolean       @default(false)
-  unplannedAbsence Boolean       @default(false)
-  totalWorkHours   Decimal?
-  remarks          String?
-
-  employee     Employee    @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  departmentId Int?
-  department   Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
-
-  @@unique([employeeId, date])
-}
-
-///--------------------
-// Activity logs
-//---------------------
-model ActivityLog {
-  id           Int          @id @default(autoincrement())
-  type         ActivityType
-  message      String
-  actorId      Int // The ID of the employee who performed the action
-  targetId     Int? // The ID of the employee the action was performed on (optional)
-  departmentId Int // The department this activity is relevant to
-  createdAt    DateTime     @default(now())
-
-  actor  Employee  @relation("ActivityBy", fields: [actorId], references: [id])
-  target Employee? @relation("ActivityFor", fields: [targetId], references: [id])
-
-  @@index([departmentId, createdAt])
-}
-
-// ----------------------
-// 7. LEAVES & HOLIDAYS
-// ----------------------
-model Leave {
-  id          Int         @id @default(autoincrement())
-  employeeId  Int
-  leaveType   LeaveType
-  startDate   DateTime
-  endDate     DateTime
-  status      LeaveStatus @default(pending)
-  reason      String?
-  approvedBy  Int?
-  requestedAt DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-
-  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  approver User?    @relation("ApprovedLeaves", fields: [approvedBy], references: [id], onDelete: SetNull)
-}
-
-model Holiday {
+model holiday {
   id          Int      @id @default(autoincrement())
   name        String
-  date        DateTime @unique
+  date        DateTime @unique(map: "Holiday_date_key")
   isPublic    Boolean  @default(true)
   description String?
 }
 
-// ----------------------
-// 8. OVERTIME & SALARY
-// ----------------------
-model OvertimeLog {
-  id         Int      @id @default(autoincrement())
-  employeeId Int
-  date       DateTime
-  hours      Decimal?
-
-  startTime DateTime?
-  endTime   DateTime?
-
-  overtimeType OvertimeType @default(WEEKDAY)
-
-  reason             String?
-  approvedBy         Int?
-  approvalStatus     OvertimeApprovalStatus @default(pending)
-  compensationMethod CompensationMethod     @default(cash)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-
-  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  approver User?    @relation("ApprovedOvertimes", fields: [approvedBy], references: [id], onDelete: SetNull)
-}
-
-model Salary {
-  id          Int      @id @default(autoincrement())
-  employeeId  Int
-  salaryMonth DateTime
-  amount      Decimal
-
-  baseSalary Decimal @default(0.00) // The employee's base salary for that month
-  deductions Decimal @default(0.00)
-
-  status        SalaryStatus @default(pending)
-  overtimeHours Decimal      @default(0.00)
-  overtimePay   Decimal      @default(0.00)
-  paidAt        DateTime?
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
-
-  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-
-  @@unique([employeeId, salaryMonth])
-}
-
-model PayrollPolicy {
-  id        Int     @id @default(autoincrement())
-  name      String  @unique // e.g., "Default Company Policy", "Engineering Department Policy"
-  isDefault Boolean @default(false) // Only one policy should be the default
-
-  // Overtime Multipliers
-  otMultiplierWeekday1  Decimal @default(1.5) // For 11:00 - 16:00
-  otMultiplierWeekday2  Decimal @default(1.75) // For 16:00 - 02:00
-  otMultiplierSleepover Decimal @default(2.2)
-  otMultiplierSunday    Decimal @default(2.0)
-  otMultiplierHoliday   Decimal @default(2.5)
-
-  // You can add more rules here later, e.g., for deductions
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Link to departments that use this policy
-  departments Department[]
-}
-
-// ----------------------
-// 9. HR MODULES
-// ----------------------
-
-model Complaint {
-  id          Int             @id @default(autoincrement())
-  employeeId  Int
-  subject     String
-  description String
-  status      ComplaintStatus @default(open)
-  response    String?
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-
-  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-}
-
-model Interview {
-  id            Int             @id @default(autoincrement())
+model interview {
+  id            Int              @id @default(autoincrement())
   candidateName String
   position      String?
   interviewDate DateTime?
-  result        InterviewResult @default(pending)
+  result        interview_result @default(pending)
   comments      String?
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime
 }
 
-model PerformanceReview {
+model jobstatus {
+  id       Int        @id @default(autoincrement())
+  status   String     @unique(map: "JobStatus_status_key")
+  employee employee[]
+}
+
+model leave {
+  id          Int             @id @default(autoincrement())
+  employeeId  Int
+  leaveType   leave_leaveType
+  startDate   DateTime
+  endDate     DateTime
+  status      leave_status    @default(pending)
+  reason      String?
+  approvedBy  Int?
+  requestedAt DateTime        @default(now())
+  updatedAt   DateTime
+  user        user?           @relation(fields: [approvedBy], references: [id], map: "Leave_approvedBy_fkey")
+  employee    employee        @relation(fields: [employeeId], references: [id], onDelete: Cascade, map: "Leave_employeeId_fkey")
+
+  @@index([approvedBy], map: "Leave_approvedBy_fkey")
+  @@index([employeeId], map: "Leave_employeeId_fkey")
+}
+
+model maritalstatus {
+  id       Int        @id @default(autoincrement())
+  status   String     @unique(map: "MaritalStatus_status_key")
+  employee employee[]
+}
+
+model meeting {
+  id          Int       @id @default(autoincrement())
+  title       String
+  description String?
+  date        DateTime
+  time        String
+  creatorId   Int?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime
+  employee    employee? @relation(fields: [creatorId], references: [id], map: "Meeting_creatorId_fkey")
+
+  @@index([creatorId], map: "Meeting_creatorId_fkey")
+}
+
+model overtimelog {
+  id                 Int                            @id @default(autoincrement())
+  employeeId         Int
+  date               DateTime
+  hours              Decimal?
+  reason             String?
+  approvedBy         Int?
+  approvalStatus     overtimelog_approvalStatus     @default(pending)
+  compensationMethod overtimelog_compensationMethod @default(cash)
+  endTime            DateTime?
+  startTime          DateTime?
+  overtimeType       overtimelog_overtimeType       @default(WEEKDAY)
+  createdAt          DateTime                       @default(now())
+  updatedAt          DateTime                       @default(now())
+  user               user?                          @relation(fields: [approvedBy], references: [id], map: "OvertimeLog_approvedBy_fkey")
+  employee           employee                       @relation(fields: [employeeId], references: [id], onDelete: Cascade, map: "OvertimeLog_employeeId_fkey")
+
+  @@index([approvedBy], map: "OvertimeLog_approvedBy_fkey")
+  @@index([employeeId], map: "OvertimeLog_employeeId_fkey")
+}
+
+model payrollpolicy {
+  id                    Int          @id @default(autoincrement())
+  name                  String       @unique(map: "PayrollPolicy_name_key")
+  isDefault             Boolean      @default(false)
+  otMultiplierWeekday1  Decimal      @default(1.500000000000000000000000000000)
+  otMultiplierWeekday2  Decimal      @default(1.750000000000000000000000000000)
+  otMultiplierSunday    Decimal      @default(2.000000000000000000000000000000)
+  otMultiplierHoliday   Decimal      @default(2.500000000000000000000000000000)
+  createdAt             DateTime     @default(now())
+  updatedAt             DateTime
+  otMultiplierSleepover Decimal      @default(2.200000000000000000000000000000)
+  department            department[]
+}
+
+model performancereview {
   id           Int      @id @default(autoincrement())
   employeeId   Int
   reviewDate   DateTime
@@ -505,21 +287,196 @@ model PerformanceReview {
   score        Int?
   comments     String?
   createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  updatedAt    DateTime
+  employee     employee @relation(fields: [employeeId], references: [id], onDelete: Cascade, map: "PerformanceReview_employeeId_fkey")
 
-  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  @@index([employeeId], map: "PerformanceReview_employeeId_fkey")
 }
 
-model Termination {
-  id              Int               @id @default(autoincrement())
+model position {
+  id          Int        @id @default(autoincrement())
+  name        String     @unique(map: "Position_name_key")
+  description String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime
+  employee    employee[]
+}
+
+model role {
+  id          Int        @id @default(autoincrement())
+  name        String     @unique(map: "Role_name_key")
+  description String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime
+  userrole    userrole[]
+}
+
+model salary {
+  id            Int           @id @default(autoincrement())
+  employeeId    Int
+  salaryMonth   DateTime
+  amount        Decimal
+  status        salary_status @default(pending)
+  overtimeHours Decimal       @default(0.000000000000000000000000000000)
+  overtimePay   Decimal       @default(0.000000000000000000000000000000)
+  paidAt        DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime
+  baseSalary    Decimal       @default(0.000000000000000000000000000000)
+  deductions    Decimal       @default(0.000000000000000000000000000000)
+  employee      employee      @relation("EmployeeToSalary", fields: [employeeId], references: [id], onDelete: Cascade, map: "Salary_employeeId_fkey")
+
+  @@unique([employeeId, salaryMonth], map: "Salary_employeeId_salaryMonth_key")
+}
+
+model sessiondefinition {
+  id               Int             @id @default(autoincrement())
+  sessionNumber    Int             @unique(map: "SessionDefinition_sessionNumber_key")
+  expectedClockIn  DateTime
+  expectedClockOut DateTime
+  attendancelog    attendancelog[]
+}
+
+model shift {
+  id            Int             @id @default(autoincrement())
+  name          String
+  startTime     DateTime
+  endTime       DateTime
+  isFlexible    Boolean         @default(false)
+  description   String?
+  employeeshift employeeshift[]
+}
+
+model termination {
+  id              Int                        @id @default(autoincrement())
   employeeId      Int
   terminationDate DateTime
   reason          String?
-  status          TerminationStatus
-  workflowStatus  WorkflowStatus    @default(pending_approval)
+  status          termination_status
   remarks         String?
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
+  createdAt       DateTime                   @default(now())
+  updatedAt       DateTime
+  workflowStatus  termination_workflowStatus @default(pending_approval)
+  employee        employee                   @relation(fields: [employeeId], references: [id], onDelete: Cascade, map: "Termination_employeeId_fkey")
 
-  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  @@index([employeeId], map: "Termination_employeeId_fkey")
+}
+
+model user {
+  id                Int           @id @default(autoincrement())
+  username          String        @unique(map: "User_username_key")
+  email             String        @unique(map: "User_email_key")
+  password          String
+  isActive          Boolean       @default(true)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime
+  notifyOnComplaint Boolean       @default(true)
+  employee          employee?
+  leave             leave[]
+  overtimelog       overtimelog[]
+  userrole          userrole[]
+}
+
+model userrole {
+  userId Int
+  roleId Int
+  role   role @relation(fields: [roleId], references: [id], onDelete: Cascade, map: "UserRole_roleId_fkey")
+  user   user @relation(fields: [userId], references: [id], onDelete: Cascade, map: "UserRole_userId_fkey")
+
+  @@id([userId, roleId])
+  @@index([roleId], map: "UserRole_roleId_fkey")
+}
+
+enum activitylog_type {
+  ATTENDANCE_MARKED
+  REVIEW_SUBMITTED
+  OVERTIME_REQUESTED
+  LEAVE_REQUESTED
+  COMPLAINT_SUBMITTED
+  LEAVE_ACTIONED
+  OVERTIME_ACTIONED
+}
+
+enum leave_leaveType {
+  annual
+  sick
+  unpaid
+  maternity
+  other
+}
+
+enum attendancesummary_status {
+  present
+  absent
+  half_day
+  on_leave
+  permission
+  holiday
+  weekend
+}
+
+enum complaint_status {
+  open
+  in_review
+  resolved
+  rejected
+}
+
+enum interview_result {
+  pending
+  selected
+  rejected
+}
+
+enum salary_status {
+  paid
+  unpaid
+  pending
+}
+
+enum termination_status {
+  voluntary
+  involuntary
+  retired
+}
+
+enum leave_status {
+  pending
+  approved
+  rejected
+}
+
+enum attendancelog_status {
+  present
+  late
+  absent
+  permission
+}
+
+enum employee_sex {
+  male
+  female
+}
+
+enum overtimelog_approvalStatus {
+  pending
+  approved
+  rejected
+}
+
+enum overtimelog_compensationMethod {
+  cash
+  time_off
+}
+
+enum termination_workflowStatus {
+  pending_approval
+  processing
+  finalized
+}
+
+enum overtimelog_overtimeType {
+  WEEKDAY
+  SUNDAY
+  HOLIDAY
 }
