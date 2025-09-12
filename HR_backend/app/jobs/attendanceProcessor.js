@@ -69,7 +69,7 @@ async function processAttendanceForDate(targetDate, employeeIds) {
     // Process attendance logs for working days
     else {
       // Query logs for this employee and date
-      const logs = await prisma.attendanceLog.findMany({
+      const logs = await prisma.attendancelog.findMany({ // Changed from attendanceLog to attendancelog
         where: { 
           employeeId: employee.id, 
           date: normalizedDate 
@@ -124,7 +124,7 @@ async function processAttendanceForDate(targetDate, employeeIds) {
 
     // Prepare the database operation
     operations.push(
-      prisma.attendanceSummary.upsert({
+      prisma.attendancesummary.upsert({ // Changed from attendanceSummary to attendancesummary
         where: { 
           employeeId_date: { 
             employeeId: employee.id, 

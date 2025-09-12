@@ -17,7 +17,6 @@ const { authenticate, authorize } = require('../middlewares/authMiddleware');
 // in HR_backend/app/routes/depHead.routes.js
 
 // in HR_backend/app/routes/depHead.routes.js
-
 router.get('/dashboard', authenticate, authorize("Department Head"), async (req, res) => {
   try {
     const departmentId = req.user.employee.departmentId;
@@ -37,9 +36,6 @@ router.get('/dashboard', authenticate, authorize("Department Head"), async (req,
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setUTCDate(thirtyDaysAgo.getUTCDate() - 30);
 
-
-    
-
     const [
       staffInDept,
       internsInDept,
@@ -53,16 +49,66 @@ router.get('/dashboard', authenticate, authorize("Department Head"), async (req,
       holidays
     ] = await Promise.all([
       // --- Basic Counts ---
-      prisma.employee.count({ where: { OR: [{departmentId: { in: managedDeptIds }}, {subDepartmentId: { in: managedDeptIds }}], user: { roles: { some: { role: { name: 'Staff' } } } } } }),
-      prisma.employee.count({ where: { OR: [{departmentId: { in: managedDeptIds }}, {subDepartmentId: { in: managedDeptIds }}], user: { roles: { some: { role: { name: 'Intern' } } } } } }),
-      prisma.attendanceSummary.count({ where: { date: today, status: 'present', employee: { departmentId: { in: managedDeptIds } } } }),
-      prisma.attendanceSummary.count({ where: { date: today, status: 'absent', employee: { departmentId: { in: managedDeptIds } } } }),
+      prisma.employee.count({ 
+        where: { 
+          OR: [
+            {departmentId: { in: managedDeptIds }}, 
+            {subDepartmentId: { in: managedDeptIds }}
+          ], 
+          user: { 
+            userrole: { // Corrected from roles to userrole
+              some: { 
+                role: { name: 'Staff' } 
+              } 
+            } 
+          } 
+        } 
+      }),
+      prisma.employee.count({ 
+        where: { 
+          OR: [
+            {departmentId: { in: managedDeptIds }}, 
+            {subDepartmentId: { in: managedDeptIds }}
+          ], 
+          user: { 
+            userrole: { // Corrected from roles to userrole
+              some: { 
+                role: { name: 'Intern' } 
+              } 
+            } 
+          } 
+        } 
+      }),
+      prisma.attendancesummary.count({ // Changed from attendanceSummary to attendancesummary
+        where: { 
+          date: today, 
+          status: 'present', 
+          employee: { 
+            OR: [ // Added OR clause for both departmentId and subDepartmentId
+              { departmentId: { in: managedDeptIds } },
+              { subDepartmentId: { in: managedDeptIds } }
+            ]
+          } 
+        } 
+      }),
+      prisma.attendancesummary.count({ // Changed from attendanceSummary to attendancesummary
+        where: { 
+          date: today, 
+          status: 'absent', 
+          employee: { 
+            OR: [ // Added OR clause for both departmentId and subDepartmentId
+              { departmentId: { in: managedDeptIds } },
+              { subDepartmentId: { in: managedDeptIds } }
+            ]
+          } 
+        } 
+      }),
       
       // --- Data for Components ---
       prisma.meeting.findMany({ 
         orderBy: { date: 'asc' },
         include: {
-          creator: {
+          employee: { // Changed from creator to employee
             select: {
               firstName: true,
               lastName: true
@@ -71,111 +117,167 @@ router.get('/dashboard', authenticate, authorize("Department Head"), async (req,
         }
       }),
       
-      prisma.performanceReview.findMany({
-          where: { employee: { OR: [{departmentId: { in: managedDeptIds }}, {subDepartmentId: { in: managedDeptIds }}] } },
-          include: { employee: { select: { user: { select: { roles: { select: { role: { select: { name: true } } } } } } } } }
+      prisma.performancereview.findMany({ // Changed from performanceReview to performancereview
+        where: { 
+          employee: { 
+            OR: [
+              {departmentId: { in: managedDeptIds }}, 
+              {subDepartmentId: { in: managedDeptIds }}
+            ] 
+          } 
+        },
+        include: { 
+          employee: { 
+            select: { 
+              user: { 
+                select: { 
+                  userrole: { // Corrected from roles to userrole
+                    select: { 
+                      role: { 
+                        select: { 
+                          name: true 
+                        } 
+                      } 
+                    } 
+                  } 
+                } 
+              } 
+            } 
+          } 
+        }
       }),
       
       prisma.leave.findMany({
-          where: { 
-              status: { in: ['approved', 'rejected'] }, 
-              updatedAt: { gte: thirtyDaysAgo }, 
-              employee: { OR: [{departmentId: { in: managedDeptIds }}, {subDepartmentId: { in: managedDeptIds }}] } 
-          },
-          orderBy: { updatedAt: 'desc' }, 
-          take: 3,
-          include: { employee: { select: { firstName: true, lastName: true } } }
+        where: { 
+          status: { in: ['approved', 'rejected'] }, 
+          updatedAt: { gte: thirtyDaysAgo }, 
+          employee: { 
+            OR: [
+              {departmentId: { in: managedDeptIds }}, 
+              {subDepartmentId: { in: managedDeptIds }}
+            ] 
+          } 
+        },
+        orderBy: { updatedAt: 'desc' }, 
+        take: 3,
+        include: { employee: { select: { firstName: true, lastName: true } } }
       }),
       
-      
-      prisma.overtimeLog.findMany({
-          where: { 
-              approvalStatus: { in: ['approved', 'rejected'] }, 
-              employee: { OR: [{departmentId: { in: managedDeptIds }}, {subDepartmentId: { in: managedDeptIds }}] } 
-          },
-          orderBy: { updatedAt: 'desc' }, 
-          take: 3,
-          include: { employee: { select: { firstName: true, lastName: true } } }
+      prisma.overtimelog.findMany({ // Changed from overtimeLog to overtimelog
+        where: { 
+          approvalStatus: { in: ['approved', 'rejected'] }, 
+          employee: { 
+            OR: [
+              {departmentId: { in: managedDeptIds }}, 
+              {subDepartmentId: { in: managedDeptIds }}
+            ] 
+          } 
+        },
+        orderBy: { updatedAt: 'desc' }, 
+        take: 3,
+        include: { employee: { select: { firstName: true, lastName: true } } }
       }),
       
-      prisma.activityLog.findMany({
-          where: { departmentId: departmentId },
-          orderBy: { createdAt: 'desc' },
-          take: 7,
-          include: {
-              actor: { select: { firstName: true, lastName: true } },
-              target: { select: { firstName: true, lastName: true } }
+      prisma.activitylog.findMany({ // Changed from activityLog to activitylog
+        where: { departmentId: departmentId },
+        orderBy: { createdAt: 'desc' },
+        take: 7,
+        include: {
+          employee_activitylog_actorIdToemployee: { // Correct relation name
+            select: { firstName: true, lastName: true } 
+          },
+          employee_activitylog_targetIdToemployee: { // Correct relation name
+            select: { firstName: true, lastName: true } 
           }
+        }
       }),
       prisma.holiday.findMany({ orderBy: { date: 'asc' } })
     ]);
-    
-
 
     // --- Performance Score Processing ---
     let totalScore = 0, staffScore = 0, internScore = 0;
     let staffReviewCount = 0, internReviewCount = 0;
     allReviews.forEach(r => {
-        const role = r.employee.user?.roles[0]?.role.name;
+      const role = r.employee.user?.userrole[0]?.role.name; // Corrected path
+      if (r.score) {
         totalScore += r.score;
         if (role === 'Staff' || role === 'Department Head') {
-            staffScore += r.score;
-            staffReviewCount++;
+          staffScore += r.score;
+          staffReviewCount++;
         } else if (role === 'Intern') {
-            internScore += r.score;
-            internReviewCount++;
+          internScore += r.score;
+          internReviewCount++;
         }
+      }
     });
 
     // --- Process Actioned Requests for its own card ---
-    const formattedLeaves = actionedLeaves.map(l => ({ id: `l-${l.id}`, type: `Leave ${l.status}`, message: `${l.employee.firstName}'s leave request was ${l.status}.`, date: l.updatedAt }));
-    const formattedOvertimes = actionedOvertimes.map(o => ({ id: `o-${o.id}`, type: `Overtime ${o.approvalStatus}`, message: `${o.employee.firstName}'s overtime was ${o.approvalStatus}.`, date: o.updatedAt }));
+    const formattedLeaves = actionedLeaves.map(l => ({ 
+      id: `l-${l.id}`, 
+      type: `Leave ${l.status}`, 
+      message: `${l.employee.firstName}'s leave request was ${l.status}.`, 
+      date: l.updatedAt 
+    }));
+    const formattedOvertimes = actionedOvertimes.map(o => ({ 
+      id: `o-${o.id}`, 
+      type: `Overtime ${o.approvalStatus}`, 
+      message: `${o.employee.firstName}'s overtime was ${o.approvalStatus}.`, 
+      date: o.updatedAt 
+    }));
     const actionedRequests = [...formattedLeaves, ...formattedOvertimes]
-                            .sort((a, b) => new Date(b.date) - new Date(a.date))
-                            .slice(0, 5); // Ensure a max of 5 for this list
+      .sort((a, b) => new Date(b.date) - new Date(a.date))
+      .slice(0, 5);
 
     // --- Format the new true Activity Log ---
     const recentActivity = recentActivityLogs.map(log => {
-        let message = `An action was performed by ${log.actor.firstName}.`; // Default message
-        switch(log.type) {
-            case 'ATTENDANCE_MARKED':
-                message = `${log.actor.firstName} ${log.actor.lastName} marked attendance for ${new Date(log.createdAt).toLocaleDateString()}.`;
-                break;
-            case 'REVIEW_SUBMITTED':
-                message = `${log.actor.firstName} submitted a performance review for ${log.target.firstName}.`;
-                break;
-            case 'OVERTIME_REQUESTED':
-                message = `${log.actor.firstName} requested overtime for ${log.target.firstName}.`;
-                break;
-            case 'LEAVE_REQUESTED':
-                message = `${log.target.firstName} submitted a leave request.`;
-                break;
-            case 'COMPLAINT_SUBMITTED':
-                message = `${log.actor.firstName} submitted a new complaint.`;
-                break;
-        }
-        return {
-            id: log.id,
-            type: log.type,
-            message: message,
-            date: log.createdAt,
-        }
+      const actorName = log.employee_activitylog_actorIdToemployee ? 
+        `${log.employee_activitylog_actorIdToemployee.firstName} ${log.employee_activitylog_actorIdToemployee.lastName}` : 
+        'Unknown';
+      
+      const targetName = log.employee_activitylog_targetIdToemployee ? 
+        `${log.employee_activitylog_targetIdToemployee.firstName} ${log.employee_activitylog_targetIdToemployee.lastName}` : 
+        'Unknown';
+
+      let message = `An action was performed by ${actorName}.`;
+      switch(log.type) {
+        case 'ATTENDANCE_MARKED':
+          message = `${actorName} marked attendance for ${new Date(log.createdAt).toLocaleDateString()}.`;
+          break;
+        case 'REVIEW_SUBMITTED':
+          message = `${actorName} submitted a performance review for ${targetName}.`;
+          break;
+        case 'OVERTIME_REQUESTED':
+          message = `${actorName} requested overtime for ${targetName}.`;
+          break;
+        case 'LEAVE_REQUESTED':
+          message = `${targetName} submitted a leave request.`;
+          break;
+        case 'COMPLAINT_SUBMITTED':
+          message = `${actorName} submitted a new complaint.`;
+          break;
+      }
+      return {
+        id: log.id,
+        type: log.type,
+        message: message,
+        date: log.createdAt,
+      }
     });
 
     // --- Final Response Payload ---
     const responseData = {
-        present: presentToday,
-        absent: absentToday,
-        totalStaff: staffInDept,
-        totalInterns: internsInDept,
-        totalSubDepartment: subDepartments.length,
-        meetings: meetings,
-        holiday: holidays,
-        actionedRequests: actionedRequests,
-        recentActivity: recentActivity,
-        avgPerformance: allReviews.length > 0 ? (totalScore / allReviews.length) : 0, 
-        staffAvg: staffReviewCount > 0 ? (staffScore / staffReviewCount) : 0,
-        internAvg: internReviewCount > 0 ? (internScore / internReviewCount) : 0,
+      present: presentToday,
+      absent: absentToday,
+      totalStaff: staffInDept,
+      totalInterns: internsInDept,
+      totalSubDepartment: subDepartments.length,
+      meetings: meetings,
+      holiday: holidays,
+      actionedRequests: actionedRequests,
+      recentActivity: recentActivity,
+      avgPerformance: allReviews.length > 0 ? (totalScore / allReviews.length) : 0, 
+      staffAvg: staffReviewCount > 0 ? (staffScore / staffReviewCount) : 0,
+      internAvg: internReviewCount > 0 ? (internScore / internReviewCount) : 0,
     };
 
     res.status(200).json(responseData);
@@ -186,13 +288,6 @@ router.get('/dashboard', authenticate, authorize("Department Head"), async (req,
 });
 
 
-// GET /api/dep-head/performance-data - Fetch employees and their reviews for the department
-// In your backend file: routes/depHead.routes.js
-
-// GET /api/dep-head/performance-data - FINAL, ROBUST VERSION
-// in HR_backend/app/routes/dep-head.routes.js
-
-// This is an example name, use the one in your file
 router.get("/performance-data", authenticate, authorize("Department Head"), async (req, res) => {
     try {
         const departmentId = req.user.employee.departmentId;
@@ -210,14 +305,24 @@ router.get("/performance-data", authenticate, authorize("Department Head"), asyn
         const allEmployees = await prisma.employee.findMany({
             where: {
                 departmentId: departmentId,
-                jobStatus: { status: 'Active' }
+                jobstatus: { status: 'Active' } // Changed from jobStatus to jobstatus
             },
             select: {
                 id: true,
                 firstName: true,
                 lastName: true,
                 user: {
-                    select: { roles: { select: { role: { select: { name: true } } } } }
+                    select: { 
+                        userrole: { // Changed from roles to userrole
+                            select: { 
+                                role: { 
+                                    select: { 
+                                        name: true 
+                                    } 
+                                } 
+                            } 
+                        } 
+                    }
                 }
             }
         });
@@ -226,7 +331,7 @@ router.get("/performance-data", authenticate, authorize("Department Head"), asyn
         const staff = [];
         const interns = [];
         allEmployees.forEach(emp => {
-            const role = emp.user?.roles[0]?.role.name;
+            const role = emp.user?.userrole[0]?.role.name; // Updated path
             const employeeData = {
                 id: emp.id,
                 firstName: emp.firstName,
@@ -243,7 +348,7 @@ router.get("/performance-data", authenticate, authorize("Department Head"), asyn
 
         // Fetch performance reviews for all employees in this department
         const employeeIds = allEmployees.map(e => e.id);
-        const performanceReviews = await prisma.performanceReview.findMany({
+        const performanceReviews = await prisma.performancereview.findMany({ // Changed from performanceReview to performancereview
             where: {
                 employeeId: { in: employeeIds }
             },
@@ -285,25 +390,31 @@ router.post("/performance-review", authenticate, authorize("Department Head"), a
             return res.status(403).json({ error: "You can only review employees in your own department." });
         }
 
-        const newReview = await prisma.performanceReview.create({
+        const newReview = await prisma.performancereview.create({
             data: {
                 employeeId: parseInt(employeeId),
                 reviewDate: new Date(),
-                reviewerName: reviewerName, // Use the real reviewer's name
+                reviewerName: reviewerName,
                 score: parseInt(score),
-                comments: comments
+                comments: comments,
+                updatedAt: new Date(), // Added this line
             }
         });
-        const reviewedEmployee = await prisma.employee.findUnique({ where: { id: newReview.employeeId }, select: { firstName: true } });
-await prisma.activityLog.create({
-    data: {
-        type: 'REVIEW_SUBMITTED',
-        message: `You submitted a review for ${reviewedEmployee.firstName}.`,
-        actorId: req.user.employee.id,
-        targetId: newReview.employeeId,
-        departmentId: req.user.employee.departmentId,
-    }
-});
+        
+        const reviewedEmployee = await prisma.employee.findUnique({ 
+            where: { id: newReview.employeeId }, 
+            select: { firstName: true } 
+        });
+        
+        await prisma.activitylog.create({
+            data: {
+                type: 'REVIEW_SUBMITTED',
+                message: `You submitted a review for ${reviewedEmployee.firstName}.`,
+                actorId: req.user.employee.id,
+                targetId: newReview.employeeId,
+                departmentId: req.user.employee.departmentId,
+            }
+        });
 
         res.status(201).json(newReview);
     } catch (error) {
@@ -354,7 +465,17 @@ router.get("/sub-departments", authenticate, authorize("Department Head"), async
                         lastName: true,
                         photo: true,
                         user: {
-                            select: { roles: { select: { role: { select: { name: true } } } } }
+                            select: { 
+                                userrole: { // Changed from roles to userrole
+                                    select: { 
+                                        role: { 
+                                            select: { 
+                                                name: true 
+                                            } 
+                                        } 
+                                    } 
+                                } 
+                            }
                         }
                     }
                 });
@@ -367,7 +488,7 @@ router.get("/sub-departments", authenticate, authorize("Department Head"), async
                         name: `${emp.firstName} ${emp.lastName}`,
                         photo: emp.photo,
                     };
-                    const role = emp.user?.roles[0]?.role.name;
+                    const role = emp.user?.userrole[0]?.role.name; // Updated path
                     if (role === 'Staff') {
                         staff.push(memberData);
                     } else if (role === 'Intern') {
@@ -379,7 +500,7 @@ router.get("/sub-departments", authenticate, authorize("Department Head"), async
                     ...sub,
                     staff,
                     interns,
-                    totalMembers: employees.length, // Add a total count for display
+                    totalMembers: employees.length,
                 };
             })
         );
@@ -395,20 +516,28 @@ router.get("/sub-departments", authenticate, authorize("Department Head"), async
 // POST /api/dep-head/sub-departments - Create a new sub-department under the user's dept
 router.post("/sub-departments", authenticate, authorize("Department Head"), async (req, res) => {
     try {
-        const departmentId = await getManagedDepartmentId(req.user.id);
-        if (!departmentId) { return res.status(403).json({ error: "Cannot add sub-department." }); }
+        const departmentId = req.user.employee.departmentId;
+        if (!departmentId) { 
+            return res.status(403).json({ error: "Cannot add sub-department. User is not assigned to a department." }); 
+        }
         
         const { name, description } = req.body;
         if (!name) { return res.status(400).json({ error: "Sub-department name is required." }); }
 
         const newSubDept = await prisma.department.create({
-            data: { name, description, parentId: departmentId } // Automatically assign the correct parent
+            data: { 
+                name, 
+                description, 
+                parentId: departmentId,
+                updatedAt: new Date() // Add updatedAt field
+            }
         });
         res.status(201).json(newSubDept);
     } catch (error) {
         if (error.code === 'P2002') {
             return res.status(409).json({ error: "A department with this name already exists." });
         }
+        console.error("Error creating sub-department:", error);
         res.status(500).json({ error: "Failed to create sub-department." });
     }
 });
@@ -418,14 +547,52 @@ router.patch("/sub-departments/:id", authenticate, authorize("Department Head"),
     try {
         const { id } = req.params;
         const { name, description } = req.body;
-        // Security check could be added here to ensure the sub-dept belongs to the user's dept
+        
+        // Security check: ensure the sub-department belongs to the user's department
+        const subDept = await prisma.department.findUnique({
+            where: { id: parseInt(id) },
+            select: { parentId: true }
+        });
+        
+        if (!subDept || subDept.parentId !== req.user.employee.departmentId) {
+            return res.status(403).json({ error: "You can only update sub-departments in your own department." });
+        }
+        
         const updatedSubDept = await prisma.department.update({
             where: { id: parseInt(id) },
-            data: { name, description }
+            data: { 
+                name, 
+                description,
+                updatedAt: new Date() // Add updatedAt field
+            }
         });
         res.status(200).json(updatedSubDept);
     } catch (error) {
+        console.error("Error updating sub-department:", error);
         res.status(500).json({ error: "Failed to update sub-department." });
+    }
+});
+
+// DELETE /api/dep-head/sub-departments/:id - Delete a sub-department
+router.delete("/sub-departments/:id", authenticate, authorize("Department Head"), async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        // Security check: ensure the sub-department belongs to the user's department
+        const subDept = await prisma.department.findUnique({
+            where: { id: parseInt(id) },
+            select: { parentId: true }
+        });
+        
+        if (!subDept || subDept.parentId !== req.user.employee.departmentId) {
+            return res.status(403).json({ error: "You can only delete sub-departments in your own department." });
+        }
+        
+        await prisma.department.delete({ where: { id: parseInt(id) } });
+        res.status(204).send();
+    } catch (error) {
+        console.error("Error deleting sub-department:", error);
+        res.status(500).json({ error: "Failed to delete sub-department. Make sure it has no employees assigned." });
     }
 });
 
@@ -465,7 +632,7 @@ router.post("/attendance", authenticate, authorize("Department Head"), async (re
         
         if (sessionId && status) {
             logOperations.push(
-                prisma.attendanceLog.upsert({
+                prisma.attendancelog.upsert({ // Changed from attendanceLog to attendancelog
                     where: { employeeId_date_sessionId: { employeeId: parseInt(employeeId), date: targetDate, sessionId } },
                     update: { status: status },
                     create: { employeeId: parseInt(employeeId), date: targetDate, sessionId, status }
@@ -479,14 +646,14 @@ router.post("/attendance", authenticate, authorize("Department Head"), async (re
     
     await prisma.$transaction([...logOperations, ...summaryOperations]);
 
-    await prisma.activityLog.create({
-    data: {
+    await prisma.activitylog.create({ // Changed from activityLog to activitylog
+      data: {
         type: 'ATTENDANCE_MARKED',
         message: `You marked attendance for ${targetDate.toLocaleDateString()}.`,
         actorId: req.user.employee.id,
         departmentId: req.user.employee.departmentId,
-    }
-});
+      }
+    });
 
     res.status(200).json({ message: "Attendance saved and daily summary updated successfully." });
   } catch (error) {
@@ -511,7 +678,12 @@ router.get("/attendance-overview", authenticate, authorize("Department Head"), a
 
     // Step 1: Fetch ALL active employees in the department
     const employees = await prisma.employee.findMany({
-      where: { departmentId: departmentId, jobStatus: { status: 'Active' } },
+      where: { 
+        departmentId: departmentId, 
+        jobstatus: { // Changed from jobStatus to jobstatus
+          status: 'Active' 
+        } 
+      },
       select: { id: true, firstName: true, lastName: true, photo: true },
       orderBy: { firstName: 'asc' }
     });
@@ -522,7 +694,7 @@ router.get("/attendance-overview", authenticate, authorize("Department Head"), a
 
     // Step 2: Fetch all necessary data for the month in parallel
     const [summaries, holidays] = await Promise.all([
-        prisma.attendanceSummary.findMany({
+        prisma.attendancesummary.findMany({ // Changed from attendanceSummary to attendancesummary
             where: { employeeId: { in: employeeIds }, date: { gte: startDate, lte: endDate } },
             select: { employeeId: true, date: true, status: true },
         }),
@@ -570,18 +742,14 @@ router.get("/attendance-overview", authenticate, authorize("Department Head"), a
 
 
 ///////PROFILE
-// In your backend file: routes/depHead.routes.js
 
-// ... your existing router setup and other routes ...
-
-// GET /api/dep-head/profile - Fetch the profile of the currently logged-in user
 router.get("/profile", authenticate, authorize("Department Head"), async (req, res) => {
   try {
     const userId = req.user.id;
 
     const employeeProfile = await prisma.employee.findUnique({
       where: { userId: userId },
-      // ✅ SELECT all fields from the Employee model
+      // ✅ CORRECTED: Use the right relation field names
       select: {
         id: true,
         firstName: true,
@@ -607,12 +775,12 @@ router.get("/profile", authenticate, authorize("Department Head"), async (req, r
         employmentDate: true,
         // Include all related data for a rich profile view
         user: { select: { email: true } },
-        department: { select: { name: true } },
+        department_employee_departmentIdTodepartment: { select: { name: true } }, // Corrected
         position: { select: { name: true } },
-        maritalStatus: { select: { status: true } },
-        employmentType: { select: { type: true } },
-        jobStatus: { select: { status: true } },
-        agreementStatus: { select: { status: true } },
+        maritalstatus: { select: { status: true } }, // Corrected (lowercase)
+        employmenttype: { select: { type: true } }, // Corrected (lowercase)
+        jobstatus: { select: { status: true } }, // Corrected (lowercase)
+        agreementstatus: { select: { status: true } }, // Corrected (lowercase)
       },
     });
 
@@ -676,13 +844,11 @@ router.patch("/settings/change-password", authenticate, authorize("Department He
 });
 
 ////////////////Complain request
-// POST /api/dep-head/complaints/submit - Submit a complaint for the LOGGED-IN user
 router.post("/complaints/submit", authenticate, authorize("Department Head"), async (req, res) => {
   try {
     const { subject, description } = req.body;
     
     // --- 1. Get Employee ID securely from the authenticated user ---
-    // The 'authenticate' middleware adds 'req.user' which includes the employee profile
     const loggedInEmployeeId = req.user.employee?.id;
 
     // --- 2. Validation ---
@@ -696,9 +862,10 @@ router.post("/complaints/submit", authenticate, authorize("Department Head"), as
     // --- 3. Create the Complaint ---
     const newComplaint = await prisma.complaint.create({
       data: {
-        employeeId: loggedInEmployeeId, // Use the secure, server-side ID
+        employeeId: loggedInEmployeeId,
         subject: subject,
         description: description,
+        updatedAt: new Date(), // Add updatedAt field
       },
     });
 
@@ -796,8 +963,16 @@ router.post("/leaves", authenticate, authorize("Department Head"), async (req, r
         }
         
         // Security Check: is the employee in the manager's department?
-        const departmentId = await getManagedDepartmentId(req.user.id);
-        const employee = await prisma.employee.findUnique({ where: { id: parseInt(employeeId) }});
+        const departmentId = req.user.employee.departmentId; // Use directly from user object
+        if (!departmentId) {
+            return res.status(403).json({ error: "You are not assigned to a department." });
+        }
+        
+        const employee = await prisma.employee.findUnique({ 
+            where: { id: parseInt(employeeId) },
+            select: { departmentId: true } // Only select what we need
+        });
+        
         if (!employee || employee.departmentId !== departmentId) {
             return res.status(403).json({ error: "You can only submit requests for employees in your department." });
         }
@@ -805,34 +980,37 @@ router.post("/leaves", authenticate, authorize("Department Head"), async (req, r
         const newLeaveRequest = await prisma.leave.create({
             data: {
                 employeeId: parseInt(employeeId),
-                leaveType: leaveType.toLowerCase(), // Match enum 'annual', 'sick', etc.
+                leaveType: leaveType.toLowerCase(),
                 startDate: new Date(startDate),
                 endDate: new Date(endDate),
                 reason: reason,
-                status: 'pending' // Default status
+                status: 'pending',
+                updatedAt: new Date() // Add updatedAt field
             }
         });
+        
         // Include employee name in response for easy UI update
         const finalResponse = await prisma.leave.findUnique({
             where: { id: newLeaveRequest.id },
-            include: { employee: { select: { firstName: true, lastName: true } } }
+            include: { 
+                employee: { 
+                    select: { 
+                        firstName: true, 
+                        lastName: true 
+                    } 
+                } 
+            }
         });
+        
         res.status(201).json(finalResponse);
     } catch (error) {
+        console.error("Error creating leave request:", error);
         res.status(500).json({ error: "Failed to create leave request." });
     }
 });
 
 
 //////Mark Attendance 
-// In your backend file: routes/depHead.routes.js
-
-// In your backend file: routes/depHead.routes.js
-
-// GET /api/dep-head/attendance-roster?date=... - FINAL, ROBUST VERSION
-// In your backend file: routes/depHead.routes.js
-
-// GET /api/dep-head/attendance-roster?date=... - 
 
 // in depHead.routes.js
 
@@ -867,14 +1045,28 @@ router.get("/attendance-roster", authenticate, authorize("Department Head"), asy
                 { departmentId: { in: allManagedDeptIds } },
                 { subDepartmentId: { in: allManagedDeptIds } }
             ],
-            jobStatus: { status: 'Active' }
+            jobstatus: { // Changed from jobStatus to jobstatus
+                status: 'Active'
+            }
         },
         select: {
             id: true,
             firstName: true,
             lastName: true,
             subDepartmentId: true,
-            user: { select: { roles: { select: { role: { select: { name: true } } } } } }
+            user: { 
+                select: { 
+                    userrole: { // Changed from roles to userrole
+                        select: { 
+                            role: { 
+                                select: { 
+                                    name: true 
+                                } 
+                            } 
+                        } 
+                    } 
+                } 
+            }
         }
     });
 
@@ -899,7 +1091,7 @@ router.get("/attendance-roster", authenticate, authorize("Department Head"), asy
     allEmployees.forEach(emp => {
         const targetRoster = rosterMap.get(emp.subDepartmentId) || rosterMap.get(departmentId);
         if (targetRoster) {
-            const role = emp.user?.roles[0]?.role.name;
+            const role = emp.user?.userrole[0]?.role.name; // Updated path
             const employeeData = { id: emp.id, name: `${emp.firstName} ${emp.lastName}` };
             if (role === 'Intern') {
                 targetRoster.interns.push(employeeData);
@@ -924,7 +1116,7 @@ router.get("/attendance-roster", authenticate, authorize("Department Head"), asy
             where: { employeeId: { in: allEmployeeIds }, status: 'approved', startDate: { lte: targetDate }, endDate: { gte: targetDate } },
             select: { employeeId: true }
         }),
-        prisma.attendanceLog.findMany({
+        prisma.attendancelog.findMany({ // Changed from attendanceLog to attendancelog
             where: { date: targetDate, employeeId: { in: allEmployeeIds } },
             select: { employeeId: true, sessionId: true, status: true }
         })
@@ -952,10 +1144,9 @@ router.get("/attendance-roster", authenticate, authorize("Department Head"), asy
   }
 });
 
-
 // POST /api/dep-head/attendance - Save attendance for the day// in depHead.routes.js
 
-// POST /api/dep-head/attendance - CORRECTED to use subDepartmentId
+
 
 
 
@@ -1059,7 +1250,7 @@ router.get("/overtime-requests", authenticate, authorize("Department Head"), asy
     try {
         const departmentId = req.user.employee.departmentId;
 
-        const requests = await prisma.overtimeLog.findMany({
+        const requests = await prisma.overtimelog.findMany({ // Changed from overtimeLog to overtimelog
             where: {
                 employee: {
                     departmentId: departmentId
@@ -1072,7 +1263,7 @@ router.get("/overtime-requests", authenticate, authorize("Department Head"), asy
                 hours: true,
                 reason: true,
                 approvalStatus: true,
-                overtimeType: true, // ✅ Correctly select the field from OvertimeLog
+                overtimeType: true,
                 employee: { 
                     select: { 
                         firstName: true, 
@@ -1087,36 +1278,6 @@ router.get("/overtime-requests", authenticate, authorize("Department Head"), asy
         res.status(500).json({ error: "Failed to fetch overtime requests." });
     }
 });
-
-// ---------------------------------------------------------------------------------
-// 2. GET /api/dep-head/team-members - Fetch employees the Dep Head can select
-// ---------------------------------------------------------------------------------
-router.get("/team-members", authenticate, authorize("Department Head"), async (req, res) => {
-    try {
-        const departmentId = req.user.employee.departmentId;
-        const teamMembers = await prisma.employee.findMany({
-            where: {
-                departmentId: departmentId,
-                jobStatus: { status: 'Active' } // Only show active employees
-            },
-            select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-            },
-            orderBy: { firstName: 'asc' }
-        });
-        res.status(200).json(teamMembers);
-    } catch (error) {
-        console.error("Error fetching team members:", error);
-        res.status(500).json({ error: "Failed to fetch team members." });
-    }
-});
-
-// ---------------------------------------------------------------------------------
-// 3. POST /api/dep-head/overtime-requests - Create a new overtime request
-// ---------------------------------------------------------------------------------
-// in depHead.routes.js
 
 router.post("/overtime-requests", authenticate, authorize("Department Head"), async (req, res) => {
     try {
@@ -1149,7 +1310,7 @@ router.post("/overtime-requests", authenticate, authorize("Department Head"), as
             calculatedHours = parseFloat(hours);
         }
 
-        const newRequest = await prisma.overtimeLog.create({
+        const newRequest = await prisma.overtimelog.create({ // Changed from overtimeLog to overtimelog
             data: {
                 employeeId: parseInt(employeeId),
                 date: new Date(date),
@@ -1157,26 +1318,63 @@ router.post("/overtime-requests", authenticate, authorize("Department Head"), as
                 endTime: endDateTime,
                 hours: calculatedHours,
                 reason: reason,
-                overtimeType: overtimeType, // Save the new type
+                overtimeType: overtimeType,
                 compensationMethod: compensationMethod || 'cash',
-                approvalStatus: 'pending'
+                approvalStatus: 'pending',
+                updatedAt: new Date() // Add updatedAt field
             }
         });
-        await prisma.activityLog.create({
-    data: {
-        type: 'OVERTIME_REQUESTED',
-        message: `${req.user.employee.firstName} requested overtime.`,
-        actorId: req.user.employee.id,
-        targetId: newRequest.employeeId, // The person who the request is for
-        departmentId: req.user.employee.departmentId,
-    }
-});
+        await prisma.activitylog.create({ // Changed from activityLog to activitylog
+            data: {
+                type: 'OVERTIME_REQUESTED',
+                message: `${req.user.employee.firstName} requested overtime.`,
+                actorId: req.user.employee.id,
+                targetId: newRequest.employeeId,
+                departmentId: req.user.employee.departmentId,
+            }
+        });
         res.status(201).json(newRequest);
     } catch (error) {
         console.error("Error creating overtime request:", error);
         res.status(500).json({ error: "Failed to create overtime request." });
     }
 });
+
+// ---------------------------------------------------------------------------------
+// 2. GET /api/dep-head/team-members - Fetch employees the Dep Head can select
+// ---------------------------------------------------------------------------------
+router.get("/team-members", authenticate, authorize("Department Head"), async (req, res) => {
+    try {
+        const departmentId = req.user.employee.departmentId;
+        const teamMembers = await prisma.employee.findMany({
+            where: {
+                departmentId: departmentId,
+                jobstatus: { // Changed from jobStatus to jobstatus
+                    status: "Active"
+                }
+            },
+            select: {
+                id: true,
+                firstName: true,
+                lastName: true
+            },
+            orderBy: {
+                firstName: "asc"
+            }
+        });
+        res.status(200).json(teamMembers);
+    } catch (error) {
+        console.error("Error fetching team members:", error);
+        res.status(500).json({ error: "Failed to fetch team members." });
+    }
+});
+
+// ---------------------------------------------------------------------------------
+// 3. POST /api/dep-head/overtime-requests - Create a new overtime request
+// ---------------------------------------------------------------------------------
+// in depHead.routes.js
+
+
 
 function getStartOfMonth() {
     const now = new Date();
@@ -1199,9 +1397,9 @@ router.get("/payment-status", authenticate, authorize("Department Head"), async 
         const teamMembers = await prisma.employee.findMany({
             where: {
                 departmentId: departmentId,
-                jobStatus: { status: 'Active' },
+                jobstatus: { status: 'Active' }, // Changed from jobStatus to jobstatus
                 user: {
-                    roles: {
+                    userrole: { // Changed from roles to userrole
                         some: {
                             role: { name: { not: 'Intern' } }
                         }
@@ -1244,8 +1442,7 @@ router.get("/payment-status", authenticate, authorize("Department Head"), async 
         
         res.status(200).json(paymentStatuses);
 
-    } catch (error)
-{
+    } catch (error) {
         console.error("Error fetching payment status for department:", error);
         res.status(500).json({ error: "Failed to fetch payment status." });
     }
