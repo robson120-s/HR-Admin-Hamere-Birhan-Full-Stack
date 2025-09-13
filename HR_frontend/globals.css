@@ -82,5 +82,12 @@ html {
     --chart-5: 340 75% 55%;
     --border: 217 33% 20%;
   }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.no-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
 }
 

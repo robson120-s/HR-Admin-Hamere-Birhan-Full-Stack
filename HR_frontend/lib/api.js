@@ -14,6 +14,11 @@ export const apiClientDepHead = axios.create({
   withCredentials: true,
 });
 
+export const apiClientStaff = axios.create({
+  baseURL: "http://localhost:5555/api/staff", // New, dedicated base URL
+  withCredentials: true,
+});
+
 const apiClientSalary = axios.create({
   baseURL: "http://localhost:5555/api/salary", // Base path for all salary endpoints
   withCredentials: true,
@@ -55,6 +60,7 @@ apiClient.interceptors.request.use(addAuthToken);
 apiClientSalary.interceptors.request.use(addAuthToken);
 apiClientSalary.interceptors.request.use(addAuthToken);
 apiClientPolicies.interceptors.request.use(addAuthToken);
+apiClientStaff.interceptors.request.use(addAuthToken);
 
 
 export const login = async (credentials) => {
@@ -729,6 +735,46 @@ export const changePassworddep = async (passwordData) => {
   } catch (error) {
     // Re-throw the error with the specific message from the backend
     throw new Error(error.response?.data?.error || "An unknown error occurred.");
+  }
+};
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////STAFF//////////////////////////////////////////////////////////////////////////////////////
+
+export const fetchStaffDashboardSummary = async (employeeId) => {
+  try {
+    // The path here is relative to the staffApiClient's baseURL (/api/staff)
+    const response = await apiClientStaff.get(`/dashboard/${employeeId}/summary`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching staff dashboard summary:", error);
+    // Aligning error handling with your example
+    throw new Error(error.response?.data?.message || error.message || "Could not fetch dashboard summary.");
+  }
+};
+
+export const fetchHolidays = async () => {
+  try {
+    // The path here is relative to the staffApiClient's baseURL (/api/staff)
+    const response = await apiClientStaff.get('/holidays');
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching holidays:", error);
+    // Aligning error handling with your example
+    throw new Error(error.response?.data?.message || error.message || "Could not fetch holidays.");
+  }
+};
+
+export const fetchRecentActivities = async (employeeId) => {
+  try {
+    // The path here is relative to the staffApiClient's baseURL (/api/staff)
+    const response = await apiClientStaff.get(`/dashboard/${employeeId}/activities`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching recent activities:", error);
+    // Aligning error handling with your example
+    throw new Error(error.response?.data?.message || error.message || "Could not fetch recent activities.");
   }
 };
 
