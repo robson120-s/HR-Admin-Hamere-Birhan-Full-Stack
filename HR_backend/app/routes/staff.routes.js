@@ -280,43 +280,132 @@ router.get('/dashboard/:employeeId/activities', async (req, res) => {
 });
 //////SECOND PAGE //////
 // GET /api/employee/history
-router.get('/attendance-history', authenticate, async (req, res) => {
+router.get('/attendance-history/:employeeId', async (req, res) => {
+  const { employeeId } = req.params;
+  const { month, year } = req.query; // Optional month and year for filtering
+  const currentEmployeeId = parseInt(employeeId, 10);
+
+  if (isNaN(currentEmployeeId)) {
+    return res.status(400).json({ message: 'Invalid employee ID' });
+  }
+
   try {
-    const userId = req.user.id;
+    let dateFilter = {};
+    if (month && year) {
+      const yearInt = parseInt(year, 10);
+      const monthInt = parseInt(month, 10) - 1; // Month is 0-indexed in JS Date
+      if (isNaN(yearInt) || isNaN(monthInt) || monthInt < 0 || monthInt > 11) {
+        return res.status(400).json({ message: 'Invalid month or year provided' });
+      }
+      const startOfMonth = new Date(yearInt, monthInt, 1);
+      startOfMonth.setHours(0, 0, 0, 0);
+      const endOfMonth = new Date(yearInt, monthInt + 1, 0);
+      endOfMonth.setHours(23, 59, 59, 999);
 
-    // Step 1: Find employee linked to the logged-in user
-    const employee = await prisma.employee.findFirst({
-      where: { userId },
-      select: { id: true },
-    });
-
-    if (!employee) {
-      return res.status(404).json({ error: "Employee not found." });
+      dateFilter = {
+        gte: startOfMonth,
+        lte: endOfMonth,
+      };
+    } else {
+      // If no month/year specified, fetch for the last 12 months from today
+      const twelveMonthsAgo = new Date();
+      twelveMonthsAgo.setFullYear(twelveMonthsAgo.getFullYear() - 1);
+      twelveMonthsAgo.setHours(0, 0, 0, 0);
+      dateFilter = {
+        gte: twelveMonthsAgo,
+        lte: new Date(), // Up to today
+      };
     }
 
-    // Step 2: Fetch attendance summaries for the employee
-    const history = await prisma.attendanceSummary.findMany({
-      where: { employeeId: employee.id },
-      orderBy: { date: 'desc' },
+
+    const attendanceHistory = await prisma.attendancesummary.findMany({
+      where: {
+        employeeId: currentEmployeeId,
+        date: dateFilter,
+      },
+      orderBy: {
+        date: 'desc', // Most recent first
+      },
+      // You can select specific fields to keep the payload light
       select: {
+        id: true,
         date: true,
-        status: true
-      }
+        status: true,
+        lateArrival: true,
+        earlyDeparture: true,
+        unplannedAbsence: true,
+        totalWorkHours: true,
+        remarks: true,
+      },
     });
 
-    // Step 3: Format dates to "YYYY-MM-DD" and return
-    const formatted = history.map(entry => ({
-      date: new Date(entry.date).toISOString().split('T')[0],
-      status: entry.status
-    }));
-
-    res.status(200).json(formatted);
-
+    res.json(attendanceHistory);
   } catch (error) {
-    console.error("Error fetching attendance history:", error);
-    res.status(500).json({ error: "Failed to load attendance history." });
+    console.error("Error fetching staff attendance history:", error);
+    res.status(500).json({ message: 'Internal server error', details: error.message });
   }
 });
+
+//////////Complain //////////
+// Staff member submits a new complaint
+router.post('/complaints', async (req, res) => {
+  // IMPORTANT: In a real app, 'employeeId' should come from authenticated user context (e.g., req.user.employeeId)
+  // For this example, we'll assume it's sent in the body or hardcoded for testing.
+  // Ideally, frontend sends `subject` and `description`, and backend extracts `employeeId` from token.
+  const { employeeId, subject, description } = req.body;
+
+  if (!employeeId || isNaN(parseInt(employeeId, 10))) {
+    return res.status(400).json({ message: 'Employee ID is required.' });
+  }
+  if (!subject || !description) {
+    return res.status(400).json({ message: 'Subject and description are required.' });
+  }
+
+  try {
+    const newComplaint = await prisma.complaint.create({
+      data: {
+        employeeId: parseInt(employeeId, 10),
+        subject,
+        description,
+        status: 'open', // Default status for new complaints
+        createdAt: new Date(),
+        updatedAt: new Date(), // Initialize updatedAt
+      },
+    });
+    res.status(201).json({ message: 'Complaint submitted successfully', complaint: newComplaint });
+  } catch (error) {
+    console.error("Error submitting complaint:", error);
+    res.status(500).json({ message: 'Failed to submit complaint. Internal server error.', details: error.message });
+  }
+});
+
+// GET /api/staff/complaints/:employeeId
+// Staff member fetches their own complaint history
+router.get('/complaints/:employeeId', async (req, res) => {
+  const { employeeId } = req.params;
+  const currentEmployeeId = parseInt(employeeId, 10);
+
+  if (isNaN(currentEmployeeId)) {
+    return res.status(400).json({ message: 'Invalid employee ID' });
+  }
+
+  try {
+    const complaints = await prisma.complaint.findMany({
+      where: {
+        employeeId: currentEmployeeId,
+      },
+      orderBy: {
+        createdAt: 'desc', // Show most recent complaints first
+      },
+    });
+    res.json(complaints);
+  } catch (error) {
+    console.error("Error fetching staff complaints:", error);
+    res.status(500).json({ message: 'Failed to fetch complaints. Internal server error.', details: error.message });
+  }
+});
+
+
 
 // GET /api/employee/profile
 router.get('/profile', authenticate, async (req, res) => {

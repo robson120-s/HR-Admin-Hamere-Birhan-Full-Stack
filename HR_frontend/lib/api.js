@@ -778,5 +778,42 @@ export const fetchRecentActivities = async (employeeId) => {
   }
 };
 
+export const fetchStaffAttendanceHistory = async (employeeId, month, year) => {
+  try {
+    const params = {};
+    if (month) params.month = month;
+    if (year) params.year = year;
+
+    const response = await apiClientStaff.get(`/attendance-history/${employeeId}`, { params });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching staff attendance history:", error);
+    throw new Error(error.response?.data?.message || error.message || "Could not fetch attendance history.");
+  }
+};
+
+////Third page Complain
+export const submitComplaints = async (employeeId, { subject, description }) => {
+  try {
+    // Pass employeeId in the body for the POST request
+    const response = await staffApiClient.post('/complaints', { employeeId, subject, description });
+    return response.data;
+  } catch (error) {
+    console.error("Error submitting complaint:", error);
+    throw new Error(error.response?.data?.message || error.message || "Could not submit complaint.");
+  }
+};
+
+export const getMyComplaint = async (employeeId) => {
+  try {
+    // Fetch complaints specific to this employeeId
+    const response = await staffApiClient.get(`/complaints/${employeeId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching my complaints:", error);
+    throw new Error(error.response?.data?.message || error.message || "Could not fetch your complaints.");
+  }
+};
+
 
 //😍🎉sosi 🌹😍🎉🎉😍😍
