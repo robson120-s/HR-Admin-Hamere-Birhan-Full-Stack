@@ -465,37 +465,97 @@ router.get('/profile/:employeeId', async (req, res) => {
 
 
 // PATCH /api/employee/change-password
-router.patch('/change-password', authenticate, async (req, res) => {
-  const userId = req.user.id;
-  const { currentPassword, newPassword, confirmNewPassword } = req.body;
+router.put('/settings/:employeeId/change-password', async (req, res) => {
+  const { employeeId } = req.params;
+  const { currentPassword, newPassword } = req.body;
+  const currentEmployeeId = parseInt(employeeId, 10);
 
-  if (!currentPassword || !newPassword || !confirmNewPassword) {
-    return res.status(400).json({ error: "All fields are required." });
+  if (isNaN(currentEmployeeId)) {
+    return res.status(400).json({ message: 'Invalid employee ID' });
   }
-
-  if (newPassword !== confirmNewPassword) {
-    return res.status(400).json({ error: "New passwords do not match." });
+  if (!currentPassword || !newPassword) {
+    return res.status(400).json({ message: 'Current and new passwords are required.' });
+  }
+  if (newPassword.length < 6) { // Basic validation
+    return res.status(400).json({ message: 'New password must be at least 6 characters long.' });
   }
 
   try {
-    const user = await prisma.user.findUnique({ where: { id: userId } });
-
-    const isMatch = await bcrypt.compare(currentPassword, user.password);
-    if (!isMatch) {
-      return res.status(401).json({ error: "Current password is incorrect." });
-    }
-
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-    await prisma.user.update({
-      where: { id: userId },
-      data: { password: hashedPassword },
+    // 1. Find the employee to get their associated userId
+    const employee = await prisma.employee.findUnique({
+      where: { id: currentEmployeeId },
+      select: { userId: true },
     });
 
-    res.status(200).json({ message: "Password updated successfully." });
-  } catch (err) {
-    console.error("Password change error:", err);
-    res.status(500).json({ error: "Failed to update password." });
+    if (!employee || !employee.userId) {
+      return res.status(404).json({ message: 'User not found for this employee.' });
+    }
+
+    // 2. Find the user by userId
+    const user = await prisma.user.findUnique({
+      where: { id: employee.userId },
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User account not found.' });
+    }
+
+    // 3. Compare current password
+    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: 'Incorrect current password.' });
+    }
+
+    // 4. Hash the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10); // Salt rounds
+
+    // 5. Update the user's password
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { password: hashedPassword, updatedAt: new Date() },
+    });
+
+    res.json({ message: 'Password updated successfully.' });
+  } catch (error) {
+    console.error("Error changing password:", error);
+    res.status(500).json({ message: 'Failed to change password. Internal server error.', details: error.message });
+  }
+});
+
+// PATCH /api/staff/settings/:employeeId/notifications
+router.patch('/settings/:employeeId/notifications', async (req, res) => {
+  const { employeeId } = req.params;
+  const { notifyOnComplaint } = req.body; // Expecting a boolean
+  const currentEmployeeId = parseInt(employeeId, 10);
+
+  if (isNaN(currentEmployeeId)) {
+    return res.status(400).json({ message: 'Invalid employee ID' });
+  }
+  if (typeof notifyOnComplaint !== 'boolean') {
+    return res.status(400).json({ message: 'Invalid value for notifyOnComplaint. Must be a boolean.' });
+  }
+
+  try {
+    // 1. Find the employee to get their associated userId
+    const employee = await prisma.employee.findUnique({
+      where: { id: currentEmployeeId },
+      select: { userId: true },
+    });
+
+    if (!employee || !employee.userId) {
+      return res.status(404).json({ message: 'User not found for this employee.' });
+    }
+
+    // 2. Update the user's notification preference
+    await prisma.user.update({
+      where: { id: employee.userId },
+      data: { notifyOnComplaint, updatedAt: new Date() },
+    });
+
+    res.json({ message: 'Notification preferences updated successfully.' });
+  } catch (error) {
+    console.error("Error updating notification preferences:", error);
+    res.status(500).json({ message: 'Failed to update notification preferences. Internal server error.', details: error.message });
   }
 });
 

@@ -14,9 +14,15 @@ export const apiClientDepHead = axios.create({
   withCredentials: true,
 });
 
+
+
 export const apiClientStaff = axios.create({
   baseURL: "http://localhost:5555/api/staff", // New, dedicated base URL
   withCredentials: true,
+    headers: {
+    'Content-Type': 'application/json',
+    // 'Authorization': `Bearer ${localStorage.getItem('authToken')}` // Example for auth
+  },
 });
 
 const apiClientSalary = axios.create({
@@ -822,6 +828,26 @@ export const fetchEmployeeProfile = async (employeeId) => {
   } catch (error) {
     console.error("Error fetching employee profile:", error);
     throw new Error(error.response?.data?.message || error.message || "Could not fetch employee profile.");
+  }
+};
+
+export const updateStaffPassword = async (employeeId, { currentPassword, newPassword }) => {
+  try {
+    const response = await apiClientStaff.put(`/settings/${employeeId}/change-password`, { currentPassword, newPassword });
+    return response.data;
+  } catch (error) {
+    console.error("Error updating password:", error);
+    throw new Error(error.response?.data?.message || error.message || "Could not update password.");
+  }
+};
+
+export const updateStaffNotificationPreference = async (employeeId, notifyOnComplaint) => {
+  try {
+    const response = await apiClientStaff.patch(`/settings/${employeeId}/notifications`, { notifyOnComplaint });
+    return response.data;
+  } catch (error) {
+    console.error("Error updating notification preference:", error);
+    throw new Error(error.response?.data?.message || error.message || "Could not update notification preference.");
   }
 };
 
