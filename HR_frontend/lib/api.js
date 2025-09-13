@@ -796,7 +796,7 @@ export const fetchStaffAttendanceHistory = async (employeeId, month, year) => {
 export const submitComplaints = async (employeeId, { subject, description }) => {
   try {
     // Pass employeeId in the body for the POST request
-    const response = await staffApiClient.post('/complaints', { employeeId, subject, description });
+    const response = await apiClientStaff.post('/complaints', { employeeId, subject, description });
     return response.data;
   } catch (error) {
     console.error("Error submitting complaint:", error);
@@ -807,7 +807,7 @@ export const submitComplaints = async (employeeId, { subject, description }) => 
 export const getMyComplaint = async (employeeId) => {
   try {
     // Fetch complaints specific to this employeeId
-    const response = await staffApiClient.get(`/complaints/${employeeId}`);
+    const response = await apiClientStaff.get(`/complaints/${employeeId}`);
     return response.data;
   } catch (error) {
     console.error("Error fetching my complaints:", error);
@@ -815,5 +815,14 @@ export const getMyComplaint = async (employeeId) => {
   }
 };
 
+export const fetchEmployeeProfile = async (employeeId) => {
+  try {
+    const response = await apiClientStaff.get(`/profile/${employeeId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching employee profile:", error);
+    throw new Error(error.response?.data?.message || error.message || "Could not fetch employee profile.");
+  }
+};
 
 //😍🎉sosi 🌹😍🎉🎉😍😍

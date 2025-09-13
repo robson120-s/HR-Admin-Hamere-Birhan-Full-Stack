@@ -408,64 +408,58 @@ router.get('/complaints/:employeeId', async (req, res) => {
 
 
 // GET /api/employee/profile
-router.get('/profile', authenticate, async (req, res) => {
-  try {
-    const userId = req.user.id;
+router.get('/profile/:employeeId', async (req, res) => {
+  const { employeeId } = req.params;
+  const currentEmployeeId = parseInt(employeeId, 10);
 
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        id: true,
-        username: true,
-        email: true,
-        roles: {
-          include: {
-            role: true,
-          },
+  if (isNaN(currentEmployeeId)) {
+    return res.status(400).json({ message: 'Invalid employee ID' });
+  }
+
+  try {
+    const employeeProfile = await prisma.employee.findUnique({
+      where: {
+        id: currentEmployeeId,
+      },
+      include: {
+        // Include related models to get full details
+        user: {
+          select: { username: true, email: true, isActive: true }
         },
-        employees: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            phone: true,
-            employmentDate: true,
-            salary: true,
-            address: true,
-            subCity: true,
-            department: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
+        department_employee_departmentIdTodepartment: { // Relation for main department
+          select: { name: true }
         },
+        department_employee_subDepartmentIdTodepartment: { // Relation for sub-department
+          select: { name: true }
+        },
+        position: {
+          select: { name: true }
+        },
+        employmenttype: {
+          select: { type: true }
+        },
+        jobstatus: {
+          select: { status: true }
+        },
+        maritalstatus: {
+          select: { status: true }
+        },
+        agreementstatus: {
+          select: { status: true }
+        },
+        // You might also want to include relevant latest attendance, salary, etc.
+        // For simplicity, we'll stick to direct profile data and immediate relations for now.
       },
     });
 
-    if (!user || user.employees.length === 0) {
-      return res.status(404).json({ error: "Employee profile not found." });
+    if (!employeeProfile) {
+      return res.status(404).json({ message: 'Employee profile not found.' });
     }
 
-    const emp = user.employees[0];
-
-    const profile = {
-      employeeId: emp.id,
-      fullName: `${emp.firstName} ${emp.lastName}`,
-      email: user.email,
-      phone: emp.phone,
-      department: emp.department?.name,
-      roles: user.roles.map(r => r.role.name),
-      joinedDate: emp.employmentDate,
-      salary: emp.salary,
-      location: emp.address || emp.subCity || "N/A",
-    };
-
-    res.status(200).json(profile);
+    res.json(employeeProfile);
   } catch (error) {
-    console.error("Error fetching profile:", error);
-    res.status(500).json({ error: "Failed to load profile." });
+    console.error("Error fetching employee profile:", error);
+    res.status(500).json({ message: 'Failed to fetch employee profile. Internal server error.', details: error.message });
   }
 });
 

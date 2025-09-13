@@ -1,250 +1,212 @@
 'use client';
-import React, { useState, useEffect, useRef } from 'react';
-import { FiCamera, FiMail, FiPhone, FiMapPin, FiCalendar, FiUser, FiLinkedin, FiTwitter, FiFacebook, FiInstagram, FiMessageCircle } from "react-icons/fi";
-import { useTheme } from "next-themes";
 
-function SunIcon({ className = "" }) {
+import React, { useState, useEffect } from 'react';
+import {
+  UserCircle, Briefcase, Building2, CalendarDays, Phone, Mail, Home,
+  Cake, Heart, Flag, Book, GraduationCap, DollarSign, Banknote, ShieldEllipsis, Clock3, AtSign
+} from 'lucide-react';
+ // Using lucide-react for icons
+
+
+ // =========================================================================
+// !!! CORRECTED PATHS FOR UI COMPONENTS !!!
+// =========================================================================
+import { Card, CardContent, CardHeader, CardTitle } from '../../../../components/ui/card'; // <--- Check this path carefully
+import { fetchEmployeeProfile } from '../../../../lib/api';
+import Sidebar from '../Sidebar'; // <--- Check this path carefully
+
+
+// Helper to display a detail row
+const DetailRow = ({ icon, label, value }) => {
+  if (value === null || value === undefined || value === '') return null;
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="orange" width={24} height={24}>
-      <circle cx="12" cy="12" r="5" stroke="orange" strokeWidth="2" />
-      <path stroke="orange" strokeWidth="2" strokeLinecap="round" d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
-    </svg>
-  );
-}
-
-function MoonIcon({ className = "" }) {
-  return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" width={24} height={24}>
-      <path stroke="purple" strokeWidth="2" d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z" />
-    </svg>
-  );
-}
-
-export default function StaffProfilePage() {
-  const [user, setUser] = useState(null);
-  const fileInputRef = useRef(null);
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-    const fakeUser = {
-      name: "Jane Doe",
-      email: "jane.doe@example.com",
-      photoUrl: "https://ui-avatars.com/api/?name=Jane+Doe&background=10B981&color=fff",
-      designation: "Engineering Department",
-      position: "Frontend Developer",
-      employeeId: "EMP2025-003",
-      dateOfJoining: "15 06 2023",
-      phone: "+1234567890",
-      birthday: "10 April 1995",
-      address: "123 Main St, New York, NY 10001, United States",
-      gender: "Female",
-      emergencyContacts: {
-        primary: { name: "John Doe", relationship: "Spouse", phone: "9876543210", email: "john@example.com", address: "123 Main St, New York" },
-        secondary: { name: "Mary Doe", relationship: "Mother", phone: "9876543211", email: "mary@example.com", address: "456 Oak Ave, Brooklyn" }
-      },
-      education: [
-        { institution: "New York University", degree: "BSc in Computer Science", period: "2013 - 2017" },
-        { institution: "Brooklyn College", degree: "High School Diploma", period: "2009 - 2013" }
-      ],
-      experience: [
-        { company: "TechStart Inc, New York", position: "Frontend Developer", period: "2023 - Present" },
-        { company: "WebSolutions, Brooklyn", position: "Junior Developer", period: "2021 - 2023" }
-      ],
-      bankAccount: { accountHolder: "Jane Doe", accountNumber: "555666777", bankName: "CityBank", branch: "Manhattan Branch", swiftCode: "CITYUS33" },
-      passport: { number: "C5556667", nationality: "American", issueDate: "10 January 2019", expiryDate: "10 January 2029", scanCopy: "https://example.com/passport-scan-jane.pdf" },
-      socialProfiles: { linkedin: "Jane Doe", twitter: "JaneDev", facebook: "Jane Doe", instagram: "jane_dev", whatsapp: "+1234567890" }
-    };
-
-    setTimeout(() => setUser(fakeUser), 500);
-  }, []);
-
-  if (!mounted || !user) return <div className="p-6">Loading profile...</div>;
-
-  const handleImageClick = () => fileInputRef.current.click();
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () => setUser((prev) => ({ ...prev, photoUrl: reader.result }));
-    reader.readAsDataURL(file);
-  };
-
-  return (
-    <div className="max-w-6xl mx-auto p-6 relative">
-      <div className="absolute top-4 right-4 z-10">
-        <button onClick={() => setTheme(theme === "dark" ? "light" : "dark")} className="flex items-center px-3 py-2 rounded bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
-          {theme === "dark" ? <SunIcon /> : <MoonIcon />}
-        </button>
+    <div className="flex items-start gap-3 py-2 border-b border-gray-100 dark:border-gray-700 last:border-b-0">
+      <div className="flex-shrink-0 text-indigo-500 dark:text-indigo-400">
+        {icon}
       </div>
-
-      <div className="bg-white dark:bg-gray-800 shadow-lg rounded-2xl overflow-hidden transition-colors">
-        <div className="bg-gradient-to-r from-green-500 to-teal-600 h-32"></div>
-
-        <div className="flex flex-col items-center -mt-16 p-4 relative">
-          <div className="relative">
-            <img src={user.photoUrl} alt="Profile avatar" className="w-32 h-32 rounded-full border-4 border-white dark:border-gray-800 object-cover shadow-lg" />
-            <button onClick={handleImageClick} className="absolute bottom-2 right-2 bg-gray-800 p-2 rounded-full text-white hover:bg-gray-700 transition-colors">
-              <FiCamera className="w-5 h-5" />
-            </button>
-            <input type="file" accept="image/*" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
-          </div>
-          <h1 className="text-3xl font-bold mt-4 text-gray-900 dark:text-gray-100">{user.name}</h1>
-          <p className="text-lg text-gray-600 dark:text-gray-400">{user.designation}</p>
-          <p className="text-md text-gray-500 dark:text-gray-500">{user.position}</p>
-        </div>
-
-        <div className="px-6 py-6 space-y-8">
-          {/* Personal Information */}
-          <section>
-            <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100 flex items-center">
-              <FiUser className="mr-2" /> Personal Information
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <ProfileDetail label="Employee ID" value={user.employeeId} icon={<FiUser />} />
-                <ProfileDetail label="Date of Joining" value={user.dateOfJoining} icon={<FiCalendar />} />
-                <ProfileDetail label="Phone" value={user.phone} icon={<FiPhone />} />
-                <ProfileDetail label="Email" value={user.email} icon={<FiMail />} />
-              </div>
-              <div className="space-y-4">
-                <ProfileDetail label="Birthday" value={user.birthday} icon={<FiCalendar />} />
-                <ProfileDetail label="Address" value={user.address} icon={<FiMapPin />} />
-                <ProfileDetail label="Gender" value={user.gender} icon={<FiUser />} />
-              </div>
-            </div>
-          </section>
-
-          <hr className="border-gray-200 dark:border-gray-700" />
-
-          {/* Emergency Contact */}
-          <section>
-            <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100 flex items-center">
-              <FiMessageCircle className="mr-2" /> Emergency Contact
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                <h3 className="font-semibold text-lg mb-3 text-gray-900 dark:text-gray-100">Primary Contact</h3>
-                <div className="space-y-2">
-                  <ProfileDetail label="Name" value={user.emergencyContacts.primary.name} />
-                  <ProfileDetail label="Relationship" value={user.emergencyContacts.primary.relationship} />
-                  <ProfileDetail label="Phone" value={user.emergencyContacts.primary.phone} />
-                  <ProfileDetail label="Email" value={user.emergencyContacts.primary.email} />
-                  <ProfileDetail label="Address" value={user.emergencyContacts.primary.address} />
-                </div>
-              </div>
-              <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                <h3 className="font-semibold text-lg mb-3 text-gray-900 dark:text-gray-100">Secondary Contact</h3>
-                <div className="space-y-2">
-                  <ProfileDetail label="Name" value={user.emergencyContacts.secondary.name} />
-                  <ProfileDetail label="Relationship" value={user.emergencyContacts.secondary.relationship} />
-                  <ProfileDetail label="Phone" value={user.emergencyContacts.secondary.phone} />
-                  <ProfileDetail label="Email" value={user.emergencyContacts.secondary.email} />
-                  <ProfileDetail label="Address" value={user.emergencyContacts.secondary.address} />
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <hr className="border-gray-200 dark:border-gray-700" />
-
-          {/* Education */}
-          <section>
-            <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">Education Qualification</h2>
-            <div className="space-y-4">
-              {user.education.map((edu, index) => (
-                <div key={index} className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                  <h3 className="font-semibold text-lg text-gray-900 dark:text-gray-100">{edu.institution}</h3>
-                  <p className="text-gray-600 dark:text-gray-400">{edu.degree}</p>
-                  <p className="text-gray-500 dark:text-gray-500">{edu.period}</p>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <hr className="border-gray-200 dark:border-gray-700" />
-
-          {/* Experience */}
-          <section>
-            <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">Experience Details</h2>
-            <div className="space-y-4">
-              {user.experience.map((exp, index) => (
-                <div key={index} className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                  <h3 className="font-semibold text-lg text-gray-900 dark:text-gray-100">{exp.company}</h3>
-                  <p className="text-gray-600 dark:text-gray-400">{exp.position}</p>
-                  <p className="text-gray-500 dark:text-gray-500">{exp.period}</p>
-            </div>
-          ))}
-        </div>
-          </section>
-
-          <hr className="border-gray-200 dark:border-gray-700" />
-
-          {/* Bank Account */}
-          <section>
-            <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">Bank Account</h2>
-            <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <ProfileDetail label="Account Holder Name" value={user.bankAccount.accountHolder} />
-                <ProfileDetail label="Account Number" value={user.bankAccount.accountNumber} />
-                <ProfileDetail label="Bank Name" value={user.bankAccount.bankName} />
-                <ProfileDetail label="Branch" value={user.bankAccount.branch} />
-                <ProfileDetail label="SWIFT Code" value={user.bankAccount.swiftCode} />
-              </div>
-            </div>
-          </section>
-
-          <hr className="border-gray-200 dark:border-gray-700" />
-
-          {/* Passport */}
-          <section>
-            <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">Passport Information</h2>
-            <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <ProfileDetail label="Passport Number" value={user.passport.number} />
-                <ProfileDetail label="Nationality" value={user.passport.nationality} />
-                <ProfileDetail label="Issue Date" value={user.passport.issueDate} />
-                <ProfileDetail label="Expiry Date" value={user.passport.expiryDate} />
-                <div className="md:col-span-2">
-                  <p className="text-sm font-semibold text-gray-600 dark:text-gray-400">Scan Copy</p>
-                  <a href={user.passport.scanCopy} className="text-blue-600 dark:text-blue-400 hover:underline" target="_blank" rel="noopener noreferrer">
-                    View Passport Scan
-                  </a>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <hr className="border-gray-200 dark:border-gray-700" />
-
-          {/* Social Profile */}
-          <section>
-            <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">Social Profile</h2>
-            <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <ProfileDetail label="LinkedIn" value={user.socialProfiles.linkedin} icon={<FiLinkedin />} />
-                <ProfileDetail label="Twitter" value={user.socialProfiles.twitter} icon={<FiTwitter />} />
-                <ProfileDetail label="Facebook" value={user.socialProfiles.facebook} icon={<FiFacebook />} />
-                <ProfileDetail label="Instagram" value={user.socialProfiles.instagram} icon={<FiInstagram />} />
-                <ProfileDetail label="WhatsApp" value={user.socialProfiles.whatsapp} icon={<FiMessageCircle />} />
-              </div>
-            </div>
-          </section>
-        </div>
+      <div>
+        <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{label}</p>
+        <p className="text-base font-semibold text-gray-800 dark:text-gray-100 break-words">{String(value)}</p>
       </div>
     </div>
   );
-}
+};
 
-function ProfileDetail({ label, value, icon }) {
-  return (
-    <div className="flex items-start space-x-2">
-      {icon && <span className="text-gray-500 dark:text-gray-400 mt-1">{icon}</span>}
-      <div className="flex-1">
-        <p className="text-sm font-semibold text-gray-600 dark:text-gray-400">{label}</p>
-        <p className="text-base text-gray-800 dark:text-gray-200">{value}</p>
+export default function EmployeeProfilePage() {
+  // TODO: IMPORTANT: Replace this with the actual logged-in employee ID from your authentication context.
+  const employeeId = 1; // Placeholder employee ID for demonstration
+
+  const [employee, setEmployee] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const getEmployeeProfile = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        if (!employeeId) {
+          throw new Error('Employee ID not available. Cannot fetch profile.');
+        }
+        const data = await fetchEmployeeProfile(employeeId);
+        setEmployee(data);
+      } catch (err) {
+        console.error("Error fetching employee profile:", err);
+        setError(err.message || "Failed to load employee profile.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (employeeId) {
+      getEmployeeProfile();
+    }
+  }, [employeeId]);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900">
+        <Sidebar />
+        <main className="flex-1 flex items-center justify-center p-4 md:p-8">
+          <p className="text-gray-600 dark:text-gray-300">Loading profile data...</p>
+        </main>
       </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900">
+        <Sidebar />
+        <main className="flex-1 flex items-center justify-center p-4 md:p-8">
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-md relative dark:bg-red-900/30 dark:text-red-300" role="alert">
+            <strong className="font-bold">Error! </strong>
+            <span className="block sm:inline">{error}</span>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (!employee) {
+    return (
+      <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900">
+        <Sidebar />
+        <main className="flex-1 flex items-center justify-center p-4 md:p-8">
+          <p className="text-gray-600 dark:text-gray-300">No employee profile found.</p>
+        </main>
+      </div>
+    );
+  }
+
+  const defaultPhoto = "https://via.placeholder.com/150/4F46E5/FFFFFF?text=Staff"; // Default image if no photo
+  const photoUrl = employee.photo || defaultPhoto;
+
+  return (
+    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900">
+      <Sidebar />
+      <main className="flex-1 p-4 md:p-8">
+        <div className="max-w-6xl mx-auto space-y-8">
+          {/* Header Section */}
+          <div className="flex flex-col sm:flex-row items-center gap-6 bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
+            <div className="flex-shrink-0">
+              <img
+                src={photoUrl}
+                alt={`${employee.firstName} ${employee.lastName}'s profile`}
+                className="w-32 h-32 rounded-full object-cover border-4 border-indigo-500 shadow-md"
+                onError={(e) => { e.target.onerror = null; e.target.src = defaultPhoto; }} // Fallback on error
+              />
+            </div>
+            <div className="text-center sm:text-left">
+              <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white">
+                {employee.firstName} {employee.lastName}
+              </h1>
+              {employee.baptismalName && (
+                <p className="text-lg text-gray-600 dark:text-gray-300 mt-1 italic">
+                  ({employee.baptismalName})
+                </p>
+              )}
+              <p className="text-md text-indigo-600 dark:text-indigo-400 mt-2 flex items-center justify-center sm:justify-start gap-2">
+                <Briefcase size={18} />
+                {employee.position?.name || 'N/A'} at {employee.department_employee_departmentIdTodepartment?.name || 'N/A'}
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Personal Details Card */}
+            <Card className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-0 overflow-hidden">
+              <CardHeader className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
+                <CardTitle className="text-xl font-semibold text-gray-800 dark:text-gray-100 flex items-center gap-2">
+                  <UserCircle size={24} className="text-orange-500" /> Personal Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <DetailRow icon={<Cake size={18} />} label="Date of Birth" value={employee.dateOfBirth ? new Date(employee.dateOfBirth).toLocaleDateString() : null} />
+                <DetailRow icon={<Heart size={18} />} label="Marital Status" value={employee.maritalstatus?.status} />
+                <DetailRow icon={<Flag size={18} />} label="Nationality" value={employee.nationality} />
+                <DetailRow icon={<Book size={18} />} label="Sex" value={employee.sex} />
+                <DetailRow icon={<GraduationCap size={18} />} label="Academic Qualification" value={employee.academicQualification} />
+                <DetailRow icon={<Building2 size={18} />} label="Educational Institution" value={employee.educationalInstitution} />
+              </CardContent>
+            </Card>
+
+            {/* Contact Information Card */}
+            <Card className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-0 overflow-hidden">
+              <CardHeader className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
+                <CardTitle className="text-xl font-semibold text-gray-800 dark:text-gray-100 flex items-center gap-2">
+                  <Phone size={24} className="text-teal-500" /> Contact Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <DetailRow icon={<Phone size={18} />} label="Phone" value={employee.phone} />
+                {employee.user?.email && (
+                     <DetailRow icon={<AtSign size={18} />} label="Email" value={employee.user.email} />
+                )}
+                <DetailRow icon={<Home size={18} />} label="Address" value={employee.address} />
+                <DetailRow icon={<Building2 size={18} />} label="Sub City" value={employee.subCity} />
+                <DetailRow icon={<Phone size={18} />} label="Emergency Contact Name" value={employee.emergencyContactName} />
+                <DetailRow icon={<Phone size={18} />} label="Emergency Contact Phone" value={employee.emergencyContactPhone} />
+              </CardContent>
+            </Card>
+
+            {/* Employment Details Card */}
+            <Card className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-0 overflow-hidden">
+              <CardHeader className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
+                <CardTitle className="text-xl font-semibold text-gray-800 dark:text-gray-100 flex items-center gap-2">
+                  <Briefcase size={24} className="text-purple-500" /> Employment Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <DetailRow icon={<Building2 size={18} />} label="Department" value={employee.department_employee_departmentIdTodepartment?.name} />
+                <DetailRow icon={<Building2 size={18} />} label="Sub-Department" value={employee.department_employee_subDepartmentIdTodepartment?.name} />
+                <DetailRow icon={<Briefcase size={18} />} label="Position" value={employee.position?.name} />
+                <DetailRow icon={<CalendarDays size={18} />} label="Employment Date" value={employee.employmentDate ? new Date(employee.employmentDate).toLocaleDateString() : null} />
+                <DetailRow icon={<Clock3 size={18} />} label="Employment Type" value={employee.employmenttype?.type} />
+                <DetailRow icon={<ShieldEllipsis size={18} />} label="Job Status" value={employee.jobstatus?.status} />
+                <DetailRow icon={<ShieldEllipsis size={18} />} label="Agreement Status" value={employee.agreementstatus?.status} />
+                <DetailRow icon={<Banknote size={18} />} label="Account Number" value={employee.accountNumber} />
+                <DetailRow icon={<DollarSign size={18} />} label="Base Salary" value={employee.salary !== null ? `$${parseFloat(employee.salary).toFixed(2)}` : null} />
+                <DetailRow icon={<DollarSign size={18} />} label="Bonus Salary" value={employee.bonusSalary !== null ? `$${parseFloat(employee.bonusSalary).toFixed(2)}` : null} />
+              </CardContent>
+            </Card>
+
+            {/* Repentance Father Details Card */}
+            <Card className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-0 overflow-hidden">
+              <CardHeader className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
+                <CardTitle className="text-xl font-semibold text-gray-800 dark:text-gray-100 flex items-center gap-2">
+                  <UserCircle size={24} className="text-green-500" /> Repentance Father Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <DetailRow icon={<UserCircle size={18} />} label="Name" value={employee.repentanceFatherName} />
+                <DetailRow icon={<Building2 size={18} />} label="Church" value={employee.repentanceFatherChurch} />
+                <DetailRow icon={<Phone size={18} />} label="Phone" value={employee.repentanceFatherPhone} />
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </main>
     </div>
   );
 }
