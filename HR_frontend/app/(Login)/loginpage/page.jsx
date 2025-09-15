@@ -265,7 +265,10 @@ export default function LoginPage() {
         router.push("/staff"); // Assuming you will create a /staff route
       } else if (userRole === "Super Admin") {
           router.push("/admin"); // Assuming you will create an /admin route
-      } else {
+      } else if (userRole === "Intern") {
+        router.push("/intern"); // Assuming you will create an /intern route
+      } 
+      else {
         // Fallback for any other roles that don't have a dedicated dashboard
         toast.error("Your role does not have a dashboard assigned.");
         localStorage.removeItem('authToken'); // Clear the token if there's no valid role

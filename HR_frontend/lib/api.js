@@ -25,6 +25,14 @@ export const apiClientStaff = axios.create({
   },
 });
 
+export const apiClientIntern = axios.create({
+  baseURL: "http://localhost:5555/api/intern", // New, dedicated base URL
+  withCredentials: true,
+    headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
 const apiClientSalary = axios.create({
   baseURL: "http://localhost:5555/api/salary", // Base path for all salary endpoints
   withCredentials: true,
@@ -67,6 +75,7 @@ apiClientSalary.interceptors.request.use(addAuthToken);
 apiClientSalary.interceptors.request.use(addAuthToken);
 apiClientPolicies.interceptors.request.use(addAuthToken);
 apiClientStaff.interceptors.request.use(addAuthToken);
+apiClientIntern.interceptors.request.use(addAuthToken);
 
 
 export const login = async (credentials) => {
@@ -850,5 +859,106 @@ export const updateStaffNotificationPreference = async (employeeId, notifyOnComp
     throw new Error(error.response?.data?.message || error.message || "Could not update notification preference.");
   }
 };
+
+
+
+// ==============================================================================
+// NEW INTERN-SPECIFIC API FUNCTIONS (using apiClientIntern)
+// ==============================================================================
+
+export const fetchInternDashboardSummary = async (internId) => {
+  try {
+    const response = await apiClientIntern.get(`/dashboard/${internId}/summary`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching intern dashboard summary:", error);
+    throw new Error(error.response?.data?.message || error.message || "Could not fetch intern dashboard summary.");
+  }
+};
+
+export const fetchInternHolidays = async () => {
+  try {
+    // Holidays are general, can be fetched via intern client too
+    const response = await apiClientIntern.get('/holidays');
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching intern holidays:", error);
+    throw new Error(error.response?.data?.message || error.message || "Could not fetch holidays.");
+  }
+};
+
+export const fetchInternRecentActivities = async (internId) => {
+  try {
+    const response = await apiClientIntern.get(`/dashboard/${internId}/activities`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching intern recent activities:", error);
+    throw new Error(error.response?.data?.message || error.message || "Could not fetch intern recent activities.");
+  }
+};
+
+export const fetchInternAttendanceHistory = async (internId, month, year) => {
+  try {
+    const params = {};
+    if (month) params.month = month;
+    if (year) params.year = year;
+    const response = await apiClientIntern.get(`/attendance-history/${internId}`, { params });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching intern attendance history:", error);
+    throw new Error(error.response?.data?.message || error.message || "Could not fetch intern attendance history.");
+  }
+};
+
+export const submitInternComplaint = async (internId, { subject, description }) => {
+  try {
+    const response = await apiClientIntern.post('/complaints', { internId, subject, description });
+    return response.data;
+  } catch (error) {
+    console.error("Error submitting intern complaint:", error);
+    throw new Error(error.response?.data?.message || error.message || "Could not submit intern complaint.");
+  }
+};
+
+export const getInternComplaints = async (internId) => {
+  try {
+    const response = await apiClientIntern.get(`/complaints/${internId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching intern complaints:", error);
+    throw new Error(error.response?.data?.message || error.message || "Could not fetch intern complaints.");
+  }
+};
+
+export const fetchInternProfile = async (internId) => {
+  try {
+    const response = await apiClientIntern.get(`/profile/${internId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching intern profile:", error);
+    throw new Error(error.response?.data?.message || error.message || "Could not fetch intern profile.");
+  }
+};
+
+export const updateInternPassword = async (internId, { currentPassword, newPassword }) => {
+  try {
+    const response = await apiClientIntern.put(`/settings/${internId}/change-password`, { currentPassword, newPassword });
+    return response.data;
+  } catch (error) {
+    console.error("Error updating intern password:", error);
+    throw new Error(error.response?.data?.message || error.message || "Could not update intern password.");
+  }
+};
+
+export const updateInternNotificationPreference = async (internId, notifyOnComplaint) => {
+  try {
+    const response = await apiClientIntern.patch(`/settings/${internId}/notifications`, { notifyOnComplaint });
+    return response.data;
+  } catch (error) {
+    console.error("Error updating intern notification preference:", error);
+    throw new Error(error.response?.data?.message || error.message || "Could not update intern notification preference.");
+  }
+};
+
 
 //😍🎉sosi 🌹😍🎉🎉😍😍

@@ -49,6 +49,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use("/api/upload", uploadRoutes);
 
 
+const internRoutes = require('./app/routes/intern.routes');
 //salary routes
 const salaryRoutes= require('./app/routes/salary.routes');
 app.use("/api/salary", salaryRoutes);
@@ -58,6 +59,7 @@ app.use("/api/policies", policyRoutes);
 //Department head routes
 app.use("/api/dep-head", depHeadRoutes);
 app.use("/api/staff", staffRoutes);
+app.use("/api/intern", internRoutes);
 
 
 module.exports = app;
