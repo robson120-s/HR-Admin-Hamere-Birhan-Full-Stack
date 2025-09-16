@@ -1,50 +1,54 @@
-// /departmentHead/complain/page.jsx
+// /departmentHead/complain/page.jsx -> Should be named something like /app/(Staff)/staff/complain/page.jsx
+// Corrected to reflect typical staff complaints, not depHead.
+
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
 import toast from "react-hot-toast";
-import { MailWarning, Send, Loader2, CheckCircle, AlertCircle, MessageSquare, ShieldCheck, Clock, XCircle, FileWarning, LoaderCircle  } from "lucide-react";
+import { useRouter } from 'next/navigation'; // Import useRouter
+
+import { MailWarning, Send, Loader2, CheckCircle, AlertCircle, MessageSquare, ShieldCheck, Clock, XCircle, FileWarning, LoaderCircle } from "lucide-react";
 import { submitComplaints, getMyComplaint } from "../../../../lib/api"; // Adjust path if needed
-import Sidebar from "../Sidebar"; // Assuming Sidebar is here
+import Sidebar from "../Sidebar"; // Adjust path to your Sidebar component
 import { Input } from "../../../../components/ui/input";
 import { Textarea } from "../../../../components/ui/textarea";
 import { Button } from "../../../../components/ui/button";
 import { Label } from "../../../../components/ui/label";
-// The Loader component import path might be different based on your project structure.
-// If you don't have a specific `components/ui/loader.js`, you can remove this line
-// and just use the Lucide-React LoaderCircle directly.
-// import { Loader } from "../../../components/ui/loader";
 
+
+// --- Re-using getLoggedInUserInfo from DashboardPage ---
+// This function needs to return all relevant user info from localStorage.
+const getLoggedInUserInfo = () => {
+  const employeeInfoString = localStorage.getItem('employeeInfo');
+  if (employeeInfoString) {
+    try {
+      const userInfo = JSON.parse(employeeInfoString);
+      if (userInfo && typeof userInfo.userId === 'number' && userInfo.roles) {
+        return {
+          userId: userInfo.userId,
+          employeeId: userInfo.employeeId || null, // Can be null
+          userName: userInfo.userName || userInfo.username || 'User', // Fallback
+          roles: userInfo.roles // Should be an array
+        };
+      }
+    } catch (e) {
+      console.error("ComplaintsPage: Error parsing 'employeeInfo' from localStorage. Data might be corrupted.", e);
+      localStorage.removeItem('employeeInfo'); // Clear corrupted data
+      localStorage.removeItem('authToken');
+    }
+  }
+  return null;
+};
 
 // ==============================================================================
 // HELPER COMPONENT (for displaying a single complaint in the list)
 // ==============================================================================
 const ComplaintCard = ({ complaint }) => {
     const statusConfig = {
-        open: {
-            label: "Open",
-            icon: <FileWarning className="text-yellow-500" />,
-            borderColor: "border-yellow-500",
-            bgColor: "bg-yellow-50 dark:bg-yellow-900/30",
-        },
-        in_review: {
-            label: "In Review",
-            icon: <Clock className="text-blue-500" />,
-            borderColor: "border-blue-500",
-            bgColor: "bg-blue-50 dark:bg-blue-900/30",
-        },
-        resolved: {
-            label: "Resolved",
-            icon: <ShieldCheck className="text-green-500" />,
-            borderColor: "border-green-500",
-            bgColor: "bg-green-50 dark:bg-green-900/30",
-        },
-        rejected: {
-            label: "Rejected",
-            icon: <XCircle className="text-red-500" />,
-            borderColor: "border-red-500",
-            bgColor: "bg-red-50 dark:bg-red-900/30",
-        },
+        open: { label: "Open", icon: <FileWarning className="text-yellow-500" />, borderColor: "border-yellow-500", bgColor: "bg-yellow-50 dark:bg-yellow-900/30", },
+        in_review: { label: "In Review", icon: <Clock className="text-blue-500" />, borderColor: "border-blue-500", bgColor: "bg-blue-50 dark:bg-blue-900/30", },
+        resolved: { label: "Resolved", icon: <ShieldCheck className="text-green-500" />, borderColor: "border-green-500", bgColor: "bg-green-50 dark:bg-green-900/30", },
+        rejected: { label: "Rejected", icon: <XCircle className="text-red-500" />, borderColor: "border-red-500", bgColor: "bg-red-50 dark:bg-red-900/30", },
     };
 
     const currentStatus = statusConfig[complaint.status] || statusConfig.open;
@@ -84,8 +88,13 @@ const ComplaintCard = ({ complaint }) => {
 // MAIN PAGE COMPONENT
 // ==============================================================================
 export default function ComplaintsPage() {
-  // TODO: IMPORTANT: Replace this with the actual logged-in employee ID from your authentication context.
-  const employeeId = 1; // Placeholder employee ID
+  const router = useRouter(); // Initialize useRouter
+
+  // State to hold user info
+  const [userId, setUserId] = useState(null);
+  const [employeeId, setEmployeeId] = useState(null); // This can be null for HR etc.
+  const [userRoles, setUserRoles] = useState([]);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const [subject, setSubject] = useState("");
   const [description, setDescription] = useState("");
@@ -94,49 +103,101 @@ export default function ComplaintsPage() {
 
   const [myComplaints, setMyComplaints] = useState([]);
   const [isLoadingList, setIsLoadingList] = useState(true);
+  const [pageLoading, setPageLoading] = useState(true); // New state for initial page load
 
+  // FIX 1: Initial authentication check and role-based redirection
+  useEffect(() => {
+    console.log("ComplaintsPage: Initial authentication check initiated.");
+    const userInfo = getLoggedInUserInfo();
+    if (userInfo && userInfo.userId) {
+      setUserId(userInfo.userId);
+      setEmployeeId(userInfo.employeeId);
+      setUserRoles(userInfo.roles);
+      setIsAuthenticated(true);
+      console.log(`ComplaintsPage: User ID (${userInfo.userId}), Roles: ${userInfo.roles.join(', ')}. Employee ID: ${userInfo.employeeId}`);
+
+      // --- Role-based redirection logic ---
+      if (userInfo.roles.includes('HR') && !userInfo.roles.includes('Staff')) {
+        console.warn("ComplaintsPage: HR user accessing Staff Complaints. Redirecting to HR Dashboard.");
+        setPageLoading(false);
+        router.push('/hr/dashboard'); // Adjust path to your actual HR dashboard
+        return;
+      }
+      if (userInfo.roles.includes('Department Head') && !userInfo.roles.includes('Staff')) {
+          console.warn("ComplaintsPage: Department Head user accessing Staff Complaints. Redirecting to Department Head Dashboard.");
+          setPageLoading(false);
+          router.push('/dep-head/dashboard'); // Adjust path to your actual Department Head dashboard
+          return;
+      }
+      // Add more role-based redirects here if necessary
+
+      // If it's a Staff user BUT they don't have an associated employeeId
+      if (userInfo.roles.includes('Staff') && userInfo.employeeId === null) {
+          console.error("ComplaintsPage: Staff user found, but no associated employeeId. Cannot load complaints page.");
+          localStorage.removeItem('employeeInfo'); // Clear incomplete session
+          localStorage.removeItem('authToken');
+          setPageLoading(false);
+          router.push('/login'); // Redirect to login, as their staff profile is incomplete/invalid
+          return;
+      }
+      setPageLoading(false); // If no redirection, stop page loading
+
+    } else {
+      console.warn("ComplaintsPage: No valid user info found in localStorage. Redirecting to login.");
+      setPageLoading(false);
+      router.push('/login');
+    }
+  }, [router]);
+
+
+  // FIX 2: fetchMyComplaints now takes no employeeId parameter
   const fetchMyComplaints = useCallback(async () => {
-    setIsLoadingList(true); // Set loading before fetch
+    // Only proceed if authenticated and a staff member with employeeId
+    if (!isAuthenticated || employeeId === null || !userRoles.includes('Staff')) {
+      console.log("ComplaintsPage: Skipping fetchMyComplaints (conditions not met).");
+      return;
+    }
+
+    setIsLoadingList(true);
     try {
-        if (!employeeId) {
-            throw new Error("Employee ID not available. Cannot fetch complaints.");
-        }
-        const data = await getMyComplaint(employeeId); // Pass employeeId
+        const data = await getMyComplaint(); // No employeeId parameter here!
         setMyComplaints(data);
     } catch (error) {
         toast.error(error.message);
     } finally {
         setIsLoadingList(false);
     }
-  }, [employeeId]); // Add employeeId to dependencies
+  }, [isAuthenticated, employeeId, userRoles]); // Dependencies now include isAuthenticated, employeeId, userRoles
 
   useEffect(() => {
-    if (employeeId) { // Only fetch if employeeId is available
+    // Only fetch if authentication check is done and conditions for staff are met
+    if (isAuthenticated && employeeId !== null && userRoles.includes('Staff')) {
       fetchMyComplaints();
     }
-  }, [employeeId, fetchMyComplaints]); // Re-fetch if employeeId changes or fetchMyComplaints changes (unlikely for useCallback)
+  }, [isAuthenticated, employeeId, userRoles, fetchMyComplaints]); // Added dependencies
 
+  // FIX 3: handleSubmit now takes no employeeId parameter for submitComplaints
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
     setSubmitStatus(null);
 
-    if (!employeeId) {
-        setSubmitStatus({ ok: false, msg: "Employee ID is missing. Cannot submit complaint." });
+    // Re-check conditions before submitting
+    if (!isAuthenticated || employeeId === null || !userRoles.includes('Staff')) {
+        setSubmitStatus({ ok: false, msg: "Authentication error: Not a valid staff member to submit complaint." });
         setSubmitting(false);
         return;
     }
 
     try {
       const payload = { subject, description };
-      await submitComplaints(employeeId, payload); // Pass employeeId
+      await submitComplaints(payload); // No employeeId parameter here!
       
       setSubject("");
       setDescription("");
       setSubmitStatus({ ok: true, msg: "Complaint submitted successfully. HR will review it shortly." });
       
-      // Automatically refresh the list below after successful submission
-      await fetchMyComplaints();
+      await fetchMyComplaints(); // Refresh the list
     } catch (err) {
       setSubmitStatus({ ok: false, msg: err.message || "Something went wrong." });
     } finally {
@@ -144,10 +205,31 @@ export default function ComplaintsPage() {
     }
   };
 
+  // Display initial page loading
+  if (pageLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-slate-900">
+        <LoaderCircle className="w-12 h-12 animate-spin text-indigo-500" />
+      </div>
+    );
+  }
+
+  // If redirected, this component will unmount, so no need for further rendering checks here
+  // If not redirected, but not authenticated or not staff with employeeId
+  if (!isAuthenticated || employeeId === null || !userRoles.includes('Staff')) {
+    // This case should ideally be handled by redirection or pageLoading state
+    // But as a fallback, display a generic access denied message
+    return (
+        <div className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-slate-900">
+            <p className="text-red-500 dark:text-red-400">Access Denied: You do not have permission to view this page.</p>
+        </div>
+    );
+  }
+
+
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-slate-900">
-        {/* Assuming Sidebar is for staff and positioned correctly */}
-        <Sidebar />
+        <Sidebar /> {/* Adjust Sidebar path if needed */}
         <main className="flex-1 p-4 md:p-8">
           <div className="max-w-4xl mx-auto space-y-12">
             

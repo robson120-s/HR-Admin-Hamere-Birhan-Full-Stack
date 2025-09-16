@@ -1,3 +1,5 @@
+/* File: app/(HR)/hr/components/calendar.css */
+
 /* Custom Styles for React-Calendar to match TailwindCSS and Dark Mode */
 
 /* Main container for the calendar */
@@ -87,6 +89,7 @@
   border-radius: 0.5rem; /* rounded-lg */
   cursor: pointer;
   transition: background-color 0.2s;
+  position: relative; /* Needed for absolute positioning of tileContent */
 }
 .dark .react-calendar__tile {
   color: #d1d5db; /* gray-300 */
@@ -127,4 +130,15 @@
 }
 .dark .react-calendar__month-view__days__day--neighboringMonth {
   color: #4b5563; /* gray-600 */
+}
+
+/* Custom holiday styling */
+.holiday-tile {
+  background-color: #fce7f3 !important; /* pink-50 */
+  color: #db2777 !important; /* pink-600 */
+}
+
+.dark .holiday-tile {
+  background-color: #581c87 !important; /* purple-900 */
+  color: #f0abfc !important; /* purple-300 */
 }

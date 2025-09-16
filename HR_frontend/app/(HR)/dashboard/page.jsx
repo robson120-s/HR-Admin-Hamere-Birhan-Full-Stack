@@ -1,28 +1,41 @@
+// File: app/(HR)/hr/dashboard/page.jsx
 "use client";
 
 import { useEffect, useState, useCallback, useMemo } from "react";
 import dynamic from "next/dynamic";
-import { getDashboardData } from "../../../lib/api";
-import { addMeeting, deleteMeeting as apiDeleteMeeting } from "../../../lib/api"; 
+import Link from "next/link"; // Ensure Link is imported
+import Image from "next/image"; // Ensure Image is imported
+
+// Adjust these paths based on your actual project structure
+import { getDashboardData, addMeeting, deleteMeeting as apiDeleteMeeting } from "../../../lib/api";
 import toast from "react-hot-toast";
-import Link from "next/link";
+
+// UI Components (adjust paths)
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../../../components/ui/card";
+import { Button } from "../../../components/ui/button";
+import { Input } from "../../../components/ui/input";
+import { Textarea } from "../../../components/ui/textarea";
+
+// Lucide Icons (adjust imports if you've consolidated them)
 import {
   Users, Building, User, GraduationCap, CalendarOff, Briefcase, Bell, ArrowRight,
-  Hourglass, AlertCircle, LoaderCircle, Calendar as CalendarIcon, Sun, Phone, CalendarCheck2 ,Plus, Trash2, Info
+  Hourglass, AlertCircle, LoaderCircle, Calendar as CalendarIcon, Phone, Plus, Trash2, Info, Sun
 } from "lucide-react";
+
+// Dashboard-specific components (adjust paths)
 import ThemeToggle from "./components/ThemeToggle";
-import LoadingSpinner from "./loading";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../../../components/ui/card";
-import {Button} from "../../../components/ui/button";
-import {Input} from "../../../components/ui/input";
-import { Textarea } from "../../../components/ui/textarea";
-import Calendar from "react-calendar";
-import "react-calendar/dist/Calendar.css";
-import "./components/calendar.css";
-import Image from "next/image";
+import LoadingSpinner from "./loading"; // Assuming loading.jsx defines a default export for a loading spinner
+
+// Import the reusable DashboardCalendar component
+import { DashboardCalendar } from "./components/DashboardCalendar";
+
+// Dynamically import potentially heavy components
+const AttendanceChart = dynamic(() => import("./components/AttendanceChart"), { ssr: false });
+const MeetingSchedule = dynamic(() => import("./components/MeetingSchedule"), { ssr: false });
+
 
 // ==============================================================================
-// ALL SUB-COMPONENTS ARE DEFINED HERE
+// Sub-Components (Defined here for clarity, can be moved to separate files)
 // ==============================================================================
 
 const SummaryCard = ({ title, value, icon, href, colorClass }) => (
@@ -50,9 +63,9 @@ const PendingRequestsCard = ({ data }) => {
         <Card className="bg-white dark:bg-slate-800/50 shadow-lg h-full">
             <CardHeader><CardTitle className="flex items-center gap-2"><Bell className="text-rose-500"/> Action Required</CardTitle><CardDescription>Items that require your immediate attention.</CardDescription></CardHeader>
             <CardContent className="space-y-2">
-                <RequestItem count={data.pendingLeaves || 0} label="Leave Requests" href="/leave-request" icon={<CalendarOff size={20} />} />
-                <RequestItem count={data.pendingOvertimes || 0} label="Overtime Approvals" href="/overtime-approval" icon={<Hourglass size={20} />} />
-                <RequestItem count={data.pendingComplaints || 0} label="Open & In-Review Complaints" href="/complaints" icon={<AlertCircle size={20} />} />
+                <RequestItem count={data.pendingLeaves || 0} label="Leave Requests" href="/hr/leave_request" icon={<CalendarOff size={20} />} />
+                <RequestItem count={data.pendingOvertimes || 0} label="Overtime Approvals" href="/hr/overtime-approval" icon={<Hourglass size={20} />} />
+                <RequestItem count={data.pendingComplaints || 0} label="Open & In-Review Complaints" href="/hr/complain_received" icon={<AlertCircle size={20} />} />
             </CardContent>
         </Card>
     );
@@ -76,7 +89,7 @@ const DepartmentHeadsCard = ({ heads }) => {
     };
     return (
         <Card className="bg-white dark:bg-slate-800/50 shadow-lg h-full">
-            <CardHeader><CardTitle className="flex items-center gap-2"><Users className="text-blue-500" /> Key Contacts</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="flex items-center gap-2"><Users className="text-blue-500" /> Key Contacts (Department Heads)</CardTitle></CardHeader>
             <CardContent className="space-y-3 max-h-[24rem] overflow-y-auto pr-2">
                 {(!heads || heads.length === 0) ? (<p className="text-sm text-center text-slate-400 py-8">No department heads found.</p>) : (heads.map(head => (<HeadContactCard key={head.id} head={head} />)))}
             </CardContent>
@@ -84,92 +97,61 @@ const DepartmentHeadsCard = ({ heads }) => {
     );
 };
 
-const toDateString = (date) => new Date(date).toISOString().split('T')[0];
-
-const DashboardCalendar = ({ holidays = [] }) => {
-    const [value, onChange] = useState(new Date());
-
-    const holidayDates = useMemo(() => {
-        const dates = new Set();
-        holidays.forEach(h => dates.add(toDateString(h.date)));
-        return dates;
-    }, [holidays]);
-
-    const tileClassName = ({ date, view }) => {
-        if (view === 'month' && holidayDates.has(toDateString(date))) {
-            return 'holiday-tile'; // Custom class for styling
-        }
-        return null;
-    };
-    
-    const upcomingHolidays = useMemo(() => {
-        const today = new Date();
-        today.setHours(0,0,0,0);
-        return holidays
-            .filter(h => new Date(h.date) >= today)
-            .slice(0, 4); // Show the next 4 upcoming holidays
-    }, [holidays]);
-
-    return (
-        <Card className="bg-white dark:bg-slate-800/50 shadow-lg h-full">
-            <CardHeader><CardTitle className="flex items-center gap-2"><CalendarIcon className="text-indigo-500" /> Company Calendar</CardTitle></CardHeader>
-            <CardContent className="flex flex-col lg:flex-row gap-6">
-                <div className="flex-shrink-0 mx-auto">
-                    <Calendar onChange={onChange} value={value} tileClassName={tileClassName} className="rounded-lg shadow-inner bg-slate-50 dark:bg-slate-900/50" />
-                </div>
-                <div className="flex-1 min-w-0 border-t lg:border-t-0 lg:border-l pt-4 lg:pt-0 lg:pl-6 dark:border-slate-700">
-                    <h3 className="font-semibold mb-3 text-slate-800 dark:text-slate-200">Upcoming Holidays</h3>
-                    <div className="space-y-3">
-                        {upcomingHolidays.length > 0 ? (
-                            upcomingHolidays.map(h => (
-                                <div key={h.id} className="flex items-center gap-3 text-sm">
-                                    <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-purple-100 text-purple-600"><Sun size={16} /></div>
-                                    <div>
-                                        <p className="font-medium text-slate-700 dark:text-slate-300">{h.name}</p>
-                                        <p className="text-xs text-slate-500">{new Date(h.date).toLocaleDateString()}</p>
-                                    </div>
-                                </div>
-                            ))
-                        ) : (<p className="text-sm text-slate-400 text-center py-8">No upcoming holidays scheduled.</p>)}
-                    </div>
-                </div>
-            </CardContent>
-        </Card>
-    );
-};
-
-// Dynamically import heavy components
-const AttendanceChart = dynamic(() => import("./components/AttendanceChart"), { ssr: false });
-const MeetingSchedule = dynamic(() => import("./components/MeetingSchedule"), { ssr: false });
-
 // ==============================================================================
-// MAIN PAGE COMPONENT
+// MAIN HR DASHBOARD PAGE COMPONENT
 // ==============================================================================
 export default function DashboardPage() {
   const [dashboardData, setDashboardData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-const fetchData = useCallback(async () => {
-  if (!dashboardData) setIsLoading(true);
-  try {
-    const data = await getDashboardData();
-    setDashboardData(data);
-    console.log("Dashboard data:", data); // Add this to see what's in the response
-    console.log("Meetings data:", data.meetings); // Specifically check meetings
-  } catch (err) {
-    toast.error(err.message || "Failed to load dashboard data.");
-  } finally {
-    setIsLoading(false);
-  }
-}, [dashboardData]);
+  const fetchData = useCallback(async () => {
+    setIsLoading(true); // Always set loading to true when starting a fetch
+    try {
+      const data = await getDashboardData();
+      setDashboardData(data);
+      console.log("HR Dashboard data fetched:", data);
+    } catch (err) {
+      toast.error(err.message || "Failed to load dashboard data.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []); // Empty dependency array for useCallback, so it doesn't re-create
 
-  // ✅ CORRECTED: This useEffect now correctly fetches data only once on initial mount
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]); // Correctly triggers fetchData on mount
+
+  // Prepare events for the DashboardCalendar (meetings + holidays)
+  const calendarEvents = useMemo(() => {
+    const events = [];
+    if (dashboardData?.meetings) {
+      dashboardData.meetings.forEach(meeting => {
+        events.push({
+          id: `meeting-${meeting.id}`,
+          type: 'meeting',
+          date: meeting.date,
+          title: meeting.title,
+          time: meeting.time // Assuming meeting has a time property
+        });
+      });
+    }
+    if (dashboardData?.holidays) {
+      dashboardData.holidays.forEach(holiday => {
+        events.push({
+          id: `holiday-${holiday.id}`,
+          type: 'holiday',
+          date: holiday.date,
+          title: holiday.name,
+          // No time for holidays usually
+        });
+      });
+    }
+    return events;
+  }, [dashboardData]);
+
 
   if (isLoading) {
-    return <LoadingSpinner />;
+    return <LoadingSpinner />; // Make sure LoadingSpinner path is correct
   }
 
   if (!dashboardData) {
@@ -182,50 +164,51 @@ const fetchData = useCallback(async () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 md:p-8 transition-colors">
-      <header className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">📊 HR Dashboard</h1>
-        <ThemeToggle />
-      </header>
+      <div className="max-w-7xl mx-auto"> {/* Added max-w-7xl mx-auto for content width control */}
+        <header className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">📊 HR Dashboard</h1>
+          <ThemeToggle /> {/* Adjust path to ThemeToggle if needed */}
+        </header>
 
-      {/* Row 1: The "At a Glance" Numbers */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 mb-8">
-        <SummaryCard title="Total Employees" value={dashboardData.totalEmployees} icon={<Users className="w-8 h-8 text-blue-500"/>} href="/emp_profile_list" colorClass="border-t-4 border-blue-500" />
-        <SummaryCard title="Main Departments" value={dashboardData.totalMainDepartments} icon={<Building className="w-8 h-8 text-purple-500"/>} href="/departments" colorClass="border-t-4 border-purple-500" />
-        <SummaryCard title="Sub-Departments" value={dashboardData.totalSubDepartments} icon={<Briefcase className="w-8 h-8 text-indigo-500"/>} href="/departments" colorClass="border-t-4 border-indigo-500" />
-        <SummaryCard title="Staff (incl. Heads)" value={dashboardData.totalStaff} icon={<User className="w-8 h-8 text-emerald-500"/>} href="/emp_profile_list" colorClass="border-t-4 border-emerald-500" />
-        <SummaryCard title="Total Interns" value={dashboardData.totalIntern} icon={<GraduationCap className="w-8 h-8 text-orange-500"/>} href="/emp_profile_list" colorClass="border-t-4 border-orange-500" />
-        <SummaryCard title="On Leave Today" value={dashboardData.totalOnLeave} icon={<CalendarOff className="w-8 h-8 text-rose-500"/>} href="/leave-request" colorClass="border-t-4 border-rose-500" />
-      </div>
+        {/* Row 1: The "At a Glance" Numbers */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 mb-8">
+          <SummaryCard title="Total Employees" value={dashboardData.totalEmployees} icon={<Users className="w-8 h-8 text-blue-500"/>} href="/hr/emp_profile_list" colorClass="border-t-4 border-blue-500" />
+          <SummaryCard title="Main Departments" value={dashboardData.totalMainDepartments} icon={<Building className="w-8 h-8 text-purple-500"/>} href="/hr/departments" colorClass="border-t-4 border-purple-500" />
+          <SummaryCard title="Sub-Departments" value={dashboardData.totalSubDepartments} icon={<Briefcase className="w-8 h-8 text-indigo-500"/>} href="/hr/departments" colorClass="border-t-4 border-indigo-500" />
+          <SummaryCard title="Staff (incl. Heads)" value={dashboardData.totalStaff} icon={<User className="w-8 h-8 text-emerald-500"/>} href="/hr/emp_profile_list" colorClass="border-t-4 border-emerald-500" />
+          <SummaryCard title="Total Interns" value={dashboardData.totalIntern} icon={<GraduationCap className="w-8 h-8 text-orange-500"/>} href="/hr/emp_profile_list" colorClass="border-t-4 border-orange-500" />
+          <SummaryCard title="On Leave Today" value={dashboardData.totalOnLeave} icon={<CalendarOff className="w-8 h-8 text-rose-500"/>} href="/hr/leave_request" colorClass="border-t-4 border-rose-500" />
+        </div>
 
-       {/* Row 2: The "Action" Zone */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8 items-start">
-        <div className="lg:col-span-2">
-            <AttendanceChart data={dashboardData.presentPerDepartment} />
+        {/* Row 2: The "Action" Zone (Attendance Chart + Pending Requests) */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8 items-start">
+          <div className="lg:col-span-2">
+              <AttendanceChart data={dashboardData.presentPerDepartment} />
+          </div>
+          <div>
+              <PendingRequestsCard data={dashboardData} />
+          </div>
         </div>
-        <div>
-            <PendingRequestsCard data={dashboardData} />
-        </div>
-      </div>
 
-      {/* Row 3: The "Information" Zone */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-        <div>
-            {/* ✅ Use meetings from dashboardData */}
-            <MeetingSchedule 
-                meetings={dashboardData.meetings || []} 
-                onUpdate={fetchData} 
-            />
+        {/* Row 3: Meeting Schedule and Company Calendar */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8 items-start">
+          <div>
+              <MeetingSchedule
+                  meetings={dashboardData.meetings || []}
+                  onUpdate={fetchData}
+              />
+          </div>
+          <div>
+              {/* This is where the minimized DashboardCalendar is used */}
+              <DashboardCalendar events={calendarEvents} />
+          </div>
         </div>
-        <div>
-            {/* ✅ We now pass the holidays data from the dashboard fetch */}
-            <DashboardCalendar holidays={dashboardData.holidays || []} />
-        </div>
-      </div>
 
-       {/* Row 4: Key Contacts */}
-      <div className="mt-8">
-        <DepartmentHeadsCard heads={dashboardData.departmentHeads || []} />
-      </div>
+        {/* Row 4: Key Contacts (Department Heads) */}
+        <div className="mt-8">
+          <DepartmentHeadsCard heads={dashboardData.departmentHeads || []} />
+        </div>
+      </div> {/* End max-w-7xl mx-auto */}
     </div>
   );
 }

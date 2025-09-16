@@ -1,93 +1,103 @@
-// lib/api.js
 import axios from "axios";
-import Excellentaxios from "axios";
 
-// Create an instance of axios with a base URL.
-// Replace 'http://localhost:5000' with your actual backend server address.
-const apiClientHr = axios.create({
-  baseURL: "http://localhost:5555/api/hr", // Adjust the port and base path as needed
-  withCredentials: true, // This is crucial for sending cookies (like auth tokens)
-});
+// --- Base Axios Instances ---
+const BASE_URL = "http://localhost:5555/api"; // Centralized base URL
 
-export const apiClientDepHead = axios.create({
-  baseURL: "http://localhost:5555/api/dep-head", // New, dedicated base URL
-  withCredentials: true,
-});
+const apiClientHr = axios.create({ baseURL: `${BASE_URL}/hr`, withCredentials: true });
+export const apiClientDepHead = axios.create({ baseURL: `${BASE_URL}/dep-head`, withCredentials: true });
+export const apiClientStaff = axios.create({ baseURL: `${BASE_URL}/staff`, withCredentials: true, headers: { 'Content-Type': 'application/json' } });
+export const apiClientIntern = axios.create({ baseURL: `${BASE_URL}/intern`, withCredentials: true, headers: { 'Content-Type': 'application/json' } });
+const apiClientSalary = axios.create({ baseURL: `${BASE_URL}/salary`, withCredentials: true });
+const apiClient = axios.create({ baseURL: BASE_URL, withCredentials: true }); // For general auth, upload
+const apiClientPolicies = axios.create({ baseURL: `${BASE_URL}/policies`, withCredentials: true });
 
 
-
-export const apiClientStaff = axios.create({
-  baseURL: "http://localhost:5555/api/staff", // New, dedicated base URL
-  withCredentials: true,
-    headers: {
-    'Content-Type': 'application/json',
-    // 'Authorization': `Bearer ${localStorage.getItem('authToken')}` // Example for auth
-  },
-});
-
-export const apiClientIntern = axios.create({
-  baseURL: "http://localhost:5555/api/intern", // New, dedicated base URL
-  withCredentials: true,
-    headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-const apiClientSalary = axios.create({
-  baseURL: "http://localhost:5555/api/salary", // Base path for all salary endpoints
-  withCredentials: true,
-});
-
-const apiClient = axios.create({
-  baseURL: "http://localhost:5555/api", // Note the shorter baseURL
-  withCredentials: true,
-});
-const apiClientPolicies = axios.create({
-  baseURL: "http://localhost:5555/api/policies",
-  withCredentials: true,
-});
-
-
-const addAuthToken = (config) => {
-    const token = localStorage.getItem("authToken");
-    if (token) {
-      config.headers["Authorization"] = `Bearer ${token}`;
-    }
-    return config;
+// --- Interceptor for adding Auth Token (General Purpose) ---
+const addAuthTokenInterceptor = (instance) => {
+  instance.interceptors.request.use(
+    (config) => {
+      const employeeInfoString = localStorage.getItem('employeeInfo');
+      if (employeeInfoString) {
+        try {
+          const employeeInfo = JSON.parse(employeeInfoString);
+          const token = employeeInfo.token;
+          if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+          }
+        } catch (e) {
+          console.error(`API Client (${instance.defaults.baseURL}): Error parsing employee info for request interceptor:`, e);
+        }
+      }
+      return config;
+    },
+    (error) => Promise.reject(error)
+  );
 };
-apiClientDepHead.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('authToken');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+
+// --- Response Interceptor for handling 401 Unauthorized globally ---
+const add401Interceptor = (instance) => {
+  instance.interceptors.response.use(
+    (response) => response,
+    (error) => {
+      if (error.response && error.response.status === 401) {
+        console.warn(`API Client (${instance.defaults.baseURL}): Authentication failed (401 Unauthorized). Clearing session and redirecting to login.`, error.response.data);
+        localStorage.removeItem('employeeInfo');
+        localStorage.removeItem('authToken');
+        window.location.href = '/loginpage'; // Full page reload for clean state
+      }
+      return Promise.reject(error);
     }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
+  );
+};
 
-apiClientHr.interceptors.request.use(addAuthToken);
-apiClientDepHead.interceptors.request.use(addAuthToken);
-apiClient.interceptors.request.use(addAuthToken);
-apiClientSalary.interceptors.request.use(addAuthToken);
-apiClientSalary.interceptors.request.use(addAuthToken);
-apiClientPolicies.interceptors.request.use(addAuthToken);
-apiClientStaff.interceptors.request.use(addAuthToken);
-apiClientIntern.interceptors.request.use(addAuthToken);
+// --- Apply Interceptors to all Axios instances ONCE ---
+[
+  apiClientHr, apiClientDepHead, apiClientStaff, apiClientIntern,
+  apiClientSalary, apiClientPolicies, apiClient,
+].forEach(client => {
+  addAuthTokenInterceptor(client);
+  add401Interceptor(client);
+});
 
-
+// FIX 1: Ensure login correctly parses and saves employeeInfo for all user types.
+// Backend's /api/auth/login should return `{ token, user: { id, username, email, roles, employee: { ... } | null } }`
 export const login = async (credentials) => {
   try {
-    // This is a public route is solid, and your frontend UI is very attractive. Now, let's connect them to create a fully functional and, so we can make a direct axios call.
-    // The baseURL should point to your backend.
-    const response = await axios.post("http://localhost:5555/api/auth/login", credentials);
-    return response.data; // Will return { token, user }
+    const response = await apiClient.post(`/auth/login`, credentials);
+    const { token, user } = response.data;
+
+    if (!token) {
+      console.error("Login successful, but response missing token:", response.data);
+      throw new Error("Login response incomplete: No token received.");
+    }
+
+    let employeeId = null;
+    let userName = user.username; // Default to username from user object
+
+    if (user && user.employee && typeof user.employee.id === 'number') {
+      employeeId = user.employee.id;
+      userName = `${user.employee.firstName} ${user.employee.lastName}`;
+    } else {
+      // For roles like HR that don't have an `employee` record, this is expected.
+      // The `userName` defaults to `user.username`.
+      console.log(`Login: User '${user.username}' (ID: ${user.id}) has roles: [${user.roles.join(', ')}]. No associated employee record found.`);
+    }
+
+    localStorage.setItem('employeeInfo', JSON.stringify({
+      token: token,
+      userId: user.id,          // Store the user's ID
+      employeeId: employeeId,    // Will be null for HR, valid for Staff/Dep Head
+      userName: userName,
+      roles: user.roles          // Store roles for client-side routing
+    }));
+    localStorage.setItem('authToken', token); // Also store raw token if needed elsewhere
+
+    return response.data; // Return the full response for the calling component
   } catch (error) {
     throw new Error(error.response?.data?.error || "Login failed. Please try again.");
   }
 };
+
 /**
  * IMPORTANT: Authentication
  * Your backend uses 'authenticate' and 'authorize("HR")'. This means you MUST
@@ -757,49 +767,44 @@ export const changePassworddep = async (passwordData) => {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////STAFF//////////////////////////////////////////////////////////////////////////////////////
 
-export const fetchStaffDashboardSummary = async (employeeId) => {
+export const fetchStaffDashboardSummary = async () => {
   try {
-    // The path here is relative to the staffApiClient's baseURL (/api/staff)
-    const response = await apiClientStaff.get(`/dashboard/${employeeId}/summary`);
+    const response = await apiClientStaff.get(`/dashboard/summary`);
     return response.data;
   } catch (error) {
     console.error("Error fetching staff dashboard summary:", error);
-    // Aligning error handling with your example
     throw new Error(error.response?.data?.message || error.message || "Could not fetch dashboard summary.");
   }
 };
 
-export const fetchHolidays = async () => {
+export const fetchHolidays = async () => { // No change
   try {
-    // The path here is relative to the staffApiClient's baseURL (/api/staff)
     const response = await apiClientStaff.get('/holidays');
     return response.data;
   } catch (error) {
     console.error("Error fetching holidays:", error);
-    // Aligning error handling with your example
     throw new Error(error.response?.data?.message || error.message || "Could not fetch holidays.");
   }
 };
 
-export const fetchRecentActivities = async (employeeId) => {
+// FIX 3: Removed employeeId parameter, updated URL path
+export const fetchRecentActivities = async () => {
   try {
-    // The path here is relative to the staffApiClient's baseURL (/api/staff)
-    const response = await apiClientStaff.get(`/dashboard/${employeeId}/activities`);
+    const response = await apiClientStaff.get(`/dashboard/activities`);
     return response.data;
   } catch (error) {
     console.error("Error fetching recent activities:", error);
-    // Aligning error handling with your example
     throw new Error(error.response?.data?.message || error.message || "Could not fetch recent activities.");
   }
 };
 
-export const fetchStaffAttendanceHistory = async (employeeId, month, year) => {
+// FIX 4: Removed employeeId parameter, updated URL path
+export const fetchStaffAttendanceHistory = async (month, year) => {
   try {
     const params = {};
     if (month) params.month = month;
     if (year) params.year = year;
-
-    const response = await apiClientStaff.get(`/attendance-history/${employeeId}`, { params });
+    const response = await apiClientStaff.get(`/attendance-history`, { params });
     return response.data;
   } catch (error) {
     console.error("Error fetching staff attendance history:", error);
@@ -807,11 +812,10 @@ export const fetchStaffAttendanceHistory = async (employeeId, month, year) => {
   }
 };
 
-////Third page Complain
-export const submitComplaints = async (employeeId, { subject, description }) => {
+// FIX 5: Removed employeeId parameter from payload (backend now uses req.user.employee.id)
+export const submitComplaints = async ({ subject, description }) => {
   try {
-    // Pass employeeId in the body for the POST request
-    const response = await apiClientStaff.post('/complaints', { employeeId, subject, description });
+    const response = await apiClientStaff.post('/complaints', { subject, description });
     return response.data;
   } catch (error) {
     console.error("Error submitting complaint:", error);
@@ -819,10 +823,10 @@ export const submitComplaints = async (employeeId, { subject, description }) => 
   }
 };
 
-export const getMyComplaint = async (employeeId) => {
+// FIX 6: Removed employeeId parameter, updated URL path
+export const getMyComplaint = async () => {
   try {
-    // Fetch complaints specific to this employeeId
-    const response = await apiClientStaff.get(`/complaints/${employeeId}`);
+    const response = await apiClientStaff.get(`/complaints`);
     return response.data;
   } catch (error) {
     console.error("Error fetching my complaints:", error);
@@ -830,9 +834,10 @@ export const getMyComplaint = async (employeeId) => {
   }
 };
 
-export const fetchEmployeeProfile = async (employeeId) => {
+// FIX 7: Removed employeeId parameter, updated URL path
+export const fetchEmployeeProfile = async () => {
   try {
-    const response = await apiClientStaff.get(`/profile/${employeeId}`);
+    const response = await apiClientStaff.get(`/profile`);
     return response.data;
   } catch (error) {
     console.error("Error fetching employee profile:", error);
@@ -840,9 +845,10 @@ export const fetchEmployeeProfile = async (employeeId) => {
   }
 };
 
-export const updateStaffPassword = async (employeeId, { currentPassword, newPassword }) => {
+// FIX 8: Removed employeeId parameter, updated URL path
+export const updateStaffPassword = async ({ currentPassword, newPassword }) => {
   try {
-    const response = await apiClientStaff.put(`/settings/${employeeId}/change-password`, { currentPassword, newPassword });
+    const response = await apiClientStaff.put(`/settings/change-password`, { currentPassword, newPassword });
     return response.data;
   } catch (error) {
     console.error("Error updating password:", error);
@@ -850,15 +856,17 @@ export const updateStaffPassword = async (employeeId, { currentPassword, newPass
   }
 };
 
-export const updateStaffNotificationPreference = async (employeeId, notifyOnComplaint) => {
+// FIX 9: Removed employeeId parameter, updated URL path
+export const updateStaffNotificationPreference = async (notifyOnComplaint) => {
   try {
-    const response = await apiClientStaff.patch(`/settings/${employeeId}/notifications`, { notifyOnComplaint });
+    const response = await apiClientStaff.patch(`/settings/notifications`, { notifyOnComplaint });
     return response.data;
   } catch (error) {
     console.error("Error updating notification preference:", error);
     throw new Error(error.response?.data?.message || error.message || "Could not update notification preference.");
   }
 };
+
 
 
 

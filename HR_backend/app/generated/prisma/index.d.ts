@@ -34392,7 +34392,7 @@ export namespace Prisma {
     date: Date | string
     time: string
     createdAt?: Date | string
-    updatedAt: Date | string
+    updatedAt?: Date | string
     employee?: employeeCreateNestedOneWithoutMeetingInput
   }
 
@@ -34404,7 +34404,7 @@ export namespace Prisma {
     time: string
     creatorId?: number | null
     createdAt?: Date | string
-    updatedAt: Date | string
+    updatedAt?: Date | string
   }
 
   export type meetingUpdateInput = {
@@ -34436,7 +34436,7 @@ export namespace Prisma {
     time: string
     creatorId?: number | null
     createdAt?: Date | string
-    updatedAt: Date | string
+    updatedAt?: Date | string
   }
 
   export type meetingUpdateManyMutationInput = {
@@ -41629,7 +41629,7 @@ export namespace Prisma {
     date: Date | string
     time: string
     createdAt?: Date | string
-    updatedAt: Date | string
+    updatedAt?: Date | string
   }
 
   export type meetingUncheckedCreateWithoutEmployeeInput = {
@@ -41639,7 +41639,7 @@ export namespace Prisma {
     date: Date | string
     time: string
     createdAt?: Date | string
-    updatedAt: Date | string
+    updatedAt?: Date | string
   }
 
   export type meetingCreateOrConnectWithoutEmployeeInput = {
@@ -45712,7 +45712,7 @@ export namespace Prisma {
     date: Date | string
     time: string
     createdAt?: Date | string
-    updatedAt: Date | string
+    updatedAt?: Date | string
   }
 
   export type overtimelogCreateManyEmployeeInput = {

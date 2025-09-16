@@ -1,18 +1,52 @@
-// app/staff/AttendanceHistoryPage.jsx
+// app/(Staff)/staff/attendance-history/page.jsx
+
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
-import { CalendarDaysIcon, ClockIcon, XCircleIcon, CheckCircleIcon, MinusCircleIcon } from '@heroicons/react/24/outline';
+import React, { useState, useEffect, useMemo, useCallback } from 'react'; // Added useCallback
+import { useRouter } from 'next/navigation'; // Import useRouter
+// import { CalendarDaysIcon, ClockIcon, XCircleIcon, CheckCircleIcon, MinusCircleIcon, LoaderCircle } from '@heroicons/react/24/outline'; // Added LoaderCircle
+import { CalendarDaysIcon, ClockIcon, XCircleIcon, CheckCircleIcon, MinusCircleIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../../components/ui/card'; // Adjust path
 import { fetchStaffAttendanceHistory } from '../../../../lib/api'; // Adjust path
 import { format } from 'date-fns';
 
+// --- Re-using getLoggedInUserInfo from DashboardPage ---
+// This function needs to return all relevant user info from localStorage.
+const getLoggedInUserInfo = () => {
+  const employeeInfoString = localStorage.getItem('employeeInfo');
+  if (employeeInfoString) {
+    try {
+      const userInfo = JSON.parse(employeeInfoString);
+      if (userInfo && typeof userInfo.userId === 'number' && userInfo.roles) {
+        return {
+          userId: userInfo.userId,
+          employeeId: userInfo.employeeId || null, // Can be null
+          userName: userInfo.userName || userInfo.username || 'User', // Fallback
+          roles: userInfo.roles // Should be an array
+        };
+      }
+    } catch (e) {
+      console.error("AttendanceHistoryPage: Error parsing 'employeeInfo' from localStorage. Data might be corrupted.", e);
+      localStorage.removeItem('employeeInfo'); // Clear corrupted data
+      localStorage.removeItem('authToken');
+    }
+  }
+  return null;
+};
+
+
 export default function AttendanceHistoryPage() {
-  // TODO: Replace with the actual logged-in employee ID from your authentication context.
-  const employeeId = 1; // Placeholder for demonstration
+  const router = useRouter(); // Initialize useRouter
+
+  // State to hold user info
+  const [userId, setUserId] = useState(null);
+  const [employeeId, setEmployeeId] = useState(null); // This can be null for HR etc.
+  const [userRoles, setUserRoles] = useState([]);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const [attendanceRecords, setAttendanceRecords] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); // Initial loading for data fetch
+  const [pageLoading, setPageLoading] = useState(true); // New state for initial page load/auth
   const [error, setError] = useState(null);
 
   const currentYear = new Date().getFullYear();
@@ -30,84 +64,127 @@ export default function AttendanceHistoryPage() {
 
   // Months for dropdown
   const months = useMemo(() => ([
-    { value: 1, name: 'January' },
-    { value: 2, name: 'February' },
-    { value: 3, name: 'March' },
-    { value: 4, name: 'April' },
-    { value: 5, name: 'May' },
-    { value: 6, name: 'June' },
-    { value: 7, name: 'July' },
-    { value: 8, name: 'August' },
-    { value: 9, name: 'September' },
-    { value: 10, name: 'October' },
-    { value: 11, name: 'November' },
-    { value: 12, name: 'December' },
+    { value: 1, name: 'January' }, { value: 2, name: 'February' }, { value: 3, name: 'March' },
+    { value: 4, name: 'April' }, { value: 5, name: 'May' }, { value: 6, name: 'June' },
+    { value: 7, name: 'July' }, { value: 8, name: 'August' }, { value: 9, name: 'September' },
+    { value: 10, name: 'October' }, { value: 11, name: 'November' }, { value: 12, name: 'December' },
   ]), []);
 
+
+  // FIX 1: Initial authentication check and role-based redirection
   useEffect(() => {
-    const getAttendanceHistory = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        if (!employeeId) {
-          throw new Error('Employee ID not available for fetching attendance history.');
-        }
-        const data = await fetchStaffAttendanceHistory(employeeId, selectedMonth, selectedYear);
-        // Ensure date objects for consistent handling
-        setAttendanceRecords(data.map(record => ({
-          ...record,
-          date: new Date(record.date),
-        })));
-      } catch (err) {
-        console.error("Error fetching attendance history:", err);
-        setError(err.message || "Failed to load attendance history.");
-      } finally {
-        setLoading(false);
+    console.log("AttendanceHistoryPage: Initial authentication check initiated.");
+    const userInfo = getLoggedInUserInfo();
+    if (userInfo && userInfo.userId) {
+      setUserId(userInfo.userId);
+      setEmployeeId(userInfo.employeeId);
+      setUserRoles(userInfo.roles);
+      setIsAuthenticated(true);
+      console.log(`AttendanceHistoryPage: User ID (${userInfo.userId}), Roles: ${userInfo.roles.join(', ')}. Employee ID: ${userInfo.employeeId}`);
+
+      // --- Role-based redirection logic ---
+      if (userInfo.roles.includes('HR') && !userInfo.roles.includes('Staff')) {
+        console.warn("AttendanceHistoryPage: HR user accessing Staff Attendance. Redirecting to HR Dashboard.");
+        setPageLoading(false);
+        router.push('/hr/dashboard'); // Adjust path to your actual HR dashboard
+        return;
       }
-    };
+      if (userInfo.roles.includes('Department Head') && !userInfo.roles.includes('Staff')) {
+          console.warn("AttendanceHistoryPage: Department Head user accessing Staff Attendance. Redirecting to Department Head Dashboard.");
+          setPageLoading(false);
+          router.push('/dep-head/dashboard'); // Adjust path to your actual Department Head dashboard
+          return;
+      }
+      // Add more role-based redirects here if necessary
 
-    getAttendanceHistory();
-  }, [employeeId, selectedMonth, selectedYear]); // Re-fetch when employeeId, month, or year changes
+      // If it's a Staff user BUT they don't have an associated employeeId
+      if (userInfo.roles.includes('Staff') && userInfo.employeeId === null) {
+          console.error("AttendanceHistoryPage: Staff user found, but no associated employeeId. Cannot load attendance history.");
+          localStorage.removeItem('employeeInfo'); // Clear incomplete session
+          localStorage.removeItem('authToken');
+          setPageLoading(false);
+          router.push('/login'); // Redirect to login, as their staff profile is incomplete/invalid
+          return;
+      }
+      setPageLoading(false); // If no redirection, stop page loading
+
+    } else {
+      console.warn("AttendanceHistoryPage: No valid user info found in localStorage. Redirecting to login.");
+      setPageLoading(false);
+      router.push('/login');
+    }
+  }, [router]);
 
 
-  // Group records by month for a cleaner display
+  // FIX 2: getAttendanceHistory now uses state variables and no employeeId parameter
+  const getAttendanceHistory = useCallback(async () => {
+    // Only proceed if authenticated AND it's a Staff role with a valid employeeId
+    if (!isAuthenticated || employeeId === null || !userRoles.includes('Staff')) {
+      console.log("AttendanceHistoryPage: Skipping data fetch (conditions not met for Staff attendance).");
+      setLoading(false); // Stop data loading if conditions not met
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    try {
+      // No employeeId parameter here, backend derives it from the token
+      const data = await fetchStaffAttendanceHistory(selectedMonth, selectedYear);
+      setAttendanceRecords(data.map(record => ({
+        ...record,
+        date: new Date(record.date),
+      })));
+    } catch (err) {
+      console.error("Error fetching attendance history:", err);
+      setError(err.message || "Failed to load attendance history.");
+    } finally {
+      setLoading(false);
+    }
+  }, [isAuthenticated, employeeId, userRoles, selectedMonth, selectedYear]); // Dependencies for useCallback
+
+  // Trigger data fetch when relevant state changes
+  useEffect(() => {
+    if (isAuthenticated && employeeId !== null && userRoles.includes('Staff')) {
+      getAttendanceHistory();
+    }
+  }, [isAuthenticated, employeeId, userRoles, selectedMonth, selectedYear, getAttendanceHistory]);
+
+
+  // Group records by month for a cleaner display (useMemo is correct)
   const groupedRecords = useMemo(() => {
     if (!attendanceRecords || attendanceRecords.length === 0) return {};
-
     return attendanceRecords.reduce((acc, record) => {
       const monthYearKey = format(record.date, 'MMMM yyyy');
-      if (!acc[monthYearKey]) {
-        acc[monthYearKey] = [];
-      }
+      if (!acc[monthYearKey]) { acc[monthYearKey] = []; }
       acc[monthYearKey].push(record);
       return acc;
     }, {});
   }, [attendanceRecords]);
 
 
-  const getStatusClasses = (status) => {
-    switch (status) {
-      case 'present': return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300';
-      case 'absent': return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300';
-      case 'half_day': return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300';
-      case 'on_leave': return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300';
-      case 'permission': return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300';
-      case 'holiday': return 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300';
-      case 'weekend': return 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300';
-      default: return 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300';
-    }
-  };
+  const getStatusClasses = (status) => { /* ... */ return 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'; };
+  const getStatusIcon = (status) => { /* ... */ return <CalendarDaysIcon className="w-5 h-5 text-gray-500" />; };
 
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'present': return <CheckCircleIcon className="w-5 h-5 text-green-500" />;
-      case 'absent': return <XCircleIcon className="w-5 h-5 text-red-500" />;
-      case 'half_day': return <MinusCircleIcon className="w-5 h-5 text-yellow-500" />;
-      case 'on_leave': return <CalendarDaysIcon className="w-5 h-5 text-blue-500" />;
-      case 'permission': return <ClockIcon className="w-5 h-5 text-purple-500" />;
-      default: return <CalendarDaysIcon className="w-5 h-5 text-gray-500" />;
-    }
-  };
+
+  // Display initial page loading
+  if (pageLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
+
+<ArrowPathIcon className="w-8 h-8 animate-spin mx-auto text-indigo-500" />
+      </div>
+    );
+  }
+
+  // Fallback for access denied if not redirected
+  if (!isAuthenticated || employeeId === null || !userRoles.includes('Staff')) {
+    return (
+        <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900 text-red-500">
+            <p className="text-red-500 dark:text-red-400">Access Denied: You do not have permission to view this page.</p>
+        </div>
+    );
+  }
+
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 sm:p-6 lg:p-8">
@@ -133,11 +210,7 @@ export default function AttendanceHistoryPage() {
                 onChange={(e) => setSelectedYear(parseInt(e.target.value, 10))}
                 className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
               >
-                {years.map((year) => (
-                  <option key={year} value={year}>
-                    {year}
-                  </option>
-                ))}
+                {years.map((year) => (<option key={year} value={year}>{year}</option>))}
               </select>
             </div>
             <div className="flex-1">
@@ -150,11 +223,7 @@ export default function AttendanceHistoryPage() {
                 onChange={(e) => setSelectedMonth(parseInt(e.target.value, 10))}
                 className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
               >
-                {months.map((month) => (
-                  <option key={month.value} value={month.value}>
-                    {month.name}
-                  </option>
-                ))}
+                {months.map((month) => (<option key={month.value} value={month.value}>{month.name}</option>))}
               </select>
             </div>
           </CardContent>
@@ -162,7 +231,9 @@ export default function AttendanceHistoryPage() {
 
         {loading && (
           <div className="text-center py-12 text-gray-600 dark:text-gray-300">
-            <p>Loading attendance records...</p>
+            
+<ArrowPathIcon className="w-8 h-8 animate-spin mx-auto text-indigo-500" />
+            <p className="mt-2">Loading attendance records...</p>
           </div>
         )}
 
@@ -204,31 +275,11 @@ export default function AttendanceHistoryPage() {
                         </div>
                       </div>
                       <div className="flex items-center gap-3 text-sm">
-                        {record.lateArrival && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300">
-                            Late
-                          </span>
-                        )}
-                        {record.earlyDeparture && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-50 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300">
-                            Early
-                          </span>
-                        )}
-                        {record.unplannedAbsence && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300">
-                            Unplanned Absent
-                          </span>
-                        )}
-                        {record.totalWorkHours && record.status === 'present' && (
-                          <span className="text-gray-600 dark:text-gray-300">
-                            {record.totalWorkHours.toFixed(2)} hrs
-                          </span>
-                        )}
-                        {record.remarks && (
-                            <span className="text-gray-500 dark:text-gray-400 text-xs italic">
-                                ({record.remarks})
-                            </span>
-                        )}
+                        {record.lateArrival && (<span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300">Late</span>)}
+                        {record.earlyDeparture && (<span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-50 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300">Early</span>)}
+                        {record.unplannedAbsence && (<span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300">Unplanned Absent</span>)}
+                        {record.totalWorkHours && record.status === 'present' && (<span className="text-gray-600 dark:text-gray-300">{record.totalWorkHours.toFixed(2)} hrs</span>)}
+                        {record.remarks && (<span className="text-gray-500 dark:text-gray-400 text-xs italic">({record.remarks})</span>)}
                       </div>
                     </div>
                   ))}

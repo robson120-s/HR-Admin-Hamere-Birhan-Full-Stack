@@ -2,7 +2,6 @@ const express =require('express')
 const app =express()
 const cors = require('cors')
 const path = require('path');
-const bodyParser = require('body-parser');
 const hrRoutes = require('./app/routes/hr.routes');
 const depHeadRoutes = require('./app/routes/depHead.routes');
 
