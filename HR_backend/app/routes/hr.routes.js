@@ -96,10 +96,7 @@ prisma.employee.findMany({
   }),
   prisma.holiday.findMany({ orderBy: { date: 'asc' } })
 ]);
-        console.log(`Found ${meetings.length} meetings in database`);
-    if (meetings.length > 0) {
-      console.log("Sample meeting:", meetings[0]);
-    }
+    
 
 const presentSummaries = await prisma.attendancesummary.findMany({
   where: { 

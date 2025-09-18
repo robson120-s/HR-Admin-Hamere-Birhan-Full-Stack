@@ -4,7 +4,6 @@ import { prisma } from "@/lib/prisma"; // <-- adjust this import if your prisma 
 export async function POST(req) {
   try {
     const { department, data } = await req.json();
-    console.log("✅ Received attendance data:", { department, data });
 
     // 🔥 Example logic to update attendance in DB
     // You can change the model and fields according to your schema later

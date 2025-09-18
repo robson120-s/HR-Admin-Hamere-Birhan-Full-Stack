@@ -27,7 +27,6 @@ export async function POST(request, { params }) {
 
     // If the update fails (e.g., record doesn't exist), return mock success for demonstration
     if (!updatedSalary) {
-      console.log(`Mock payment for salary ID: ${id}`);
       return NextResponse.json({
         success: true,
         message: "Salary paid successfully",

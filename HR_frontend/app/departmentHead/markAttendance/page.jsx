@@ -23,8 +23,8 @@ const StatusCell = ({ status, onClick, disabled = false, isLocked = false }) => 
         present: { icon: <UserCheck size={18}/>, color: 'text-green-500', bg: 'hover:bg-green-100 dark:hover:bg-green-900/50', title: 'Present' },
         late:    { icon: <ClockAlert size={18}/>, color: 'text-yellow-500', bg: 'hover:bg-yellow-100 dark:hover:bg-yellow-900/50', title: 'Late' },
         absent:  { icon: <UserX size={18}/>, color: 'text-rose-500', bg: 'hover:bg-rose-100 dark:hover:bg-rose-900/50', title: 'Absent' },
-        on_leave:{ icon: <CalendarOff size={18}/>, color: 'text-purple-500', bg: 'hover:bg-purple-100 dark:hover:bg-purple-900/50', title: 'On Leave' },
         permission: { icon: <ShieldCheck size={18}/>, color: 'text-cyan-500', bg: 'hover:bg-cyan-100 dark:hover:bg-cyan-900/50', title: 'Permission'},
+        on_leave:{ icon: <CalendarOff size={18}/>, color: 'text-purple-500', bg: 'hover:bg-purple-100 dark:hover:bg-purple-900/50', title: 'On Leave' },
     }[status] || { icon: <UserX size={18}/>, color: 'text-slate-400', bg: 'hover:bg-slate-100 dark:hover:bg-slate-700', title: 'Absent' };
 
     const finalDisabled = disabled || isLocked;
@@ -205,7 +205,7 @@ export default function MarkAttendancePage() {
               worksheetData.push(dateHeaderRow, sessionHeaderRow);
 
               const statusSymbolMap = {
-                  present: "✔", late: "L", absent: "A", permission: "P", on_leave: "OL",
+                  present: "✔", absent: "A", late: "L",  permission: "P", on_leave: "OL",
                   weekend: "W", holiday: "H"
               };
               

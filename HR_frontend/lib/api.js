@@ -451,7 +451,6 @@ export const getAttendanceForApproval = async (date, page = 1, departmentId = ''
       ...(search && { search })
     });
     
-    console.log('Fetching from:', `/api/hr/attendance-for-approval?${params}`);
     
     const response = await apiClientHr.get(`/attendance-for-approval?${params}`);
     return response.data;

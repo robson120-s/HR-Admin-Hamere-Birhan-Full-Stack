@@ -27,7 +27,6 @@ export async function POST(request, { params }) {
 
     // If the update fails (e.g., record doesn't exist), return mock success for demonstration
     if (!updatedOvertime) {
-      console.log(`Mock approval for overtime ID: ${id}`);
       return NextResponse.json({
         success: true,
         message: "Overtime approved successfully",
