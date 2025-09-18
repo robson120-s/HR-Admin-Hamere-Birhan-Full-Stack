@@ -1,5 +1,5 @@
 // app/utils/attendanceProcessor.js
-const { PrismaClient } = require('../generated/prisma');
+const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
 const processAttendanceForDate = async (date, employeeIds) => {
