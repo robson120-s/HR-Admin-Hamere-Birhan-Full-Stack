@@ -70,7 +70,7 @@ const authorize = (...roles) => {
 module.exports = { authenticate, authorize };
 
 // const jwt = require('jsonwebtoken');
-// const { PrismaClient } = require('../generated/prisma');
+// const { PrismaClient } = require("@prisma/client");
 // const prisma = new PrismaClient();
 
 // // Authentication middleware to verify JWT and extract user info
