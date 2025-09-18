@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import { X, Building } from "lucide-react";
-import { Button } from "../../../../components/ui/Button"; // Assuming a shared Button component
+import { Button } from "../../../../components/ui/button"; // Assuming a shared Button component
 import { Input } from "../../../../components/ui/input";   // Assuming a shared Input component
 import { Textarea } from "../../../../components/ui/textarea"; // Assuming a shared Textarea component
 

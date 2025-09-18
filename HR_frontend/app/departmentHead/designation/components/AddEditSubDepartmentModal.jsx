@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { X, Building } from "lucide-react";
-import { Button } from "../../../../components/ui/Button"; // Adjust path to your shared Button
+import { Button } from "../../../../components/ui/button"; // Adjust path to your shared Button
 import { Input } from "../../../../components/ui/input";   // Adjust path to your shared Input
 import { Textarea } from "../../../../components/ui/textarea"; // Adjust path to your shared Textarea
 

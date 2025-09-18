@@ -2,7 +2,7 @@
 
 import { Fragment } from "react";
 import { ArrowLeft, Plus, Users, Edit, Trash2, Building, Briefcase, ChevronDown, Star } from "lucide-react";
-import { Button } from "../../../../components/ui/Button";
+import { Button } from "../../../../components/ui/button";
 import { Disclosure, Transition } from '@headlessui/react';
 import Image from 'next/image';
 
