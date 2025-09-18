@@ -212,28 +212,25 @@
 
 // // /loginpage/page.jsx
 
+
 "use client";
 
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { login } from "../../../lib/api"; // Adjust path if needed
+import { login } from "../../../lib/api";
 import toast from "react-hot-toast";
-import { Sun, Moon } from "lucide-react"; // Using a consistent icon library
+import { Sun, Moon } from "lucide-react";
 
-// ==============================================================================
-// MAIN LOGIN PAGE COMPONENT
-// ==============================================================================
 export default function LoginPage() {
   const router = useRouter();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-
-  // State for the form inputs
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     setMounted(true);
@@ -242,76 +239,74 @@ export default function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    
+    setError("");
+
     try {
-      // 1. Call the login API with the username and password
       const data = await login({ username, password });
-
-      // 2. If successful, store the authentication token in localStorage
-      // This makes it available for all subsequent API calls
       localStorage.setItem('authToken', data.token);
-
+      
       toast.success(`Welcome back, ${data.user.username}! Redirecting...`);
       
-      // 3. Perform automatic, role-based redirection
-      // It checks the first role in the user's roles array.
       const userRole = data.user.roles[0];
+      const roleRoutes = {
+        "HR": "/dashboard",
+        "Department Head": "/departmentHead",
+        "Staff": "/staff",
+        "Super Admin": "/admin",
+        "Intern": "/intern"
+      };
 
-      if (userRole === "HR") {
-        router.push("/dashboard");
-      } else if (userRole === "Department Head") {
-        router.push("/departmentHead");
-      } else if (userRole === "Staff") {
-        router.push("/staff"); // Assuming you will create a /staff route
-      } else if (userRole === "Super Admin") {
-          router.push("/admin"); // Assuming you will create an /admin route
-      } else if (userRole === "Intern") {
-        router.push("/intern"); // Assuming you will create an /intern route
-      } 
-      else {
-        // Fallback for any other roles that don't have a dedicated dashboard
+      if (roleRoutes[userRole]) {
+        router.push(roleRoutes[userRole]);
+      } else {
         toast.error("Your role does not have a dashboard assigned.");
-        localStorage.removeItem('authToken'); // Clear the token if there's no valid role
+        localStorage.removeItem('authToken');
       }
-
     } catch (error) {
-      // The API function throws an error with the backend's message
-      toast.error(error.message);
+      const errorMessage = error.response?.data?.message || 
+                          error.message || 
+                          "Login failed. Please try again.";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
   };
 
   if (!mounted) {
-    // Render a blank page or a simple loader to avoid hydration mismatch
     return <div className="min-h-screen bg-gray-50 dark:bg-slate-900"></div>;
   }
 
   return (
     <div className="flex min-h-screen bg-gray-50 dark:bg-slate-900 relative">
-      <div className="absolute top-4 right-4 z-10">
+      {/* Mobile background with banner image - positioned behind content */}
+      <div className="md:hidden fixed inset-0 z-0">
+        <div 
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: "url('/banner.webp')", filter: "blur(8px)" }}
+        ></div>
+        <div className="absolute inset-0 bg-black bg-opacity-40"></div>
+      </div>
+
+      <div className="absolute top-4 right-4 z-20">
         <button
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
+          className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 bg-white dark:bg-gray-800 shadow-md"
           aria-label="Toggle theme"
         >
           {theme === "dark" ? <Sun className="w-6 h-6 text-yellow-500" /> : <Moon className="w-6 h-6 text-gray-800" />}
         </button>
       </div>
 
-      {/* Left Side - Promotional Banner */}
-{/* Left Side - Promo (desktop only) */}
+      {/* Left Side - Promotional Banner (Desktop only) */}
       <div
         className="hidden md:flex w-1/2 relative text-black flex-col justify-center items-center p-8 bg-cover bg-center"
         style={{ backgroundImage: "url('/banner.webp')" }}
       >
-        {/* Blur overlay */}
         <div
           className="absolute inset-0 bg-cover bg-center blur-sm"
           style={{ backgroundImage: "url('/banner.webp')" }}
         ></div>
-
-        {/* Content stays sharp */}
         <div className="relative z-10 flex flex-col items-center">
           <Image
             src="/assets/images/logo.png"
@@ -319,11 +314,12 @@ export default function LoginPage() {
             width={300}
             height={300}
             className="rounded-full"
+            priority
           />
-          <h1 className="text-3xl font-bold mt-6 text-center">
+          <h1 className="text-3xl font-bold mt-6 text-center text-white">
             Welcome to SJC Summer Camp HRMS
           </h1>
-          <p className="mt-4 text-lg max-w-md text-center">
+          <p className="mt-4 text-lg max-w-md text-center text-white">
             Manage attendance, departments, and reports easily with our smart HR
             management system.
           </p>
@@ -331,17 +327,21 @@ export default function LoginPage() {
       </div>
 
       {/* Right Side - Login Form */}
-      <div className="flex w-full md:w-1/2 justify-center items-center bg-white dark:bg-gray-900 p-6 md:p-12">
-        <div className="w-full max-w-md">
+      <div className="flex w-full md:w-1/2 justify-center items-center p-6 md:p-12 z-10">
+        <div className="w-full max-w-md bg-white/95 dark:bg-gray-900/95 rounded-lg shadow-lg p-8 backdrop-blur-sm">
+          {/* Mobile Logo */}
           <div className="flex flex-col items-center mb-8 md:hidden">
-            <Image
-              src="/assets/images/logo.png"
-              alt="Logo"
-              width={100}
-              height={100}
-              className="rounded-full"
-            />
-            <h1 className="text-2xl font-bold text-green-700 dark:text-green-400 mt-4">
+            <div className="relative w-24 h-24 mb-4">
+              <Image
+                src="/assets/images/logo.png"
+                alt="Logo"
+                fill
+                style={{ objectFit: "contain" }}
+                className="rounded-full"
+                priority
+              />
+            </div>
+            <h1 className="text-2xl font-bold text-green-700 dark:text-green-400 text-center">
               SJC Summer Camp HRMS
             </h1>
           </div>
@@ -349,6 +349,12 @@ export default function LoginPage() {
           <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-6 text-center">
             Sign In
           </h2>
+
+          {error && (
+            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded relative">
+              {error}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>

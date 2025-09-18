@@ -39,7 +39,7 @@ export default function HrSidebar() { // Renamed to HrSidebar for clarity
     localStorage.removeItem('employeeInfo');
     localStorage.removeItem('authToken');
     // Redirect to the login page (full reload to clear all React state)
-    router.push('/login');
+    router.push('/loginpage');
     // Optionally: window.location.href = '/login'; for a hard refresh
   };
 
@@ -98,24 +98,24 @@ export default function HrSidebar() { // Renamed to HrSidebar for clarity
 
         {/* Navigation Links - FIX: This section gets the overflow-y-auto */}
         <nav className="flex-1 flex flex-col space-y-1 mt-6 overflow-y-auto scrollbar-thin scrollbar-thumb-green-700 scrollbar-track-green-900">
-          <SidebarLink href="/hr/dashboard" icon={<Home size={18} />} label="Dashboard" />
-          <SidebarLink href="/hr/attendance-overview" icon={<CalendarDays size={18} />} label="Attendance Overview" />
-          <SidebarLink href="/hr/edit-attendance" icon={<Edit size={18} />} label="Edit Attendance" />
-          <SidebarLink href="/hr/departments" icon={<Layers size={18} />} label="Departments" />
-          <SidebarLink href="/hr/emp_profile_list" icon={<IdCard size={18} />} label="Employee Profile List" />
-          <SidebarLink href="/hr/reports" icon={<FileText size={18} />} label="Reports" />
-          <SidebarLink href="/hr/leave_request" icon={<OctagonMinus size={18} />} label="Leave Requests" />
-          <SidebarLink href="/hr/complain_received" icon={<FileWarning size={18} />} label="Complaint List" />
-          <SidebarLink href="/hr/salary" icon={<DollarSign size={18} />} label="Salary" />
-          <SidebarLink href="/hr/overtime-approval" icon={<Clock size={18} />} label="Overtime Approval" />
-          <SidebarLink href="/hr/terminations" icon={<FileText size={18} />} label="Terminations" />
+          <SidebarLink href="/dashboard" icon={<Home size={18} />} label="Dashboard" />
+          <SidebarLink href="/attendance-overview" icon={<CalendarDays size={18} />} label="Attendance Overview" />
+          <SidebarLink href="/edit-attendance" icon={<Edit size={18} />} label="Edit Attendance" />
+          <SidebarLink href="/departments" icon={<Layers size={18} />} label="Departments" />
+          <SidebarLink href="/emp_profile_list" icon={<IdCard size={18} />} label="Employee Profile List" />
+          <SidebarLink href="/reports" icon={<FileText size={18} />} label="Reports" />
+          <SidebarLink href="/leave_request" icon={<OctagonMinus size={18} />} label="Leave Requests" />
+          <SidebarLink href="/complain_received" icon={<FileWarning size={18} />} label="Complaint List" />
+          <SidebarLink href="/salary" icon={<DollarSign size={18} />} label="Salary" />
+          <SidebarLink href="/overtime-approval" icon={<Clock size={18} />} label="Overtime Approval" />
+          <SidebarLink href="/terminations" icon={<FileText size={18} />} label="Terminations" />
         </nav>
 
         {/* Footer Links (Profile, Settings, Logout) - FIX: Use a button for logout */}
         <div className="mt-auto flex-shrink-0">
           <hr className="my-4 border-white/20" />
-          <SidebarLink href="/hr/profile" icon={<Users size={18} />} label="Profile" />
-          <SidebarLink href="/hr/settings" icon={<Settings size={18} />} label="Settings" />
+          <SidebarLink href="/profile" icon={<Users size={18} />} label="Profile" />
+          <SidebarLink href="/settings" icon={<Settings size={18} />} label="Settings" />
           {/* Logout button now triggers the handleLogout function */}
           <button onClick={handleLogout} className="w-full text-left">
             <SidebarLink href="#" icon={<LogOut size={18} />} label="Logout" isDanger={true} />
@@ -135,8 +135,8 @@ function SidebarLink({ href, icon, label, isDanger = false, onClick }) { // Adde
 
   // FIX: Improved isActive logic for root and nested paths within /hr
   const isActive =
-    (fullHref === "/hr/dashboard" && pathname === "/hr/dashboard") || // Exact match for the dashboard root
-    (fullHref !== "/hr/dashboard" && pathname.startsWith(fullHref)); // StartsWith for other nested routes
+    (fullHref === "/dashboard" && pathname === "/dashboard") || // Exact match for the dashboard root
+    (fullHref !== "/dashboard" && pathname.startsWith(fullHref)); // StartsWith for other nested routes
 
 
   const baseClasses = "flex items-center p-2 rounded-md transition-colors duration-200";

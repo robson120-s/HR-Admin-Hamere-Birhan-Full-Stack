@@ -181,8 +181,7 @@ export default function Sidebar({ isOpen, setIsOpen, isCollapsed, setIsCollapsed
             isCollapsed={isCollapsed}/>
            <SidebarLink href="/intern/setting" icon={<Settings size={18} />} label="Settings"             isActive={pathname === '/intern/setting'}
             isCollapsed={isCollapsed}/>
-           <SidebarLink href="/intern/policies" icon={<Users size={18} />} label="Policies"             isActive={pathname === '/intern/policies'}
-            isCollapsed={isCollapsed}/>
+
            <SidebarLink href="/intern/complaints" icon={<MessageSquareWarning size={18} />} label="complain"             isActive={pathname === '/intern/complaints'}
             isCollapsed={isCollapsed}/>
            <SidebarLink href="/intern/performance" icon={<BarChart2 size={18} />} label="Performance"             isActive={pathname === '/intern/performance'}
