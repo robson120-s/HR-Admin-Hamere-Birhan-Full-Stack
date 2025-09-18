@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node server.js",
     "postinstall": "prisma generate",
+    "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -17,6 +17,10 @@
   "bugs": {
     "url": "https://github.com/robson120-s/HR-Admin-Hamere-Birhan-/issues"
   },
+  "engines": {
+  "node": "20.x"
+},
+
   "homepage": "https://github.com/robson120-s/HR-Admin-Hamere-Birhan-#readme",
   "dependencies": {
     "@prisma/client": "^6.16.2",
@@ -34,4 +38,5 @@
   "devDependencies": {
     "prisma": "^6.16.2"
   }
+  
 }
