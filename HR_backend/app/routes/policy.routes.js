@@ -2,7 +2,7 @@
 
 const express = require('express');
 const router = express.Router();
-const { PrismaClient } = require('../generated/prisma'); // or your generated path
+const { PrismaClient } = require("@prisma/client"); // or your generated path
 const prisma = new PrismaClient();
 const { authenticate, authorize } = require('../middlewares/authMiddleware');
 

@@ -1,5 +1,5 @@
 // HR_backend/app/jobs/attendanceProcessor.js
-const { PrismaClient } = require('../generated/prisma');
+const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
 async function processAttendanceForDate(targetDate, employeeIds) {
