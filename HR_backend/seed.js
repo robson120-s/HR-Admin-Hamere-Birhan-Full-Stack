@@ -4,7 +4,6 @@ const { PrismaClient } = require('./app/generated/prisma');
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('Start seeding...');
 
   // --- ADD THIS PART ---
   // Create a default payroll policy if one doesn't exist
@@ -25,7 +24,7 @@ async function main() {
 
   // ... (any other seeding logic you have can stay here)
   
-  console.log('Seeding finished.');
+
 }
 
 main()
