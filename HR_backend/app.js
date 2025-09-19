@@ -9,7 +9,7 @@ const depHeadRoutes = require('./app/routes/depHead.routes');
 
 
 const corsOptions = {
-  origin: 'http://localhost:3000', // Allow requests only from your Next.js app
+  origin: ['http://localhost:3000', 'https://hamere-birhanhr-administrator.vercel.app'],
   methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true, // This is required for cookies
   allowedHeaders: ['Content-Type', 'Authorization'], 
