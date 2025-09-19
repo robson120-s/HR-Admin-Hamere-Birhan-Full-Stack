@@ -1,7 +1,8 @@
 import axios from "axios";
 
 // --- Base Axios Instances ---
-// const BASE_URL = "http://localhost:5555/api"; // Centralized base URL
+// // const BASE_URL = "http://localhost:5555/api"; // Centralized base URL
+// const BASE_URL = "https://hr-admin-hamere-birhan.onrender.com/api"; // Use your live backend URL
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5555/api";
 
 const apiClientHr = axios.create({ baseURL: `${BASE_URL}/hr`, withCredentials: true });
