@@ -8,7 +8,8 @@ export default clerkMiddleware(async (auth, req) => {
   if (isProtectedRoute(req)) {
     await auth.protect()
   }
-  // Always return a response, even if not protected
+  // Always return a response
+  return;
 })
 
 export const config = {
