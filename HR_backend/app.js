@@ -5,9 +5,6 @@ const path = require('path');
 const hrRoutes = require('./app/routes/hr.routes');
 const depHeadRoutes = require('./app/routes/depHead.routes');
 
-
-
-
 const corsOptions = {
   origin: ['http://localhost:3000', 'https://hamere-birhanhr-administrator.vercel.app'],
   methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
@@ -57,7 +54,9 @@ const policyRoutes= require('./app/routes/policy.routes');
 app.use("/api/policies", policyRoutes);
 //Department head routes
 app.use("/api/dep-head", depHeadRoutes);
+//staff routes
 app.use("/api/staff", staffRoutes);
+//intern routes
 app.use("/api/intern", internRoutes);
 
 

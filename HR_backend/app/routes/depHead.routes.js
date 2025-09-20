@@ -12,11 +12,7 @@ const { authenticate, authorize } = require('../middlewares/authMiddleware');
 // GET /api/dep-head/dashboard 
 // This is the complete, secure, and correctly scoped endpoint.
 // ==============================================================================
-// in your backend routes file (e.g., depHead.routes.js)
 
-// in HR_backend/app/routes/depHead.routes.js
-
-// in HR_backend/app/routes/depHead.routes.js
 router.get('/dashboard', authenticate, authorize("Department Head"), async (req, res) => {
   try {
     const departmentId = req.user.employee.departmentId;
@@ -432,11 +428,7 @@ const getManagedDepartmentId = async (userId) => {
     return employee?.departmentId;
 };
 
-// GET /api/dep-head/sub-departments - Fetch sub-departments for the logged-in head
-// In your backend file: routes/depHead.routes.js
 
-// GET /api/dep-head/sub-departments - Fetch sub-departments with DETAILED member counts
-// In your backend file: routes/depHead.routes.js
 
 // GET /api/dep-head/sub-departments - FINAL, EFFICIENT VERSION
 router.get("/sub-departments", authenticate, authorize("Department Head"), async (req, res) => {
@@ -613,7 +605,6 @@ router.delete("/sub-departments/:id", authenticate, authorize("Department Head")
 
 
 // GET /api/dep-head/attendance-overview - Fetch monthly attendance for the Dep Head's team
-// in HR_backend/app/routes/depHead.routes.js
 
 router.post("/attendance", authenticate, authorize("Department Head"), async (req, res) => {
   try {
@@ -662,7 +653,7 @@ router.post("/attendance", authenticate, authorize("Department Head"), async (re
   }
 });
 
-// ✅ FINAL VERSION: The Intelligent Attendance Overview
+//  The Intelligent Attendance Overview
 router.get("/attendance-overview", authenticate, authorize("Department Head"), async (req, res) => {
   try {
     const { year, month } = req.query;
@@ -1012,7 +1003,6 @@ router.post("/leaves", authenticate, authorize("Department Head"), async (req, r
 
 //////Mark Attendance 
 
-// in depHead.routes.js
 
 router.get("/attendance-roster", authenticate, authorize("Department Head"), async (req, res) => {
   try {
@@ -1145,8 +1135,6 @@ router.get("/attendance-roster", authenticate, authorize("Department Head"), asy
 });
 
 // POST /api/dep-head/attendance - Save attendance for the day// in depHead.routes.js
-
-
 
 
 
