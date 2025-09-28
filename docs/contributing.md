@@ -1,10 +1,50 @@
-# Contributing
+# 🤝 Contributing Guide
 
-Contributions are welcome! Please follow these steps to contribute.
+<div align="center">
 
-1.  **Fork the repository** on GitHub.
-2.  **Clone your fork**: `git clone https://github.com/YOUR_USERNAME/HR-Admin-Hamere-Birhan-Full-Stack.git`
-3.  **Create a new branch**: `git checkout -b feature/your-feature-name`
-4.  **Make your changes** and commit them with a clear message.
-5.  **Push to your branch**: `git push origin feature/your-feature-name`
-6.  **Open a Pull Request** on the original repository.
+*We welcome contributions to HR-Admin-Hamere-Birhan!*
+
+</div>
+
+## 🎯 How to Contribute
+
+### **Reporting Bugs**
+Create an issue with:
+- Clear description of the bug
+- Steps to reproduce
+- Expected vs actual behavior
+
+### **Suggesting Features**
+Open an issue describing:
+- The feature idea
+- Use cases and benefits
+- Implementation suggestions
+
+### **Code Contributions**
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Submit a pull request
+
+## 🛠️ Development Setup
+See [Getting Started](getting-started.md) for setup instructions.
+
+## 📝 Code Standards
+- Follow TypeScript best practices
+- Use meaningful variable names
+- Write clear commit messages
+- Add comments for complex logic
+
+## 🔄 Pull Request Process
+1. Ensure tests pass
+2. Update documentation if needed
+3. Follow the PR template
+4. Request reviews from maintainers
+
+---
+
+<div align="center">
+
+**Thank you for contributing! 🎉**
+
+</div>

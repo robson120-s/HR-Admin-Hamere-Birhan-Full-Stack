@@ -1,56 +1,91 @@
-# Getting Started
+# 🚀 Getting Started
 
-This guide will walk you through setting up the project on your local machine for development and testing.
+Complete setup guide for HR-Admin-Hamere-Birhan Full-Stack application.
 
-## Prerequisites
+## 📋 Prerequisites
 
-- Node.js (version 16 or higher)
-- npm or yarn
-- Git
+- **Node.js** 16+ and npm
+- **MySQL** 8.0+ database
+- **Git** for version control
 
-## Installation & Setup
+## 🛠️ Installation & Setup
 
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/robson120-s/HR-Admin-Hamere-Birhan-Full-Stack.git
-    cd HR-Admin-Hamere-Birhan-Full-Stack
-    ```
+### **Step 1: Clone the Repository**
+```bash
+git clone https://github.com/robson120-s/HR-Admin-Hamere-Birhan-Full-Stack.git
+cd HR-Admin-Hamere-Birhan-Full-Stack
 
-2.  **Set up the Backend:**
-    Navigate to the server directory and install dependencies.
-    ```bash
-    cd server
-    npm install
-    ```
-    Create a `.env` file in the `server` directory and copy the contents of `.env.example`. Update the `DATABASE_URL` with your PostgreSQL connection string.
+Step 2: Backend Setup
+bash
+cd server
 
-3.  **Run Database Migrations:**
-    This command will set up your database schema.
-    ```bash
-    npx prisma migrate dev --name init
-    ```
+# Install dependencies
+npm install
 
-4.  **Set up the Frontend:**
-    In a new terminal, navigate to the client directory and install dependencies.
-    ```bash
-    cd client
-    npm install
-    ```
+# Set up environment variables
+cp .env.example .env
+Configure your .env file:
 
-## Running the Application
+env
+DATABASE_URL="mysql://username:password@localhost:3306/hr_database"
+JWT_SECRET="your-super-secret-jwt-key"
+PORT=8000
+Database Setup:
 
-You need two terminals open to run both the frontend and backend simultaneously.
+bash
+# Generate Prisma client
+npx prisma generate
 
-1.  **Start the Backend Server:**
-    In your first terminal (in the `/server` directory):
-    ```bash
-    npm run dev
-    ```
-    The server should now be running on `http://localhost:8000`.
+# Run database migrations
+npx prisma migrate dev --name init
 
-2.  **Start the Frontend Application:**
-    In your second terminal (in the `/client` directory):
-    ```bash
-    npm start
-    ```
-    The React application should now be running and will open in your browser at `http://localhost:3000`.
+# Seed initial data (if available)
+npx prisma db seed
+Step 3: Frontend Setup
+bash
+cd client
+
+# Install dependencies
+npm install
+
+# Configure environment
+cp .env.example .env
+Frontend environment:
+
+env
+REACT_APP_API_URL=http://localhost:8000/api
+🎯 Running the Application
+Start Backend Server
+bash
+cd server
+npm run dev
+# Server runs on http://localhost:8000
+Start Frontend Application
+bash
+cd client  
+npm start
+# Application runs on http://localhost:3000
+✅ Verification
+Backend Health Check: Visit http://localhost:8000/api/health
+
+Frontend Application: Browser opens to http://localhost:3000
+
+🐛 Common Issues
+MySQL Connection Issues:
+
+Ensure MySQL service is running
+
+Verify database credentials in .env
+
+Check if database exists
+
+Port Conflicts:
+
+bash
+# Kill processes using ports 3000 or 8000
+npx kill-port 3000
+npx kill-port 8000
+<div align="center">
+🎉 Your HR Admin Panel is now running!
+
+</div> ```

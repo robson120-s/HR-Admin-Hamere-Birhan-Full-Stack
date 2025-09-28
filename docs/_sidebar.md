@@ -1,20 +1,27 @@
 <!-- docs/_sidebar.md -->
 
-*   [**Home**](/)
-*   [**Getting Started**](getting-started.md)
+*   🏠 **Home**](/)
+*   🚀 **Getting Started**](getting-started.md)
 
 ---
 
-*   **Backend**
-    *   [Overview](backend/README.md)
-    *   [API Endpoints](backend/api-endpoints.md)
-    *   [Database Schema](backend/database.md)
+## 🛠️ **Backend Documentation**
+*   📋 [Backend Overview](backend/README.md)
+*   🔌 [API Endpoints](backend/api-endpoints.md)
+*   🗃️ [Database Schema](backend/database.md)
 
-*   **Frontend**
-    *   [Overview](frontend/README.md)
-    *   [Components](frontend/components.md)
-    *   [State Management](frontend/state-management.md)
+## 🎨 **Frontend Documentation**
+*   📋 [Frontend Overview](frontend/README.md)
+*   🧩 [Components Guide](frontend/components.md)
+*   ⚡ [State Management](frontend/state-management.md)
 
 ---
 
-*   [**Contributing**](contributing.md)
+## 📚 **Additional Resources**
+*   🤝 [Contributing Guide](contributing.md)
+
+---
+
+<div align="center">
+*Built with ❤️ for Hamere_Birhan HR Management*
+</div>
