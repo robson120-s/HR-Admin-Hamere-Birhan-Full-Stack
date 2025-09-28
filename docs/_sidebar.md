@@ -1,6 +1,6 @@
 <!-- docs/_sidebar.md -->
 
-*   🏠 **Home**](/)
+*   🏠 **Home**](README.md)
 *   🚀 **Getting Started**](getting-started.md)
 
 ---
@@ -23,5 +23,5 @@
 ---
 
 <div align="center">
-*Built with ❤️ for Hamere_Birhan HR Management*
+*Built with ❤️ for Ethiopian HR Management*
 </div>

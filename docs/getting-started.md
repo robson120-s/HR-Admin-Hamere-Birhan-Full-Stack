@@ -29,7 +29,7 @@ Configure your .env file:
 env
 DATABASE_URL="mysql://username:password@localhost:3306/hr_database"
 JWT_SECRET="your-super-secret-jwt-key"
-PORT=8000
+PORT=5555
 Database Setup:
 
 bash
@@ -53,20 +53,20 @@ cp .env.example .env
 Frontend environment:
 
 env
-REACT_APP_API_URL=http://localhost:8000/api
+REACT_APP_API_URL=http://localhost:5555/api
 🎯 Running the Application
 Start Backend Server
 bash
 cd server
 npm run dev
-# Server runs on http://localhost:8000
+# Server runs on http://localhost:5555
 Start Frontend Application
 bash
 cd client  
 npm start
 # Application runs on http://localhost:3000
 ✅ Verification
-Backend Health Check: Visit http://localhost:8000/api/health
+Backend Health Check: Visit http://localhost:5555/api/health
 
 Frontend Application: Browser opens to http://localhost:3000
 
@@ -82,9 +82,9 @@ Check if database exists
 Port Conflicts:
 
 bash
-# Kill processes using ports 3000 or 8000
+# Kill processes using ports 3000 or 5555
 npx kill-port 3000
-npx kill-port 8000
+npx kill-port 5555
 <div align="center">
 🎉 Your HR Admin Panel is now running!
 
