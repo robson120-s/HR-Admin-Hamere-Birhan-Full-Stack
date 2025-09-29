@@ -4,7 +4,7 @@
 
 <div align="center">
 
-*A comprehensive Human Resources administration panel designed specifically for Ethiopian Hamere Birhan organizational needs*
+*A comprehensive Human Resources administration panel designed specifically for Ethiopian organizational needs*
 
 </div>
 
@@ -36,32 +36,36 @@
 
 ## 📊 Database Architecture
 
-```mermaid
-erDiagram
-    USER ||--o| EMPLOYEE : "has"
-    EMPLOYEE ||--o{ ATTENDANCE : "records"
-    EMPLOYEE ||--o{ LEAVE : "requests"
-    EMPLOYEE ||--o{ SALARY : "earns"
-    DEPARTMENT ||--o{ EMPLOYEE : "employs"
-    POSITION ||--o{ EMPLOYEE : "defines"
+The system uses a relational database with the following main entities:
 
-🎯 Core Modules
-Employee Management: Complete employee lifecycle management
+- **Users**: System users with authentication
+- **Employees**: Complete employee records with personal and employment data
+- **Departments**: Organizational structure with hierarchy
+- **Positions**: Job titles and roles
+- **Attendance**: Session-based time tracking
+- **Leave**: Multi-type leave management
+- **Salary**: Payroll and compensation records
 
-Attendance System: Session-based tracking with summaries
+**Key Relationships:**
+- One User has one Employee profile
+- One Department contains many Employees  
+- One Employee has many Attendance records
+- One Employee has many Leave requests
+- One Employee has many Salary records
 
-Payroll Processing: Automated salary calculations
+## 🎯 Core Modules
 
-Leave Management: Multi-type leave with approvals
+- **Employee Management**: Complete employee lifecycle management
+- **Attendance System**: Session-based tracking with summaries
+- **Payroll Processing**: Automated salary calculations
+- **Leave Management**: Multi-type leave with approvals
+- **Complaint System**: Employee grievance handling
+- **Performance Tracking**: Regular performance reviews
+- **Termination Workflow**: Structured offboarding process
 
-Complaint System: Employee grievance handling
+## 🚀 Quick Start
 
-Performance Tracking: Regular performance reviews
-
-Termination Workflow: Structured offboarding process
-
-🚀 Quick Start
-bash
+```bash
 # Clone the repository
 git clone https://github.com/robson120-s/HR-Admin-Hamere-Birhan-Full-Stack.git
 
@@ -75,4 +79,4 @@ Check out our Getting Started Guide for setup instructions.
 
 ⭐ Star us on GitHub if you find this project helpful!
 
-</div> 
+</div> ```
