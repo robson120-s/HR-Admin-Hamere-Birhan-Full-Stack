@@ -38,6 +38,29 @@
 
 ```mermaid
 erDiagram
+    User {
+        int id PK
+        string username
+        string email
+    }
+    Employee {
+        int id PK
+        string firstName
+        string lastName
+    }
+    Department {
+        int id PK
+        string name
+    }
+    Position {
+        int id PK
+        string name
+    }
+    AttendanceLog {
+        int id PK
+        int employeeId FK
+    }
+
     User ||--o| Employee : "has profile"
     Employee ||--o{ AttendanceLog : "records"
     Employee ||--o{ Leave : "requests"
