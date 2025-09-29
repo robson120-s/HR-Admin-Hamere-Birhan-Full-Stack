@@ -38,37 +38,12 @@
 
 ```mermaid
 erDiagram
-    User {
-        int id PK
-        string username
-        string email
-    }
-    Employee {
-        int id PK
-        string firstName
-        string lastName
-    }
-    Department {
-        int id PK
-        string name
-    }
-    Position {
-        int id PK
-        string name
-    }
-    AttendanceLog {
-        int id PK
-        int employeeId FK
-    }
-
-    User ||--o| Employee : "has profile"
-    Employee ||--o{ AttendanceLog : "records"
-    Employee ||--o{ Leave : "requests"
-    Employee ||--o{ OvertimeLog : "records"
-    Employee ||--o{ Salary : "records"
-    Department ||--o{ Employee : "contains"
-    Position ||--o{ Employee : "defines"
-    Shift ||--o{ EmployeeShift : "assigned"
+    USER ||--o| EMPLOYEE : "has"
+    EMPLOYEE ||--o{ ATTENDANCE : "records"
+    EMPLOYEE ||--o{ LEAVE : "requests"
+    EMPLOYEE ||--o{ SALARY : "earns"
+    DEPARTMENT ||--o{ EMPLOYEE : "employs"
+    POSITION ||--o{ EMPLOYEE : "defines"
 
 🎯 Core Modules
 Employee Management: Complete employee lifecycle management
