@@ -46,6 +46,29 @@ The system uses a relational database with the following main entities:
 - **Leave**: Multi-type leave management
 - **Salary**: Payroll and compensation records
 
+## 📊 Database Architecture
+
+```mermaid
+erDiagram
+    USER {
+        int id
+        string username
+        string email
+    }
+    EMPLOYEE {
+        int id
+        string firstName
+        string lastName
+    }
+    DEPARTMENT {
+        int id
+        string name
+    }
+    USER ||--o| EMPLOYEE : "has"
+    EMPLOYEE ||--o{ ATTENDANCE : "records"
+    EMPLOYEE ||--o{ LEAVE : "requests"
+    DEPARTMENT ||--o{ EMPLOYEE : "contains"
+
 **Key Relationships:**
 - One User has one Employee profile
 - One Department contains many Employees  
