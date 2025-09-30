@@ -1,4 +1,4 @@
-<!-- docs/_coverpage.md
+<!-- docs/_coverpage.md -->
 
 ![Logo](_media/logo.jpg) 
 # HR-Admin-Hamere-Birhan <small>Full-Stack</small>
@@ -15,7 +15,7 @@ A modern, full-stack HR management system built with cutting-edge technologies t
 [Get Started](#docsify) [View on GitHub](https://github.com/robson120-s/HR-Admin-Hamere-Birhan-Full-Stack)
 
 <!-- Background image -->
-<!-- ![Background](_media/banner.webp) --> 
+![Background](_media/banner.webp) 
 <!-- docs/_coverpage.md -->
 
 <!-- 
@@ -37,7 +37,7 @@ A modern, full-stack HR management system built with cutting-edge technologies t
 ![Background](_media/banner.webp)  -->
 
 <!-- docs/_coverpage.md -->
-
+<!-- 
 # HR-Admin-Hamere-Birhan <small>Full-Stack</small>
 
 > 🚀 Empowering HR with Seamless Workforce Excellence
@@ -50,4 +50,4 @@ A modern, full-stack HR management system built with cutting-edge technologies t
 [![React](https://img.shields.io/badge/React-18-blue?logo=react)](https://reactjs.org/)
 
 [Get Started](getting-started.md)
-[View on GitHub](https://github.com/robson120-s/HR-Admin-Hamere-Birhan-Full-Stack)
+[View on GitHub](https://github.com/robson120-s/HR-Admin-Hamere-Birhan-Full-Stack) -->
