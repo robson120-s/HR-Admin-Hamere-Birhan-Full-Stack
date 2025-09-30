@@ -27,7 +27,7 @@ Open an issue describing:
 4. Submit a pull request
 
 ## 🛠️ Development Setup
-See [Getting Started](getting-started.md) for setup instructions.
+See [Getting Started](docs/getting-started.md) for setup instructions.
 
 ## 📝 Code Standards
 - Follow TypeScript best practices
