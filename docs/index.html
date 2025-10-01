@@ -2,20 +2,84 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>HR Admin Documentation</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
+  <title>HR-Admin-Hamere-Birhan - Documentation</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <meta name="description" content="Documentation for HR-Admin-Hamere-Birhan Full-Stack">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
+  <style>
+    /* Cover page background */
+    section.cover {
+      background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('_media/banner.webp') center/cover !important;
+      color: white;
+    }
+    
+    section.cover .cover-main {
+      background: rgba(0,0,0,0.8);
+      padding: 40px;
+      border-radius: 10px;
+      backdrop-filter: blur(5px);
+    }
+    
+    section.cover h1 {
+      color: white !important;
+    }
+    
+    section.cover blockquote {
+      color: #E5E7EB !important;
+      border-left-color: #4F46E5 !important;
+    }
+    
+    section.cover p {
+      color: #D1D5DB !important;
+    }
+    
+    /* Style the buttons */
+    .cover-main > p:last-child a {
+      background: #4F46E5;
+      color: white;
+      padding: 12px 30px;
+      border-radius: 6px;
+      text-decoration: none;
+      margin: 0 10px;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      border: 2px solid #4F46E5;
+    }
+    
+    .cover-main > p:last-child a:last-child {
+      background: transparent;
+      border-color: white;
+    }
+    
+    .cover-main > p:last-child a:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(79, 70, 229, 0.4);
+    }
+    
+    .cover-main > p:last-child a:first-child:hover {
+      background: transparent;
+      color: #4F46E5;
+    }
+    
+    .cover-main > p:last-child a:last-child:hover {
+      background: white;
+      color: black;
+    }
+  </style>
 </head>
 <body>
   <div id="app"></div>
   <script>
     window.$docsify = {
-      name: 'HR Admin',
+      name: 'HR-Admin-Hamere-Birhan',
       repo: 'robson120-s/HR-Admin-Hamere-Birhan-Full-Stack',
       loadSidebar: true,
       coverpage: true,
+      auto2top: true,
+      onlyCover: false,
     }
   </script>
-  <script src="https://cdn.jsdelivr.net/npm/docsify@4"></script>
+  <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
 </body>
 </html>
