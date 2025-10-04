@@ -2,7 +2,7 @@
 
 > 🚀 Empowering HR with Seamless Workforce Excellence
 
-A modern, full-stack HR management system built with cutting-edge technologies to streamline employee management, department organization, and HR operations.
+A modern, full-stack HR management system built with cutting-edge technologies to streamline employee management, department organization, and HR operations (Hamere Birhane).
 
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue?logo=github)](https://github.com/robson120-s/HR-Admin-Hamere-Birhan-Full-Stack)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue?logo=typescript)](https://www.typescriptlang.org/)

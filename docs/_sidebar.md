@@ -23,5 +23,5 @@
 ---
 
 <div align="center">
-*Built with ❤️ for Ethiopian HR Management*
+*Built with ❤️ for Hamere Birhan HR Management*
 </div>
