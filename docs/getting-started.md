@@ -2,11 +2,6 @@
 
 Complete setup guide for HR-Admin-Hamere-Birhan Full-Stack application.
 
-## 📋 Prerequisites
-
-- **Node.js** 16+ and npm
-- **MySQL** 8.0+ database
-- **Git** for version control
 
 ## 🛠️ Installation & Setup
 
