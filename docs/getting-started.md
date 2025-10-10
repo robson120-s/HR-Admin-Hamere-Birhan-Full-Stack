@@ -26,7 +26,11 @@ npm install
 cp .env.example .env
 Configure your .env file:
 
-
+env
+DATABASE_URL="mysql://username:password@localhost:3306/hr_database"
+JWT_SECRET="your-super-secret-jwt-key"
+PORT=5555
+Database Setup:
 
 bash
 # Generate Prisma client
